@@ -60,6 +60,24 @@ const propertySchema = new Schema<IProperty>(
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: (_doc, ret: Record<string, unknown>) => {
+        ret.id = String(ret._id);
+        ret._id = undefined;
+        ret.__v = undefined;
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: (_doc, ret: Record<string, unknown>) => {
+        ret.id = String(ret._id);
+        ret._id = undefined;
+        ret.__v = undefined;
+        return ret;
+      },
+    },
   }
 );
 

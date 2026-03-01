@@ -27,10 +27,10 @@ export const registerValidation = [
 ];
 
 export const loginValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email')
-    .normalizeEmail(),
+  body('identifier')
+    .trim()
+    .notEmpty()
+    .withMessage('Email or phone number is required'),
   body('password')
     .notEmpty()
     .withMessage('Password is required'),
@@ -85,4 +85,31 @@ export const verifyOtpValidation = [
     .trim()
     .isLength({ min: 4, max: 8 })
     .withMessage('OTP must be between 4 and 8 characters'),
+];
+
+export const requestPasswordResetValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+];
+
+export const confirmPasswordResetValidation = [
+  body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+  body('otp')
+    .trim()
+    .isLength({ min: 6, max: 6 })
+    .withMessage('OTP must be 6 characters'),
+  body('newPassword')
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters'),
+];
+
+export const deleteAccountValidation = [
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required to delete account'),
 ];

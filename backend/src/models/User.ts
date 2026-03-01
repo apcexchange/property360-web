@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IUser, UserRole } from '../types';
+import { IUser, UserRole, KYCStatus, IDDocumentType } from '../types';
 
 const userSchema = new Schema<IUser>(
   {
@@ -57,6 +57,26 @@ const userSchema = new Schema<IUser>(
       city: String,
       state: String,
       postalCode: String,
+    },
+    kyc: {
+      status: {
+        type: String,
+        enum: Object.values(KYCStatus),
+        default: KYCStatus.NOT_STARTED,
+      },
+      selfieUrl: String,
+      selfieUploadedAt: Date,
+      document: {
+        type: {
+          type: String,
+          enum: Object.values(IDDocumentType),
+        },
+        number: String,
+        imageUrl: String,
+        uploadedAt: Date,
+      },
+      verifiedAt: Date,
+      rejectionReason: String,
     },
   },
   {

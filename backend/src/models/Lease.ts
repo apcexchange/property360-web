@@ -40,9 +40,38 @@ const leaseSchema = new Schema<ILease>(
       enum: ['monthly', 'quarterly', 'annually'],
       default: 'monthly',
     },
+    // One-time fees (first year only)
     securityDeposit: {
       type: Number,
       default: 0,
+    },
+    cautionFee: {
+      type: Number,
+      default: 0,
+    },
+    agentFee: {
+      type: Number,
+      default: 0,
+    },
+    agreementFee: {
+      type: Number,
+      default: 0,
+    },
+    legalFee: {
+      type: Number,
+      default: 0,
+    },
+    serviceCharge: {
+      type: Number,
+      default: 0,
+    },
+    otherFee: {
+      type: Number,
+      default: 0,
+    },
+    otherFeeDescription: {
+      type: String,
+      default: '',
     },
     status: {
       type: String,

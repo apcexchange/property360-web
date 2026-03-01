@@ -52,13 +52,63 @@ export class PropertyService {
       Property.countDocuments(filter),
     ]);
 
+    // Get unit counts and occupancy for each property
+    const propertyIds = properties.map(p => p._id);
+    const unitStats = await Unit.aggregate([
+      { $match: { property: { $in: propertyIds } } },
+      {
+        $group: {
+          _id: '$property',
+          totalUnits: { $sum: 1 },
+          occupiedUnits: {
+            $sum: { $cond: [{ $eq: ['$isOccupied', true] }, 1, 0] },
+          },
+          monthlyRevenue: {
+            $sum: {
+              $cond: [{ $eq: ['$isOccupied', true] }, '$rentAmount', 0],
+            },
+          },
+        },
+      },
+    ]);
+    const unitStatsMap = new Map(
+      unitStats.map(u => [
+        u._id.toString(),
+        {
+          totalUnits: u.totalUnits,
+          occupiedUnits: u.occupiedUnits,
+          monthlyRevenue: u.monthlyRevenue,
+        },
+      ])
+    );
+
+    // Add unit stats to each property
+    const propertiesWithUnits = properties.map(p => {
+      const stats = unitStatsMap.get(p._id.toString()) || {
+        totalUnits: 0,
+        occupiedUnits: 0,
+        monthlyRevenue: 0,
+      };
+      const occupancyRate =
+        stats.totalUnits > 0
+          ? Math.round((stats.occupiedUnits / stats.totalUnits) * 100)
+          : 0;
+      return {
+        ...p.toJSON(),
+        totalUnits: stats.totalUnits,
+        occupiedUnits: stats.occupiedUnits,
+        occupancyRate,
+        monthlyRevenue: stats.monthlyRevenue,
+      };
+    });
+
     return {
-      properties,
+      properties: propertiesWithUnits,
       meta: getPaginationMeta(total, page, limit),
     };
   }
 
-  async getPropertyById(propertyId: string, ownerId: string): Promise<IProperty> {
+  async getPropertyById(propertyId: string, ownerId: string) {
     const property = await Property.findOne({ _id: propertyId, owner: ownerId })
       .populate('agent', 'firstName lastName email phone')
       .populate('owner', 'firstName lastName email phone');
@@ -67,7 +117,28 @@ export class PropertyService {
       throw new AppError('Property not found', 404);
     }
 
-    return property;
+    // Fetch units for this property
+    const units = await Unit.find({ property: propertyId })
+      .populate('tenant', 'firstName lastName email phone');
+
+    // Calculate occupancy stats
+    const totalUnits = units.length;
+    const occupiedUnits = units.filter(u => u.isOccupied).length;
+    const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0;
+    const monthlyRevenue = units
+      .filter(u => u.isOccupied)
+      .reduce((sum, u) => sum + (u.rentAmount || 0), 0);
+
+    // Return property with units attached and stats
+    const propertyObj = property.toJSON();
+    return {
+      ...propertyObj,
+      totalUnits,
+      occupiedUnits,
+      occupancyRate,
+      monthlyRevenue,
+      units,
+    };
   }
 
   async updateProperty(

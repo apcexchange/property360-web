@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import config from './config';
 import routes from './routes';
 import { errorHandler } from './middleware';
@@ -27,6 +28,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 if (config.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Health check
 app.get('/health', (_req, res) => {

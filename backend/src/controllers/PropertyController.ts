@@ -45,7 +45,7 @@ export class PropertyController {
   async getPropertyById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const property = await PropertyService.getPropertyById(
-        req.params.id,
+        req.params.id as string,
         req.user!._id.toString()
       );
 
@@ -64,7 +64,7 @@ export class PropertyController {
   async updateProperty(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const property = await PropertyService.updateProperty(
-        req.params.id,
+        req.params.id as string,
         req.user!._id.toString(),
         req.body
       );
@@ -83,7 +83,7 @@ export class PropertyController {
 
   async deleteProperty(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      await PropertyService.deleteProperty(req.params.id, req.user!._id.toString());
+      await PropertyService.deleteProperty(req.params.id as string, req.user!._id.toString());
 
       const response: ApiResponse = {
         success: true,
@@ -98,7 +98,7 @@ export class PropertyController {
 
   async addUnit(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const unit = await PropertyService.addUnit(req.params.id, req.body);
+      const unit = await PropertyService.addUnit(req.params.id as string, req.body);
 
       const response: ApiResponse = {
         success: true,
@@ -114,7 +114,7 @@ export class PropertyController {
 
   async getUnits(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const units = await PropertyService.getUnits(req.params.id);
+      const units = await PropertyService.getUnits(req.params.id as string);
 
       const response: ApiResponse = {
         success: true,
@@ -131,7 +131,7 @@ export class PropertyController {
   async assignAgent(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const property = await PropertyService.assignAgent(
-        req.params.id,
+        req.params.id as string,
         req.user!._id.toString(),
         req.body.agentId
       );

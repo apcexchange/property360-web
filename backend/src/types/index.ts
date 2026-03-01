@@ -8,6 +8,30 @@ export enum UserRole {
   AGENT = 'agent',
 }
 
+// KYC verification status
+export enum KYCStatus {
+  NOT_STARTED = 'not_started',
+  PENDING = 'pending',
+  VERIFIED = 'verified',
+  REJECTED = 'rejected',
+}
+
+// ID document types
+export enum IDDocumentType {
+  NIN = 'nin',
+  DRIVERS_LICENSE = 'drivers',
+  PASSPORT = 'passport',
+  VOTERS_CARD = 'voters',
+}
+
+// KYC Document interface
+export interface IKYCDocument {
+  type: IDDocumentType;
+  number: string;
+  imageUrl: string;
+  uploadedAt: Date;
+}
+
 // User interface
 export interface IUser extends Document {
   email: string;
@@ -25,6 +49,14 @@ export interface IUser extends Document {
     city: string;
     state: string;
     postalCode: string;
+  };
+  kyc?: {
+    status: KYCStatus;
+    selfieUrl?: string;
+    selfieUploadedAt?: Date;
+    document?: IKYCDocument;
+    verifiedAt?: Date;
+    rejectionReason?: string;
   };
   createdAt: Date;
   updatedAt: Date;
@@ -52,6 +84,18 @@ export interface IProperty extends Document {
   updatedAt: Date;
 }
 
+// Default fees interface for units
+export interface IDefaultFees {
+  securityDeposit: number;
+  cautionFee: number;
+  agentFee: number;
+  agreementFee: number;
+  legalFee: number;
+  serviceCharge: number;
+  otherFee: number;
+  otherFeeDescription: string;
+}
+
 // Unit interface
 export interface IUnit extends Document {
   property: IProperty['_id'];
@@ -62,6 +106,7 @@ export interface IUnit extends Document {
   rentAmount: number;
   isOccupied: boolean;
   tenant?: IUser['_id'];
+  defaultFees?: IDefaultFees;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -76,7 +121,15 @@ export interface ILease extends Document {
   endDate: Date;
   rentAmount: number;
   paymentFrequency: 'monthly' | 'quarterly' | 'annually';
+  // One-time fees (first year only)
   securityDeposit: number;
+  cautionFee: number;
+  agentFee: number;
+  agreementFee: number;
+  legalFee: number;
+  serviceCharge: number;
+  otherFee: number;
+  otherFeeDescription: string;
   status: 'active' | 'expired' | 'terminated';
   createdAt: Date;
   updatedAt: Date;
@@ -128,6 +181,81 @@ export interface INotification extends Document {
 // Extended Request with user
 export interface AuthRequest extends Request {
   user?: IUser;
+}
+
+// Document type for tenancy agreements
+export enum AgreementDocumentType {
+  PDF = 'pdf',
+  DOCX = 'docx',
+  IMAGE = 'image',
+}
+
+// Processing status for OCR
+export enum ProcessingStatus {
+  PENDING = 'pending',
+  PROCESSING = 'processing',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}
+
+// Signing status for e-signatures
+export enum SigningStatus {
+  NOT_SENT = 'not_sent',
+  PENDING = 'pending',
+  SENT = 'sent',
+  OPENED = 'opened',
+  SIGNED = 'signed',
+  DECLINED = 'declined',
+}
+
+// Extracted data from OCR
+export interface IExtractedLeaseData {
+  leaseStartDate?: Date;
+  leaseEndDate?: Date;
+  rentAmount?: number;
+  securityDeposit?: number;
+  tenantName?: string;
+  landlordName?: string;
+  propertyAddress?: string;
+  rawText?: string;
+  confidence?: number;
+}
+
+// Tenancy Agreement interface
+export interface ITenancyAgreement extends Document {
+  lease: ILease['_id'];
+  property: IProperty['_id'];
+  unit: IUnit['_id'];
+  uploadedBy: IUser['_id'];
+  // Document storage
+  documentUrl: string;
+  documentPublicId: string;
+  documentType: 'pdf' | 'docx' | 'image';
+  originalFilename: string;
+  fileSize: number;
+  // OCR extracted data
+  extractedData?: IExtractedLeaseData;
+  // Processing status
+  processingStatus: 'pending' | 'processing' | 'completed' | 'failed';
+  processingError?: string;
+  // Tenant acknowledgment (legacy)
+  tenantAcknowledged: boolean;
+  tenantAcknowledgedAt?: Date;
+  // E-signature / DocuSeal integration
+  signingStatus: 'not_sent' | 'pending' | 'sent' | 'opened' | 'signed' | 'declined';
+  docusealSubmissionId?: number;
+  docusealSubmitterId?: number;
+  docusealTemplateId?: number;
+  signingLink?: string;
+  signingSentAt?: Date;
+  signingOpenedAt?: Date;
+  signingCompletedAt?: Date;
+  signingDeclinedAt?: Date;
+  signedDocumentUrl?: string;
+  tenantEmail?: string;
+  tenantName?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // API Response type

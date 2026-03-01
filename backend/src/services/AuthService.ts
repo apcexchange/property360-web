@@ -13,13 +13,14 @@ interface RegisterData {
 }
 
 interface LoginData {
-  email: string;
+  identifier: string;
   password: string;
 }
 
 interface AuthResponse {
   user: Partial<IUser>;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export class AuthService {
@@ -30,7 +31,9 @@ export class AuthService {
     }
 
     const user = await User.create(data);
-    const token = generateToken(user);
+    const accessToken = generateToken(user);
+    // For now, use the same token as refresh token (implement proper refresh token later)
+    const refreshToken = accessToken;
 
     return {
       user: {
@@ -41,13 +44,22 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
+        avatar: user.avatar || user.kyc?.selfieUrl,
       },
-      token,
+      accessToken,
+      refreshToken,
     };
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    const user = await User.findOne({ email: data.email }).select('+password');
+    // Find user by email or phone number
+    const identifier = data.identifier.toLowerCase().trim();
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phone: identifier },
+      ],
+    }).select('+password');
     if (!user) {
       throw new AppError('Invalid credentials', 401);
     }
@@ -61,7 +73,9 @@ export class AuthService {
       throw new AppError('Account is deactivated', 401);
     }
 
-    const token = generateToken(user);
+    const accessToken = generateToken(user);
+    // For now, use the same token as refresh token (implement proper refresh token later)
+    const refreshToken = accessToken;
 
     return {
       user: {
@@ -72,8 +86,10 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         isVerified: user.isVerified,
+        avatar: user.avatar || user.kyc?.selfieUrl,
       },
-      token,
+      accessToken,
+      refreshToken,
     };
   }
 
@@ -106,6 +122,35 @@ export class AuthService {
 
     user.password = newPassword;
     await user.save();
+  }
+
+  async findUserByEmail(email: string): Promise<IUser | null> {
+    return User.findOne({ email: email.toLowerCase() });
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<void> {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    user.password = newPassword;
+    await user.save();
+  }
+
+  async deleteAccount(userId: string, password: string): Promise<void> {
+    const user = await User.findById(userId).select('+password');
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      throw new AppError('Invalid password', 401);
+    }
+
+    // Permanently delete the user account
+    await User.findByIdAndDelete(userId);
   }
 }
 

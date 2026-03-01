@@ -7,8 +7,9 @@ const startServer = async (): Promise<void> => {
     // Connect to database
     await connectDatabase();
 
-    // Start server
-    app.listen(config.port, () => {
+    // Start server - bind to 0.0.0.0 to accept connections from emulators/devices
+    const host = '0.0.0.0';
+    app.listen(config.port, host, () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                    Property360 API                        ║

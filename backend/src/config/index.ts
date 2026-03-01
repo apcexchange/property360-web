@@ -37,6 +37,35 @@ export const config = {
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     verifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID || '',
   },
+
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || '',
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'Property360 <onboarding@resend.dev>',
+  },
+
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY || '',
+    fromEmail: process.env.SENDGRID_FROM_EMAIL || 'noreply@property360.com',
+    fromName: process.env.SENDGRID_FROM_NAME || 'Property360',
+  },
+
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+    apiKey: process.env.CLOUDINARY_API_KEY || '',
+    apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+  },
+
+  googleDocumentAI: {
+    projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || '',
+    processorId: process.env.GOOGLE_DOCUMENT_AI_PROCESSOR_ID || '',
+    location: process.env.GOOGLE_DOCUMENT_AI_LOCATION || 'us',
+  },
+
+  docuseal: {
+    apiKey: process.env.DOCUSEAL_API_KEY || '',
+    apiUrl: process.env.DOCUSEAL_API_URL || 'https://api.docuseal.co',
+    webhookSecret: process.env.DOCUSEAL_WEBHOOK_SECRET || '',
+  },
 };
 
 export default config;

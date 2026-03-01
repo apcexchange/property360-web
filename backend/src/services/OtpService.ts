@@ -53,7 +53,12 @@ class OtpService {
         expiresAt,
       };
     } catch (error: any) {
-      console.error('Twilio send OTP error:', error.message, error.code, error.status);
+      console.error('Twilio send OTP error:', {
+        message: error.message,
+        code: error.code,
+        status: error.status,
+        moreInfo: error.moreInfo,
+      });
 
       if (error.code === 60200) {
         throw new AppError('Invalid phone number format', 400);
@@ -64,8 +69,25 @@ class OtpService {
       if (error.code === 60205) {
         throw new AppError('SMS is not supported in this region', 400);
       }
+      if (error.code === 60082) {
+        throw new AppError(
+          'Geographic permission not enabled for this region',
+          403,
+        );
+      }
+      if (error.status === 403) {
+        throw new AppError(
+          channel === 'email'
+            ? 'Email verification not configured. Check Twilio email integration.'
+            : 'SMS not allowed for this number. Check Twilio geo-permissions.',
+          403,
+        );
+      }
 
-      throw new AppError('Failed to send verification code', 500);
+      // Log the full error for debugging
+      console.error('Full Twilio error:', JSON.stringify(error, null, 2));
+
+      throw new AppError(`Failed to send verification code: ${error.message}`, 500);
     }
   }
 

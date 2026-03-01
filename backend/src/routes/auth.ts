@@ -8,6 +8,9 @@ import {
   updateProfileValidation,
   sendOtpValidation,
   verifyOtpValidation,
+  requestPasswordResetValidation,
+  confirmPasswordResetValidation,
+  deleteAccountValidation,
 } from '../validations';
 
 const router = Router();
@@ -19,6 +22,10 @@ router.post('/login', validate(loginValidation), AuthController.login);
 router.post('/otp/send', validate(sendOtpValidation), AuthController.sendOtp);
 router.post('/otp/verify', validate(verifyOtpValidation), AuthController.verifyOtp);
 
+// Password reset routes (public)
+router.post('/password/reset', validate(requestPasswordResetValidation), AuthController.requestPasswordReset);
+router.post('/password/reset/confirm', validate(confirmPasswordResetValidation), AuthController.confirmPasswordReset);
+
 // Protected routes
 router.get('/profile', protect, AuthController.getProfile);
 router.put('/profile', protect, validate(updateProfileValidation), AuthController.updateProfile);
@@ -27,6 +34,13 @@ router.put(
   protect,
   validate(changePasswordValidation),
   AuthController.changePassword
+);
+
+router.delete(
+  '/account',
+  protect,
+  validate(deleteAccountValidation),
+  AuthController.deleteAccount
 );
 
 export default router;

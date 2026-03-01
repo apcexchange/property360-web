@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService, OtpService } from '../services';
+import { AuthService, OtpService, EmailOtpService } from '../services';
 import { AuthRequest, ApiResponse } from '../types';
 
 export class AuthController {
@@ -89,11 +89,18 @@ export class AuthController {
       const { type, value } = req.body;
       console.log(`[SendOTP] type=${type}, value=${value}`);
 
-      // Map 'phone' to 'sms' for Twilio channel
-      const channel = type === 'phone' ? 'sms' : 'email';
-      console.log(`[SendOTP] Calling OtpService.sendOtp with channel=${channel}`);
+      let result;
 
-      const result = await OtpService.sendOtp(value, channel);
+      if (type === 'email') {
+        // Use Resend for email OTP
+        console.log('[SendOTP] Using EmailOtpService for email');
+        result = await EmailOtpService.sendOtp(value);
+      } else {
+        // Use Twilio for SMS OTP
+        console.log('[SendOTP] Using OtpService (Twilio) for SMS');
+        result = await OtpService.sendOtp(value, 'sms');
+      }
+
       console.log('[SendOTP] Success:', result);
 
       const response: ApiResponse = {
@@ -118,11 +125,20 @@ export class AuthController {
       const { type, value, otp } = req.body;
       console.log(`[VerifyOTP] type=${type}, value=${value}, otp=${otp}`);
 
-      // Map 'phone' to 'sms' for Twilio channel
-      const channel = type === 'phone' ? 'sms' : 'email';
-      console.log(`[VerifyOTP] Calling OtpService.verifyOtp with channel=${channel}`);
+      let result;
 
-      const result = await OtpService.verifyOtp(value, otp, channel);
+      if (type === 'email') {
+        // Use Resend for email OTP verification
+        // Don't consume the OTP here - it will be consumed when the action is taken
+        // (e.g., password reset, registration completion)
+        console.log('[VerifyOTP] Using EmailOtpService for email (peek mode)');
+        result = await EmailOtpService.verifyOtp(value, otp, false);
+      } else {
+        // Use Twilio for SMS OTP verification
+        console.log('[VerifyOTP] Using OtpService (Twilio) for SMS');
+        result = await OtpService.verifyOtp(value, otp, 'sms');
+      }
+
       console.log('[VerifyOTP] Result:', result);
 
       const response: ApiResponse = {
@@ -136,6 +152,100 @@ export class AuthController {
       res.status(200).json(response);
     } catch (error: any) {
       console.error('[VerifyOTP] Error:', error.message, error.statusCode || error.status);
+      next(error);
+    }
+  }
+
+  async requestPasswordReset(req: Request, res: Response, next: NextFunction): Promise<void> {
+    console.log('[PasswordReset] Request received:', req.body);
+    try {
+      const { email } = req.body;
+
+      // Check if user exists
+      const user = await AuthService.findUserByEmail(email);
+      if (!user) {
+        // Don't reveal if user exists for security
+        const response: ApiResponse = {
+          success: true,
+          message: 'If an account exists with this email, you will receive a verification code.',
+          data: { sent: true },
+        };
+        res.status(200).json(response);
+        return;
+      }
+
+      // Send OTP to email
+      const result = await EmailOtpService.sendOtp(email);
+      console.log('[PasswordReset] OTP sent:', result);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Verification code sent to your email',
+        data: {
+          message: result.message,
+          expiresAt: result.expiresAt,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      console.error('[PasswordReset] Error:', error.message);
+      next(error);
+    }
+  }
+
+  async confirmPasswordReset(req: Request, res: Response, next: NextFunction): Promise<void> {
+    console.log('[PasswordResetConfirm] Request received:', req.body);
+    try {
+      const { email, otp, newPassword } = req.body;
+
+      // Verify OTP first
+      const otpResult = await EmailOtpService.verifyOtp(email, otp);
+      if (!otpResult.verified) {
+        const response: ApiResponse = {
+          success: false,
+          message: 'Invalid verification code',
+          data: { verified: false },
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Reset the password
+      await AuthService.resetPassword(email, newPassword);
+      console.log('[PasswordResetConfirm] Password reset successful for:', email);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Password reset successful',
+        data: { reset: true },
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      console.error('[PasswordResetConfirm] Error:', error.message);
+      next(error);
+    }
+  }
+
+  async deleteAccount(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    console.log('[DeleteAccount] Request received');
+    try {
+      const { password } = req.body;
+      const userId = req.user!._id.toString();
+
+      await AuthService.deleteAccount(userId, password);
+      console.log('[DeleteAccount] Account deleted successfully for user:', userId);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Account deleted successfully',
+        data: { deleted: true },
+      };
+
+      res.status(200).json(response);
+    } catch (error: any) {
+      console.error('[DeleteAccount] Error:', error.message);
       next(error);
     }
   }

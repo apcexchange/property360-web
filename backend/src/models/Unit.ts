@@ -37,9 +37,37 @@ const unitSchema = new Schema<IUnit>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    defaultFees: {
+      securityDeposit: { type: Number, default: 0 },
+      cautionFee: { type: Number, default: 0 },
+      agentFee: { type: Number, default: 0 },
+      agreementFee: { type: Number, default: 0 },
+      legalFee: { type: Number, default: 0 },
+      serviceCharge: { type: Number, default: 0 },
+      otherFee: { type: Number, default: 0 },
+      otherFeeDescription: { type: String, default: '' },
+    },
   },
   {
     timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: (_doc, ret: Record<string, unknown>) => {
+        ret.id = String(ret._id);
+        ret._id = undefined;
+        ret.__v = undefined;
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: (_doc, ret: Record<string, unknown>) => {
+        ret.id = String(ret._id);
+        ret._id = undefined;
+        ret.__v = undefined;
+        return ret;
+      },
+    },
   }
 );
 
