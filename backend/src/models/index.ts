@@ -5,3 +5,7 @@ export { Lease } from './Lease';
 export { Transaction } from './Transaction';
 export { MaintenanceRequest } from './MaintenanceRequest';
 export { Notification } from './Notification';
+export { LandlordAgent } from './LandlordAgent';
+export { Invoice } from './Invoice';
+export { Receipt } from './Receipt';
+export { PaymentGateway } from './PaymentGateway';

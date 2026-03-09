@@ -43,6 +43,10 @@ export interface IUser extends Document {
   avatar?: string;
   isVerified: boolean;
   isActive: boolean;
+  isDeleted: boolean;
+  deletedAt?: Date;
+  deletedEmail?: string; // Original email before anonymization
+  deletedPhone?: string; // Original phone before anonymization
   nin?: string;
   address?: {
     street: string;
@@ -111,16 +115,50 @@ export interface IUnit extends Document {
   updatedAt: Date;
 }
 
+// Guarantor interface
+export interface IGuarantor {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone: string;
+  relationship: string;
+  occupation?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+  };
+  idType?: 'nin' | 'drivers' | 'passport' | 'voters';
+  idNumber?: string;
+}
+
+// Emergency Contact interface
+export interface IEmergencyContact {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  relationship: string;
+}
+
 // Lease interface
 export interface ILease extends Document {
   property: IProperty['_id'];
   unit: IUnit['_id'];
   tenant: IUser['_id'];
   landlord: IUser['_id'];
+  assignedBy: IUser['_id']; // The user (landlord or agent) who assigned the tenant
   startDate: Date;
   endDate: Date;
   rentAmount: number;
   paymentFrequency: 'monthly' | 'quarterly' | 'annually';
+  // Late fee configuration
+  gracePeriodDays: number; // Days after due date before late fee applies
+  lateFeeType: 'none' | 'fixed' | 'percentage';
+  lateFeeValue: number; // Fixed amount or percentage (0-100)
+  // Auto invoice generation
+  autoGenerateInvoice: boolean;
+  nextInvoiceDate?: Date;
   // One-time fees (first year only)
   securityDeposit: number;
   cautionFee: number;
@@ -131,6 +169,10 @@ export interface ILease extends Document {
   otherFee: number;
   otherFeeDescription: string;
   status: 'active' | 'expired' | 'terminated';
+  // Guarantor information
+  guarantor?: IGuarantor;
+  // Emergency contacts
+  emergencyContacts?: IEmergencyContact[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -142,10 +184,65 @@ export interface ITransaction extends Document {
   landlord: IUser['_id'];
   amount: number;
   type: 'rent' | 'deposit' | 'maintenance' | 'other';
-  status: 'pending' | 'completed' | 'failed';
-  paymentMethod: string;
-  reference: string;
+  status: 'pending' | 'completed' | 'failed' | 'voided';
+  paymentMethod: 'cash' | 'bank_transfer' | 'cheque' | 'mobile_money' | 'other';
+  reference?: string;
   description?: string;
+  // Manual payment recording fields
+  paymentDate: Date;
+  recordedBy: IUser['_id'];
+  notes?: string;
+  // Voiding fields
+  voidedAt?: Date;
+  voidedBy?: IUser['_id'];
+  voidReason?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Invoice status
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+
+// Invoice line item interface
+export interface IInvoiceLineItem {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+}
+
+// Invoice interface
+export interface IInvoice extends Document {
+  invoiceNumber: string;
+  landlord: IUser['_id'];
+  tenant: IUser['_id'];
+  property: IProperty['_id'];
+  unit?: IUnit['_id'];
+  lease?: ILease['_id'];
+  lineItems: IInvoiceLineItem[];
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  // Partial payment tracking
+  amountPaid: number;
+  amountDue: number;
+  // Late fee
+  lateFee: number;
+  lateFeeAppliedAt?: Date;
+  // Billing period (for auto-generated invoices)
+  periodStart?: Date;
+  periodEnd?: Date;
+  issueDate: Date;
+  dueDate: Date;
+  status: InvoiceStatus;
+  sentAt?: Date;
+  paidAt?: Date;
+  // Multiple payments support
+  payments: ITransaction['_id'][];
+  paymentTransaction?: ITransaction['_id']; // Deprecated: use payments array
+  notes?: string;
+  internalNotes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -258,6 +355,39 @@ export interface ITenancyAgreement extends Document {
   updatedAt: Date;
 }
 
+// Agent invitation status
+export enum AgentInvitationStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+}
+
+// Agent permissions interface
+export interface IAgentPermissions {
+  canAddTenant: boolean;
+  canRemoveTenant: boolean;
+  canRecordPayment: boolean;
+  canViewPayments: boolean;
+  canRenewLease: boolean;
+  canManageMaintenance: boolean;
+  canViewReports: boolean;
+  canUploadAgreements: boolean;
+}
+
+// Landlord-Agent relationship interface
+export interface ILandlordAgent extends Document {
+  landlord: IUser['_id'];
+  agent: IUser['_id'];
+  properties: IProperty['_id'][];
+  permissions: IAgentPermissions;
+  isActive: boolean;
+  invitedAt: Date;
+  acceptedAt?: Date;
+  status: AgentInvitationStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // API Response type
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -270,4 +400,53 @@ export interface ApiResponse<T = unknown> {
     total?: number;
     totalPages?: number;
   };
+}
+
+// Extended AuthRequest with landlordId for agents
+export interface AuthRequestWithLandlord extends AuthRequest {
+  landlordId?: IUser['_id'];
+}
+
+// Receipt interface
+export interface IReceipt extends Document {
+  receiptNumber: string;
+  transaction: ITransaction['_id'];
+  invoice?: IInvoice['_id'];
+  tenant: IUser['_id'];
+  landlord: IUser['_id'];
+  property: IProperty['_id'];
+  unit?: IUnit['_id'];
+  amount: number;
+  paymentMethod: 'cash' | 'bank_transfer' | 'cheque' | 'mobile_money' | 'card' | 'other';
+  paymentDate: Date;
+  description: string;
+  issuedAt: Date;
+  issuedBy: IUser['_id'];
+  emailedAt?: Date;
+  emailedTo?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Late fee type
+export type LateFeeType = 'none' | 'fixed' | 'percentage';
+
+// Payment gateway transaction status
+export type PaymentGatewayStatus = 'pending' | 'success' | 'failed' | 'abandoned';
+
+// Payment gateway transaction interface
+export interface IPaymentGateway extends Document {
+  reference: string;
+  invoice: IInvoice['_id'];
+  tenant: IUser['_id'];
+  landlord: IUser['_id'];
+  amount: number;
+  gateway: 'paystack' | 'flutterwave';
+  status: PaymentGatewayStatus;
+  gatewayReference?: string;
+  gatewayResponse?: Record<string, unknown>;
+  paidAt?: Date;
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
 }
