@@ -48,6 +48,19 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+    },
+    deletedEmail: {
+      type: String,
+    },
+    deletedPhone: {
+      type: String,
+    },
     nin: {
       type: String,
       trim: true,

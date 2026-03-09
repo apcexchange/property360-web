@@ -12,6 +12,8 @@ build/
 .env.production
 .env.staging
 .env.*.local
+.env.dev
+.env.prod
 
 # IDE
 .idea/

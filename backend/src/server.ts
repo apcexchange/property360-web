@@ -1,11 +1,29 @@
 import app from './app';
 import config from './config';
 import { connectDatabase } from './config/database';
+import cron from 'node-cron';
+import LeaseExpirationService from './services/LeaseExpirationService';
 
 const startServer = async (): Promise<void> => {
   try {
     // Connect to database
     await connectDatabase();
+
+    // Run lease expiration check on startup to catch any missed expirations
+    console.log('[Startup] Checking for expired leases...');
+    const startupResult = await LeaseExpirationService.checkAndExpireLeases();
+    if (startupResult.expiredCount > 0) {
+      console.log(`[Startup] Expired ${startupResult.expiredCount} lease(s)`);
+    } else {
+      console.log('[Startup] No expired leases found');
+    }
+
+    // Schedule daily lease expiration check at 1:00 AM
+    cron.schedule('0 1 * * *', async () => {
+      console.log('[Cron] Running daily lease expiration check...');
+      const result = await LeaseExpirationService.checkAndExpireLeases();
+      console.log(`[Cron] Expired ${result.expiredCount} lease(s)`);
+    });
 
     // Start server - bind to 0.0.0.0 to accept connections from emulators/devices
     const host = '0.0.0.0';
