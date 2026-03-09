@@ -32,7 +32,8 @@ router.get('/stats', async (req: AuthRequest, res: Response) => {
 router.get('/activities', async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!._id.toString();
-    const activities = await DashboardService.getRecentActivities(userId);
+    const limit = parseInt(req.query.limit as string) || 5;
+    const activities = await DashboardService.getRecentActivities(userId, limit);
 
     res.json({
       success: true,

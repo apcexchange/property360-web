@@ -18,6 +18,7 @@ interface VerifyOtpResult {
 class OtpService {
   private client: twilio.Twilio;
   private verifyServiceSid: string;
+  private phoneNumber: string;
 
   constructor() {
     if (!config.twilio.accountSid || !config.twilio.authToken) {
@@ -26,6 +27,7 @@ class OtpService {
 
     this.client = twilio(config.twilio.accountSid, config.twilio.authToken);
     this.verifyServiceSid = config.twilio.verifyServiceSid;
+    this.phoneNumber = config.twilio.phoneNumber;
   }
 
   /**
@@ -126,6 +128,71 @@ class OtpService {
 
       throw new AppError('Failed to verify code', 500);
     }
+  }
+
+  /**
+   * Send SMS notification (not OTP, just a message)
+   */
+  async sendSms(to: string, message: string): Promise<{ success: boolean }> {
+    if (!this.phoneNumber) {
+      console.warn('[OtpService] Twilio phone number not configured, skipping SMS');
+      return { success: false };
+    }
+
+    try {
+      const formattedTo = this.formatPhoneNumber(to);
+      console.log(`[OtpService] Sending SMS to: ${formattedTo}`);
+
+      await this.client.messages.create({
+        body: message,
+        from: this.phoneNumber,
+        to: formattedTo,
+      });
+
+      console.log(`[OtpService] SMS sent successfully to ${formattedTo}`);
+      return { success: true };
+    } catch (error: any) {
+      console.error('[OtpService] Failed to send SMS:', error.message);
+      // Don't throw - SMS failure shouldn't break the flow
+      return { success: false };
+    }
+  }
+
+  /**
+   * Send tenant invitation SMS
+   */
+  async sendTenantInvitationSms(
+    phone: string,
+    firstName: string,
+    tempPassword: string,
+    landlordName: string,
+    propertyName: string,
+    unitNumber: string
+  ): Promise<{ success: boolean }> {
+    const message = `Hi ${firstName}! ${landlordName} has added you as a tenant at ${propertyName}, Unit ${unitNumber}. Download Property360 to manage your tenancy. Login: Your email, Password: ${tempPassword}. Please change your password after first login.`;
+
+    return this.sendSms(phone, message);
+  }
+
+  /**
+   * Send payment reminder SMS
+   */
+  async sendPaymentReminderSms(
+    phone: string,
+    firstName: string,
+    rentAmount: number,
+    propertyName: string,
+    unitNumber: string
+  ): Promise<{ success: boolean }> {
+    const formattedAmount = new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+    }).format(rentAmount);
+
+    const message = `Hi ${firstName}, this is a reminder that your rent payment of ${formattedAmount} for ${propertyName} Unit ${unitNumber} is due. Please ensure timely payment. - Property360`;
+
+    return this.sendSms(phone, message);
   }
 
   /**

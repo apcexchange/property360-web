@@ -1,7 +1,8 @@
-import { User } from '../models';
+import { User, Lease, Unit } from '../models';
 import { IUser, UserRole } from '../types';
 import { generateToken } from '../utils/jwt';
 import { AppError } from '../middleware';
+import emailOtpService from './EmailOtpService';
 
 interface RegisterData {
   email: string;
@@ -52,13 +53,14 @@ export class AuthService {
   }
 
   async login(data: LoginData): Promise<AuthResponse> {
-    // Find user by email or phone number
+    // Find user by email or phone number (exclude deleted accounts)
     const identifier = data.identifier.toLowerCase().trim();
     const user = await User.findOne({
       $or: [
         { email: identifier },
         { phone: identifier },
       ],
+      isDeleted: { $ne: true },
     }).select('+password');
     if (!user) {
       throw new AppError('Invalid credentials', 401);
@@ -149,8 +151,86 @@ export class AuthService {
       throw new AppError('Invalid password', 401);
     }
 
-    // Permanently delete the user account
-    await User.findByIdAndDelete(userId);
+    // Store original contact info before anonymizing
+    const originalEmail = user.email;
+    const originalPhone = user.phone;
+    const userName = `${user.firstName} ${user.lastName}`;
+    const userRole = user.role;
+
+    // If tenant, handle lease termination and landlord notification
+    if (userRole === UserRole.TENANT) {
+      await this.handleTenantAccountDeletion(userId, userName, originalEmail);
+    }
+
+    // Anonymize the account (soft delete)
+    // This allows the user to re-register with the same email/phone later
+    // while preserving the record for landlord's historical purposes
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    user.deletedEmail = originalEmail;
+    user.deletedPhone = originalPhone;
+    user.email = `deleted_${user._id}@deleted.local`;
+    user.phone = `deleted_${user._id}`;
+    user.password = 'DELETED_ACCOUNT'; // Will be hashed by pre-save hook
+    user.isActive = false;
+
+    await user.save();
+
+    console.log(`[AuthService] Account soft-deleted for user ${userId} (${userName})`);
+  }
+
+  /**
+   * Handle cleanup when a tenant deletes their account
+   * - Terminates active leases
+   * - Updates units to vacant
+   * - Notifies landlords
+   */
+  private async handleTenantAccountDeletion(
+    tenantId: string,
+    tenantName: string,
+    tenantEmail: string
+  ): Promise<void> {
+    // Find all active leases for this tenant
+    const activeLeases = await Lease.find({
+      tenant: tenantId,
+      status: 'active',
+    }).populate('landlord', 'email firstName lastName')
+      .populate('property', 'name')
+      .populate('unit', 'unitNumber');
+
+    for (const lease of activeLeases) {
+      // Terminate the lease
+      lease.status = 'terminated';
+      await lease.save();
+
+      // Update unit to vacant
+      await Unit.findByIdAndUpdate(lease.unit, {
+        isOccupied: false,
+        tenant: undefined,
+      });
+
+      // Notify the landlord
+      const landlord = lease.landlord as any;
+      const property = lease.property as any;
+      const unit = lease.unit as any;
+
+      if (landlord?.email) {
+        try {
+          await emailOtpService.sendTenantDeletedNotification(
+            landlord.email,
+            landlord.firstName,
+            tenantName,
+            property?.name || 'Unknown Property',
+            unit?.unitNumber || 'Unknown Unit'
+          );
+          console.log(`[AuthService] Notified landlord ${landlord.email} about tenant deletion`);
+        } catch (error) {
+          console.error(`[AuthService] Failed to notify landlord:`, error);
+        }
+      }
+    }
+
+    console.log(`[AuthService] Processed ${activeLeases.length} active leases for deleted tenant`);
   }
 }
 
