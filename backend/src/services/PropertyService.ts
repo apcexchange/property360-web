@@ -171,8 +171,9 @@ export class PropertyService {
     }
   }
 
-  async addUnit(propertyId: string, data: Partial<IUnit>): Promise<IUnit> {
-    const property = await Property.findById(propertyId);
+  async addUnit(propertyId: string, ownerId: string, data: Partial<IUnit>): Promise<IUnit> {
+    // Verify the property exists AND belongs to this owner
+    const property = await Property.findOne({ _id: propertyId, owner: ownerId });
     if (!property) {
       throw new AppError('Property not found', 404);
     }
@@ -181,7 +182,13 @@ export class PropertyService {
     return unit;
   }
 
-  async getUnits(propertyId: string) {
+  async getUnits(propertyId: string, ownerId: string) {
+    // Verify the property belongs to this owner before returning units
+    const property = await Property.findOne({ _id: propertyId, owner: ownerId });
+    if (!property) {
+      throw new AppError('Property not found', 404);
+    }
+
     return Unit.find({ property: propertyId }).populate('tenant', 'firstName lastName email phone');
   }
 

@@ -98,7 +98,11 @@ export class PropertyController {
 
   async addUnit(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const unit = await PropertyService.addUnit(req.params.id as string, req.body);
+      const unit = await PropertyService.addUnit(
+        req.params.id as string,
+        req.user!._id.toString(),
+        req.body
+      );
 
       const response: ApiResponse = {
         success: true,
@@ -114,7 +118,10 @@ export class PropertyController {
 
   async getUnits(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const units = await PropertyService.getUnits(req.params.id as string);
+      const units = await PropertyService.getUnits(
+        req.params.id as string,
+        req.user!._id.toString()
+      );
 
       const response: ApiResponse = {
         success: true,

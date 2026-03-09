@@ -70,3 +70,34 @@ export const searchTenantValidation = [
     .isLength({ min: 2 })
     .withMessage('Search query must be at least 2 characters'),
 ];
+
+export const renewLeaseValidation = [
+  param('leaseId')
+    .isMongoId()
+    .withMessage('Invalid lease ID'),
+  body('newStartDate')
+    .isISO8601()
+    .withMessage('Please provide a valid start date'),
+  body('newEndDate')
+    .isISO8601()
+    .withMessage('Please provide a valid end date')
+    .custom((value, { req }) => {
+      if (new Date(value) <= new Date(req.body.newStartDate)) {
+        throw new Error('End date must be after start date');
+      }
+      return true;
+    }),
+  body('rentAmount')
+    .isNumeric()
+    .withMessage('Rent amount must be a number')
+    .custom((value) => {
+      if (value <= 0) {
+        throw new Error('Rent amount must be greater than 0');
+      }
+      return true;
+    }),
+  body('paymentFrequency')
+    .optional()
+    .isIn(['monthly', 'quarterly', 'annually'])
+    .withMessage('Payment frequency must be monthly, quarterly, or annually'),
+];
