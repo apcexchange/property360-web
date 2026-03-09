@@ -1,0 +1,292 @@
+import { Response, NextFunction } from 'express';
+import TenantDashboardService from '../services/TenantDashboardService';
+import { AuthRequest, ApiResponse } from '../types';
+
+export class TenantAppController {
+  /**
+   * Get tenant dashboard data (lease info, property, landlord)
+   */
+  async getDashboard(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const leaseInfo = await TenantDashboardService.getTenantLeaseInfo(
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: leaseInfo ? 'Dashboard data retrieved' : 'No active lease found',
+        data: leaseInfo,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get payment summary for tenant
+   */
+  async getPaymentSummary(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const summary = await TenantDashboardService.getPaymentSummary(
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Payment summary retrieved',
+        data: summary,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get payment history for tenant
+   */
+  async getPaymentHistory(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { status, limit, offset } = req.query;
+
+      const result = await TenantDashboardService.getPaymentHistory(
+        req.user!._id.toString(),
+        {
+          status: status as string,
+          limit: limit ? parseInt(limit as string) : undefined,
+          offset: offset ? parseInt(offset as string) : undefined,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Payment history retrieved',
+        data: result.payments,
+        meta: {
+          total: result.total,
+          limit: limit ? parseInt(limit as string) : 20,
+          page: offset ? Math.floor(parseInt(offset as string) / (parseInt(limit as string) || 20)) + 1 : 1,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get upcoming payments for tenant
+   */
+  async getUpcomingPayments(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const payments = await TenantDashboardService.getUpcomingPayments(
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Upcoming payments retrieved',
+        data: payments,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get maintenance requests for tenant
+   */
+  async getMaintenanceRequests(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { status, limit, offset } = req.query;
+
+      const result = await TenantDashboardService.getMaintenanceRequests(
+        req.user!._id.toString(),
+        {
+          status: status as string,
+          limit: limit ? parseInt(limit as string) : undefined,
+          offset: offset ? parseInt(offset as string) : undefined,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Maintenance requests retrieved',
+        data: result.requests,
+        meta: {
+          total: result.total,
+          limit: limit ? parseInt(limit as string) : 20,
+          page: offset ? Math.floor(parseInt(offset as string) / (parseInt(limit as string) || 20)) + 1 : 1,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Create a maintenance request
+   */
+  async createMaintenanceRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const request = await TenantDashboardService.createMaintenanceRequest(
+        req.user!._id.toString(),
+        {
+          title: req.body.title,
+          description: req.body.description,
+          priority: req.body.priority,
+          images: req.body.images,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Maintenance request created',
+        data: {
+          id: request._id.toString(),
+          title: request.title,
+          description: request.description,
+          priority: request.priority,
+          status: request.status,
+          createdAt: request.createdAt,
+        },
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get a single maintenance request
+   */
+  async getMaintenanceRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const requestId = req.params.requestId as string;
+      const request = await TenantDashboardService.getMaintenanceRequestById(
+        requestId,
+        req.user!._id.toString()
+      );
+
+      if (!request) {
+        const response: ApiResponse = {
+          success: false,
+          message: 'Maintenance request not found',
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Maintenance request retrieved',
+        data: request,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Cancel a maintenance request
+   */
+  async cancelMaintenanceRequest(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const requestId = req.params.requestId as string;
+      const request = await TenantDashboardService.cancelMaintenanceRequest(
+        requestId,
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Maintenance request cancelled',
+        data: {
+          id: request._id.toString(),
+          status: request.status,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get tenant receipts
+   */
+  async getReceipts(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { limit, page } = req.query;
+
+      const result = await TenantDashboardService.getTenantReceipts(
+        req.user!._id.toString(),
+        {
+          limit: limit ? parseInt(limit as string) : undefined,
+          page: page ? parseInt(page as string) : undefined,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Receipts retrieved',
+        data: result.receipts,
+        meta: {
+          total: result.total,
+          limit: limit ? parseInt(limit as string) : 20,
+          page: page ? parseInt(page as string) : 1,
+        },
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get a single receipt
+   */
+  async getReceipt(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const receiptId = req.params.receiptId as string;
+      const receipt = await TenantDashboardService.getTenantReceipt(
+        receiptId,
+        req.user!._id.toString()
+      );
+
+      if (!receipt) {
+        const response: ApiResponse = {
+          success: false,
+          message: 'Receipt not found',
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Receipt retrieved',
+        data: receipt,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new TenantAppController();
