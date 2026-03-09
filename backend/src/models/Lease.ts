@@ -23,6 +23,11 @@ const leaseSchema = new Schema<ILease>(
       ref: 'User',
       required: [true, 'Landlord is required'],
     },
+    assignedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Assigned by user is required'],
+    },
     startDate: {
       type: Date,
       required: [true, 'Start date is required'],
@@ -39,6 +44,28 @@ const leaseSchema = new Schema<ILease>(
       type: String,
       enum: ['monthly', 'quarterly', 'annually'],
       default: 'monthly',
+    },
+    // Late fee configuration
+    gracePeriodDays: {
+      type: Number,
+      default: 3, // 3 days after due date before late fee
+    },
+    lateFeeType: {
+      type: String,
+      enum: ['none', 'fixed', 'percentage'],
+      default: 'none',
+    },
+    lateFeeValue: {
+      type: Number,
+      default: 0,
+    },
+    // Auto invoice generation
+    autoGenerateInvoice: {
+      type: Boolean,
+      default: false,
+    },
+    nextInvoiceDate: {
+      type: Date,
     },
     // One-time fees (first year only)
     securityDeposit: {
@@ -78,6 +105,35 @@ const leaseSchema = new Schema<ILease>(
       enum: ['active', 'expired', 'terminated'],
       default: 'active',
     },
+    // Guarantor information
+    guarantor: {
+      firstName: { type: String },
+      lastName: { type: String },
+      email: { type: String },
+      phone: { type: String },
+      relationship: { type: String },
+      occupation: { type: String },
+      address: {
+        street: { type: String },
+        city: { type: String },
+        state: { type: String },
+      },
+      idType: {
+        type: String,
+        enum: ['nin', 'drivers', 'passport', 'voters'],
+      },
+      idNumber: { type: String },
+    },
+    // Emergency contacts
+    emergencyContacts: [
+      {
+        firstName: { type: String, required: true },
+        lastName: { type: String, required: true },
+        phone: { type: String, required: true },
+        email: { type: String },
+        relationship: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,
