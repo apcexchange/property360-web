@@ -36,6 +36,7 @@ export const config = {
     accountSid: process.env.TWILIO_ACCOUNT_SID || '',
     authToken: process.env.TWILIO_AUTH_TOKEN || '',
     verifyServiceSid: process.env.TWILIO_VERIFY_SERVICE_SID || '',
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
   },
 
   resend: {
@@ -65,6 +66,13 @@ export const config = {
     apiKey: process.env.DOCUSEAL_API_KEY || '',
     apiUrl: process.env.DOCUSEAL_API_URL || 'https://api.docuseal.co',
     webhookSecret: process.env.DOCUSEAL_WEBHOOK_SECRET || '',
+  },
+
+  paystack: {
+    secretKey: process.env.PAYSTACK_SECRET_KEY || '',
+    publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
+    callbackUrl: process.env.PAYSTACK_CALLBACK_URL || 'https://yourapp.com/payment/callback',
+    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || '',
   },
 };
 
