@@ -13,6 +13,8 @@ interface CreateInvoiceData {
     rate: number;
   }>;
   dueDate: Date;
+  periodStart?: Date;
+  periodEnd?: Date;
   taxRate?: number;
   notes?: string;
   internalNotes?: string;
@@ -162,6 +164,8 @@ export class InvoiceService {
       total,
       issueDate: new Date(),
       dueDate: data.dueDate,
+      periodStart: data.periodStart,
+      periodEnd: data.periodEnd,
       status,
       sentAt: data.saveAsDraft ? undefined : new Date(),
       notes: data.notes,

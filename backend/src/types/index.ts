@@ -201,7 +201,7 @@ export interface ITransaction extends Document {
 }
 
 // Invoice status
-export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+export type InvoiceStatus = 'draft' | 'sent' | 'paid' | 'partially_paid' | 'overdue' | 'cancelled';
 
 // Invoice line item interface
 export interface IInvoiceLineItem {
@@ -447,6 +447,95 @@ export interface IPaymentGateway extends Document {
   gatewayResponse?: Record<string, unknown>;
   paidAt?: Date;
   metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// =====================
+// WALLET SYSTEM TYPES
+// =====================
+
+// Wallet interface
+export interface IWallet extends Document {
+  landlord: IUser['_id'];
+  balance: number;
+  totalEarnings: number;
+  totalWithdrawn: number;
+  pendingBalance: number;
+  currency: 'NGN';
+  isActive: boolean;
+  // Settings
+  autoSettlement: boolean;
+  autoPayoutEnabled: boolean;
+  autoPayoutThreshold: number;
+  defaultBankAccount?: IBankAccount['_id'];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Bank Account interface
+export interface IBankAccount extends Document {
+  landlord: IUser['_id'];
+  bankCode: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  recipientCode: string;
+  isVerified: boolean;
+  isPrimary: boolean;
+  isActive: boolean;
+  verifiedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Wallet transaction types
+export type WalletTransactionType = 'credit' | 'debit' | 'withdrawal' | 'refund' | 'fee';
+export type WalletTransactionStatus = 'pending' | 'completed' | 'failed' | 'reversed';
+
+// Wallet Transaction interface
+export interface IWalletTransaction extends Document {
+  wallet: IWallet['_id'];
+  landlord: IUser['_id'];
+  type: WalletTransactionType;
+  amount: number;
+  balanceBefore: number;
+  balanceAfter: number;
+  status: WalletTransactionStatus;
+  description: string;
+  reference: string;
+  sourceTransaction?: ITransaction['_id'];
+  sourceInvoice?: IInvoice['_id'];
+  payout?: IPayout['_id'];
+  metadata?: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Payout status
+export type PayoutStatus = 'pending' | 'processing' | 'success' | 'failed' | 'reversed';
+
+// Payout interface
+export interface IPayout extends Document {
+  landlord: IUser['_id'];
+  wallet: IWallet['_id'];
+  bankAccount: IBankAccount['_id'];
+  amount: number;
+  fee: number;
+  netAmount: number;
+  status: PayoutStatus;
+  reference: string;
+  paystackTransferCode?: string;
+  paystackReference?: string;
+  paystackResponse?: Record<string, unknown>;
+  requestedAt: Date;
+  processedAt?: Date;
+  completedAt?: Date;
+  failedAt?: Date;
+  failureReason?: string;
+  requestedBy: IUser['_id'];
+  isAutoPayout: boolean;
+  walletTransaction?: IWalletTransaction['_id'];
   createdAt: Date;
   updatedAt: Date;
 }

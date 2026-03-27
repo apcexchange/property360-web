@@ -9,3 +9,7 @@ export { LandlordAgent } from './LandlordAgent';
 export { Invoice } from './Invoice';
 export { Receipt } from './Receipt';
 export { PaymentGateway } from './PaymentGateway';
+export { Wallet } from './Wallet';
+export { BankAccount } from './BankAccount';
+export { WalletTransaction } from './WalletTransaction';
+export { Payout } from './Payout';

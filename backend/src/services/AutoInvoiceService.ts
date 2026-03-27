@@ -1,6 +1,6 @@
 import { Lease, Invoice, User, Property, Unit } from '../models';
 import { ILease, IInvoice } from '../types';
-import { InvoiceService } from './InvoiceService';
+import InvoiceService from './InvoiceService';
 import EmailOtpService from './EmailOtpService';
 
 interface GeneratedInvoice {
@@ -134,9 +134,9 @@ class AutoInvoiceService {
           rate: lease.rentAmount,
         },
       ],
-      dueDate: dueDate.toISOString(),
-      periodStart: periodStart.toISOString(),
-      periodEnd: periodEnd.toISOString(),
+      dueDate,
+      periodStart,
+      periodEnd,
       saveAsDraft: false, // Auto-generated invoices are sent immediately
     };
 

@@ -106,6 +106,14 @@ class TenancyAgreementService {
       throw error;
     }
 
+    // Decode URL-encoded filename (React Native may encode special characters)
+    let originalFilename = file.originalname;
+    try {
+      originalFilename = decodeURIComponent(file.originalname);
+    } catch {
+      // If decoding fails, use the original filename
+    }
+
     // Create tenancy agreement record
     const agreement = new TenancyAgreement({
       lease: leaseId,
@@ -115,7 +123,7 @@ class TenancyAgreementService {
       documentUrl: uploadResult.url,
       documentPublicId: uploadResult.publicId,
       documentType,
-      originalFilename: file.originalname,
+      originalFilename,
       fileSize: file.size,
       processingStatus: 'pending',
     });

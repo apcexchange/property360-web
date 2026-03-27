@@ -196,4 +196,28 @@ router.get(
   TenancyAgreementController.getSigningLink
 );
 
+// ============ Document Download Routes ============
+
+/**
+ * @route   GET /tenancy-agreements/:id/download
+ * @desc    Download agreement document (proxies from Cloudinary)
+ * @access  Private (Landlord or Tenant)
+ */
+router.get(
+  '/:id/download',
+  validate(agreementIdValidation),
+  TenancyAgreementController.downloadDocument
+);
+
+/**
+ * @route   GET /tenancy-agreements/:id/download-signed
+ * @desc    Download signed agreement document
+ * @access  Private (Landlord or Tenant)
+ */
+router.get(
+  '/:id/download-signed',
+  validate(agreementIdValidation),
+  TenancyAgreementController.downloadSignedDocument
+);
+
 export default router;

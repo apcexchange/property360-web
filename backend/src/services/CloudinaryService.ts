@@ -141,6 +141,7 @@ class CloudinaryService {
       const result: UploadApiResponse = await cloudinary.uploader.upload(filePath, {
         folder: `property360/${folder}`,
         resource_type: 'raw',
+        access_mode: 'public',
       });
 
       return {

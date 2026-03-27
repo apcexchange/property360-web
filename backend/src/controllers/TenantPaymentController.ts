@@ -42,7 +42,7 @@ export class TenantPaymentController {
    */
   async verifyPayment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { reference } = req.params;
+      const reference = req.params.reference as string;
 
       const payment = await PaymentGatewayService.verifyPayment(reference);
 
@@ -69,7 +69,7 @@ export class TenantPaymentController {
    */
   async getPaymentByReference(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { reference } = req.params;
+      const reference = req.params.reference as string;
 
       const payment = await PaymentGatewayService.getPaymentByReference(reference);
 

@@ -39,7 +39,7 @@ export class ReceiptController {
   async getReceiptById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!._id.toString();
-      const { receiptId } = req.params;
+      const receiptId = req.params.receiptId as string;
 
       const receipt = await ReceiptService.getReceiptById(receiptId, userId);
 
@@ -128,7 +128,7 @@ export class ReceiptController {
   async emailReceipt(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = req.user!._id.toString();
-      const { receiptId } = req.params;
+      const receiptId = req.params.receiptId as string;
 
       const receipt = await ReceiptService.getReceiptById(receiptId, userId);
 
@@ -156,7 +156,7 @@ export class ReceiptController {
    */
   async getReceiptByTransaction(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { transactionId } = req.params;
+      const transactionId = req.params.transactionId as string;
 
       const receipt = await ReceiptService.getReceiptByTransaction(transactionId);
 

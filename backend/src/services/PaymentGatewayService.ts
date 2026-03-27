@@ -5,6 +5,7 @@ import { IPaymentGateway, IInvoice } from '../types';
 import { AppError } from '../middleware';
 import { config } from '../config';
 import ReceiptService from './ReceiptService';
+import WalletService from './WalletService';
 
 interface InitiatePaymentData {
   invoiceId: string;
@@ -285,6 +286,23 @@ class PaymentGatewayService {
         description: `Payment for Invoice ${invoice.invoiceNumber}`,
       }
     );
+
+    // Credit landlord wallet if auto-settlement is enabled
+    try {
+      const wallet = await WalletService.getWalletByLandlord(paymentGateway.landlord.toString());
+
+      if (wallet && wallet.autoSettlement) {
+        await WalletService.creditWallet(paymentGateway.landlord.toString(), {
+          amount: paymentGateway.amount,
+          description: `Payment received for Invoice ${invoice.invoiceNumber}`,
+          sourceTransactionId: transaction._id.toString(),
+          sourceInvoiceId: invoice._id.toString(),
+        });
+      }
+    } catch (error) {
+      // Log error but don't fail the payment processing
+      console.error('Error crediting wallet:', error);
+    }
   }
 
   /**

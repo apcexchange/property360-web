@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import axios from 'axios';
 import TenancyAgreementService from '../services/TenancyAgreementService';
 import { AuthRequest, ApiResponse } from '../types';
 import { docuSealService } from '../services/DocuSealService';
@@ -313,12 +314,144 @@ export class TenancyAgreementController {
   }
 
   /**
+   * Download agreement document (proxies the file from Cloudinary)
+   */
+  downloadDocument = async (
+    req: AuthRequest,
+    res: Response,
+    _next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        });
+        return;
+      }
+
+      const agreement = await TenancyAgreementService.getAgreement(
+        req.params.id as string,
+        req.user._id.toString()
+      );
+
+      if (!agreement.documentUrl) {
+        res.status(404).json({
+          success: false,
+          message: 'Document not found',
+        });
+        return;
+      }
+
+      // Direct fetch - Cloudinary URLs are publicly accessible
+      console.log('Fetching document from:', agreement.documentUrl);
+      const response = await axios.get(agreement.documentUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+      });
+
+      console.log('Document fetched, size:', response.data.length);
+
+      // Set appropriate headers
+      const contentType = this.getContentType(agreement.documentType);
+      res.setHeader('Content-Type', contentType);
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${agreement.originalFilename}"`
+      );
+      res.setHeader('Content-Length', response.data.length);
+
+      res.send(response.data);
+    } catch (error: any) {
+      console.error('Download document error:', {
+        message: error.message,
+        status: error.response?.status,
+        url: error.config?.url,
+      });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to download document',
+      });
+    }
+  };
+
+  /**
+   * Download signed document (proxies the file)
+   */
+  downloadSignedDocument = async (
+    req: AuthRequest,
+    res: Response,
+    _next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        });
+        return;
+      }
+
+      const agreement = await TenancyAgreementService.getAgreement(
+        req.params.id as string,
+        req.user._id.toString()
+      );
+
+      if (!agreement.signedDocumentUrl) {
+        res.status(404).json({
+          success: false,
+          message: 'Signed document not found',
+        });
+        return;
+      }
+
+      // Fetch the signed document
+      const response = await axios.get(agreement.signedDocumentUrl, {
+        responseType: 'arraybuffer',
+        timeout: 30000,
+      });
+
+      // Set appropriate headers
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="signed_${agreement.originalFilename}"`
+      );
+      res.setHeader('Content-Length', response.data.length);
+
+      res.send(response.data);
+    } catch (error: any) {
+      console.error('Download signed document error:', error.message);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to download signed document',
+      });
+    }
+  };
+
+  /**
+   * Get content type based on document type
+   */
+  private getContentType = (documentType: string): string => {
+    switch (documentType) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'image':
+        return 'image/jpeg';
+      default:
+        return 'application/octet-stream';
+    }
+  };
+
+  /**
    * DocuSeal webhook handler (no auth required)
    */
   async handleWebhook(
     req: Request,
     res: Response,
-    next: NextFunction
+    _next: NextFunction
   ): Promise<void> {
     try {
       const payload = docuSealService.parseWebhookPayload(req.body);
