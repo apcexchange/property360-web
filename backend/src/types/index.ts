@@ -168,7 +168,7 @@ export interface ILease extends Document {
   serviceCharge: number;
   otherFee: number;
   otherFeeDescription: string;
-  status: 'active' | 'expired' | 'terminated';
+  status: 'pending' | 'active' | 'expired' | 'terminated' | 'declined';
   // Guarantor information
   guarantor?: IGuarantor;
   // Emergency contacts
@@ -268,7 +268,7 @@ export interface INotification extends Document {
   user: IUser['_id'];
   title: string;
   message: string;
-  type: 'payment' | 'maintenance' | 'lease' | 'general';
+  type: 'payment' | 'maintenance' | 'lease' | 'invitation' | 'general';
   isRead: boolean;
   data?: Record<string, unknown>;
   createdAt: Date;

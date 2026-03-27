@@ -3,6 +3,7 @@ import { IUser, ILease, UserRole, IGuarantor, IEmergencyContact } from '../types
 import { AppError } from '../middleware';
 import emailOtpService from './EmailOtpService';
 import otpService from './OtpService';
+import NotificationService from './NotificationService';
 
 interface AssignTenantData {
   unitId: string;
@@ -79,22 +80,33 @@ export class TenantService {
       throw new AppError('You do not have permission to assign tenants to this property', 403);
     }
 
-    // 2. Check if unit is already occupied
+    // 2. Check if unit is already occupied or has a pending invitation
     if (unit.isOccupied) {
       throw new AppError('This unit is already occupied', 400);
+    }
+
+    const pendingLeaseForUnit = await Lease.findOne({
+      unit: unitId,
+      status: 'pending',
+    });
+    if (pendingLeaseForUnit) {
+      throw new AppError('This unit already has a pending lease invitation', 400);
     }
 
     // 3. Find or create tenant user
     let tenant = await User.findOne({ email: tenantEmail.toLowerCase() });
 
     if (tenant) {
-      // Check if tenant already has an active lease
+      // Check if tenant already has an active or pending lease
       const existingLease = await Lease.findOne({
         tenant: tenant._id,
-        status: 'active',
+        status: { $in: ['active', 'pending'] },
       });
       if (existingLease) {
-        throw new AppError('This tenant already has an active lease', 400);
+        const msg = existingLease.status === 'active'
+          ? 'This tenant already has an active lease'
+          : 'This tenant already has a pending lease invitation';
+        throw new AppError(msg, 400);
       }
     } else {
       // Create new tenant account with temporary password
@@ -132,18 +144,17 @@ export class TenantService {
       });
     }
 
-    // 4. Create the lease
+    // 4. Create the lease as pending (invitation)
     const lease = await Lease.create({
       property: property._id,
       unit: unit._id,
       tenant: tenant._id,
       landlord: landlordId,
-      assignedBy: assignedById, // Track who assigned the tenant (landlord or agent)
+      assignedBy: assignedById,
       startDate: leaseStartDate,
       endDate: leaseEndDate,
       rentAmount,
       paymentFrequency,
-      // One-time fees
       securityDeposit,
       cautionFee,
       agentFee,
@@ -152,13 +163,44 @@ export class TenantService {
       serviceCharge,
       otherFee,
       otherFeeDescription,
-      status: 'active',
+      status: 'pending',
     });
 
-    // 5. Update unit to mark as occupied
-    unit.isOccupied = true;
-    unit.tenant = tenant._id;
-    await unit.save();
+    // 5. Unit stays unoccupied until tenant accepts the invitation
+
+    // 6. Get landlord name for notifications
+    const landlordUser = await User.findById(landlordId).select('firstName lastName');
+    const landlordName = landlordUser
+      ? `${landlordUser.firstName} ${landlordUser.lastName}`
+      : 'Your landlord';
+
+    // 7. Create in-app notification for tenant
+    NotificationService.createNotification(
+      tenant._id.toString(),
+      'New Lease Invitation',
+      `${landlordName} has invited you to lease Unit ${unit.unitNumber} at ${property.name}. Review the details and accept or decline.`,
+      'invitation',
+      {
+        leaseId: lease._id.toString(),
+        propertyName: property.name,
+        unitNumber: unit.unitNumber,
+        landlordName,
+      }
+    ).catch(err => console.error('[TenantService] Failed to create tenant notification:', err));
+
+    // 8. Create in-app notification for landlord
+    NotificationService.createNotification(
+      landlordId,
+      'Lease Invitation Sent',
+      `Lease invitation sent to ${tenantFirstName} ${tenantLastName} for Unit ${unit.unitNumber} at ${property.name}.`,
+      'invitation',
+      {
+        leaseId: lease._id.toString(),
+        tenantName: `${tenantFirstName} ${tenantLastName}`,
+        propertyName: property.name,
+        unitNumber: unit.unitNumber,
+      }
+    ).catch(err => console.error('[TenantService] Failed to create landlord notification:', err));
 
     return {
       tenant: tenant as IUser,

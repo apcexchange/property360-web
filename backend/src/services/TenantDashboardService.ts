@@ -1,6 +1,8 @@
 import { User, Lease, Property, Unit, Transaction, MaintenanceRequest, Invoice, Receipt } from '../models';
 import { IUser, ILease, ITransaction, IMaintenanceRequest, IInvoice, IReceipt } from '../types';
 import { AppError } from '../middleware';
+import NotificationService from './NotificationService';
+import emailOtpService from './EmailOtpService';
 
 interface TenantLeaseInfo {
   lease: {
@@ -405,6 +407,228 @@ export class TenantDashboardService {
       .populate('unit', 'unitNumber');
 
     return request;
+  }
+
+  // ============ Lease Invitations ============
+
+  async getPendingInvitations(tenantId: string) {
+    const leases = await Lease.find({
+      tenant: tenantId,
+      status: 'pending',
+    })
+      .populate('property', 'name address images')
+      .populate('unit', 'unitNumber bedrooms bathrooms size')
+      .populate('landlord', 'firstName lastName email phone avatar')
+      .sort({ createdAt: -1 });
+
+    return leases.map((lease: any) => ({
+      leaseId: lease._id.toString(),
+      property: {
+        id: lease.property._id.toString(),
+        name: lease.property.name,
+        address: lease.property.address,
+        image: lease.property.images?.[0] || null,
+      },
+      unit: {
+        id: lease.unit._id.toString(),
+        unitNumber: lease.unit.unitNumber,
+        bedrooms: lease.unit.bedrooms,
+        bathrooms: lease.unit.bathrooms,
+        size: lease.unit.size,
+      },
+      landlord: {
+        id: lease.landlord._id.toString(),
+        firstName: lease.landlord.firstName,
+        lastName: lease.landlord.lastName,
+        email: lease.landlord.email,
+        phone: lease.landlord.phone,
+        avatar: lease.landlord.avatar,
+      },
+      lease: {
+        startDate: lease.startDate,
+        endDate: lease.endDate,
+        rentAmount: lease.rentAmount,
+        paymentFrequency: lease.paymentFrequency,
+        securityDeposit: lease.securityDeposit,
+        cautionFee: lease.cautionFee,
+        agentFee: lease.agentFee,
+        agreementFee: lease.agreementFee,
+        legalFee: lease.legalFee,
+        serviceCharge: lease.serviceCharge,
+        otherFee: lease.otherFee,
+        otherFeeDescription: lease.otherFeeDescription,
+      },
+      createdAt: lease.createdAt,
+    }));
+  }
+
+  async getInvitationDetails(leaseId: string, tenantId: string) {
+    const lease = await Lease.findOne({
+      _id: leaseId,
+      tenant: tenantId,
+      status: 'pending',
+    })
+      .populate('property', 'name address images propertyType')
+      .populate('unit', 'unitNumber bedrooms bathrooms size rentAmount')
+      .populate('landlord', 'firstName lastName email phone avatar');
+
+    if (!lease) {
+      throw new AppError('Invitation not found', 404);
+    }
+
+    const property = lease.property as any;
+    const unit = lease.unit as any;
+    const landlord = lease.landlord as any;
+
+    return {
+      leaseId: lease._id.toString(),
+      property: {
+        id: property._id.toString(),
+        name: property.name,
+        address: property.address,
+        images: property.images,
+        propertyType: property.propertyType,
+      },
+      unit: {
+        id: unit._id.toString(),
+        unitNumber: unit.unitNumber,
+        bedrooms: unit.bedrooms,
+        bathrooms: unit.bathrooms,
+        size: unit.size,
+      },
+      landlord: {
+        id: landlord._id.toString(),
+        firstName: landlord.firstName,
+        lastName: landlord.lastName,
+        email: landlord.email,
+        phone: landlord.phone,
+        avatar: landlord.avatar,
+      },
+      lease: {
+        startDate: lease.startDate,
+        endDate: lease.endDate,
+        rentAmount: lease.rentAmount,
+        paymentFrequency: lease.paymentFrequency,
+        securityDeposit: lease.securityDeposit,
+        cautionFee: lease.cautionFee,
+        agentFee: lease.agentFee,
+        agreementFee: lease.agreementFee,
+        legalFee: lease.legalFee,
+        serviceCharge: lease.serviceCharge,
+        otherFee: lease.otherFee,
+        otherFeeDescription: lease.otherFeeDescription,
+      },
+      createdAt: lease.createdAt,
+    };
+  }
+
+  async acceptInvitation(leaseId: string, tenantId: string) {
+    const lease = await Lease.findOne({
+      _id: leaseId,
+      tenant: tenantId,
+      status: 'pending',
+    });
+
+    if (!lease) {
+      throw new AppError('Invitation not found or already responded', 404);
+    }
+
+    // Activate the lease
+    lease.status = 'active';
+    await lease.save();
+
+    // Mark unit as occupied
+    const unit = await Unit.findById(lease.unit);
+    if (unit) {
+      unit.isOccupied = true;
+      unit.tenant = lease.tenant;
+      await unit.save();
+    }
+
+    // Get names for notifications
+    const [tenant, landlord, property] = await Promise.all([
+      User.findById(tenantId).select('firstName lastName'),
+      User.findById(lease.landlord).select('firstName lastName email'),
+      Property.findById(lease.property).select('name'),
+    ]);
+
+    const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Tenant';
+    const unitNumber = unit?.unitNumber || '';
+    const propertyName = property?.name || '';
+
+    // Notify landlord
+    NotificationService.createNotification(
+      lease.landlord.toString(),
+      'Lease Invitation Accepted',
+      `${tenantName} has accepted the lease invitation for Unit ${unitNumber} at ${propertyName}.`,
+      'invitation',
+      { leaseId: lease._id.toString(), tenantName, propertyName, unitNumber, status: 'accepted' }
+    ).catch(err => console.error('[TenantDashboard] Failed to notify landlord:', err));
+
+    // Email landlord
+    if (landlord?.email) {
+      emailOtpService.sendLeaseInvitationResponse(
+        landlord.email,
+        `${landlord.firstName} ${landlord.lastName}`,
+        tenantName,
+        propertyName,
+        unitNumber,
+        'accepted'
+      ).catch(err => console.error('[TenantDashboard] Failed to email landlord:', err));
+    }
+
+    return { message: 'Lease invitation accepted successfully' };
+  }
+
+  async declineInvitation(leaseId: string, tenantId: string) {
+    const lease = await Lease.findOne({
+      _id: leaseId,
+      tenant: tenantId,
+      status: 'pending',
+    });
+
+    if (!lease) {
+      throw new AppError('Invitation not found or already responded', 404);
+    }
+
+    // Mark lease as declined
+    lease.status = 'declined';
+    await lease.save();
+
+    // Get names for notifications
+    const [tenant, landlord, unit, property] = await Promise.all([
+      User.findById(tenantId).select('firstName lastName'),
+      User.findById(lease.landlord).select('firstName lastName email'),
+      Unit.findById(lease.unit).select('unitNumber'),
+      Property.findById(lease.property).select('name'),
+    ]);
+
+    const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Tenant';
+    const unitNumber = unit?.unitNumber || '';
+    const propertyName = property?.name || '';
+
+    // Notify landlord
+    NotificationService.createNotification(
+      lease.landlord.toString(),
+      'Lease Invitation Declined',
+      `${tenantName} has declined the lease invitation for Unit ${unitNumber} at ${propertyName}.`,
+      'invitation',
+      { leaseId: lease._id.toString(), tenantName, propertyName, unitNumber, status: 'declined' }
+    ).catch(err => console.error('[TenantDashboard] Failed to notify landlord:', err));
+
+    // Email landlord
+    if (landlord?.email) {
+      emailOtpService.sendLeaseInvitationResponse(
+        landlord.email,
+        `${landlord.firstName} ${landlord.lastName}`,
+        tenantName,
+        propertyName,
+        unitNumber,
+        'declined'
+      ).catch(err => console.error('[TenantDashboard] Failed to email landlord:', err));
+    }
+
+    return { message: 'Lease invitation declined' };
   }
 
   // Helper methods

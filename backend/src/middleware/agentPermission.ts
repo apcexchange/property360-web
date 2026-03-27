@@ -34,11 +34,11 @@ export const checkAgentPermission = (permission: keyof IAgentPermissions) => {
 
       // Get propertyId from various sources
       let propertyId: string | undefined =
-        req.params.propertyId || req.body.propertyId;
+        req.params.propertyId || req.body?.propertyId;
 
       // If we have a unitId, derive the propertyId from it
-      if (!propertyId && (req.params.unitId || req.body.unitId)) {
-        const unitId = req.params.unitId || req.body.unitId;
+      if (!propertyId && (req.params.unitId || req.body?.unitId)) {
+        const unitId = req.params.unitId || req.body?.unitId;
         const unit = await Unit.findById(unitId).select('property');
         if (!unit) {
           throw new AppError('Unit not found', 404);

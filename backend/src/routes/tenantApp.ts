@@ -12,6 +12,44 @@ const router = Router();
 router.use(protect);
 router.use(authorize(UserRole.TENANT));
 
+// ============ Lease Invitations ============
+
+// Get pending lease invitations
+router.get('/invitations', TenantAppController.getPendingInvitations);
+
+// Get invitation details
+router.get(
+  '/invitations/:leaseId',
+  validate([
+    param('leaseId')
+      .isMongoId()
+      .withMessage('Invalid lease ID'),
+  ]),
+  TenantAppController.getInvitationDetails
+);
+
+// Accept a lease invitation
+router.post(
+  '/invitations/:leaseId/accept',
+  validate([
+    param('leaseId')
+      .isMongoId()
+      .withMessage('Invalid lease ID'),
+  ]),
+  TenantAppController.acceptInvitation
+);
+
+// Decline a lease invitation
+router.post(
+  '/invitations/:leaseId/decline',
+  validate([
+    param('leaseId')
+      .isMongoId()
+      .withMessage('Invalid lease ID'),
+  ]),
+  TenantAppController.declineInvitation
+);
+
 // ============ Dashboard ============
 
 // Get tenant dashboard (lease info, property, landlord)

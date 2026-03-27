@@ -224,6 +224,81 @@ export class TenantAppController {
     }
   }
 
+  // ============ Lease Invitations ============
+
+  async getPendingInvitations(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const invitations = await TenantDashboardService.getPendingInvitations(
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Pending invitations retrieved',
+        data: invitations,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getInvitationDetails(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const details = await TenantDashboardService.getInvitationDetails(
+        req.params.leaseId as string,
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Invitation details retrieved',
+        data: details,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async acceptInvitation(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.acceptInvitation(
+        req.params.leaseId as string,
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: result.message,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async declineInvitation(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.declineInvitation(
+        req.params.leaseId as string,
+        req.user!._id.toString()
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: result.message,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Get tenant receipts
    */

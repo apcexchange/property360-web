@@ -12,6 +12,7 @@ import receiptRoutes from './receipt';
 import walletRoutes from './wallet';
 import bankAccountRoutes from './bankAccounts';
 import payoutRoutes from './payouts';
+import notificationRoutes from './notifications';
 import TenancyAgreementController from '../controllers/TenancyAgreementController';
 import TenantPaymentController from '../controllers/TenantPaymentController';
 import PayoutController from '../controllers/PayoutController';
@@ -31,6 +32,7 @@ router.use('/receipts', receiptRoutes);
 router.use('/wallet', walletRoutes);
 router.use('/bank-accounts', bankAccountRoutes);
 router.use('/payouts', payoutRoutes);
+router.use('/notifications', notificationRoutes);
 
 // Webhooks (no authentication required)
 router.post('/webhooks/docuseal', TenancyAgreementController.handleWebhook);

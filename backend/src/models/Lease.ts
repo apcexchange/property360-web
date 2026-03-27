@@ -102,8 +102,8 @@ const leaseSchema = new Schema<ILease>(
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'terminated'],
-      default: 'active',
+      enum: ['pending', 'active', 'expired', 'terminated', 'declined'],
+      default: 'pending',
     },
     // Guarantor information
     guarantor: {

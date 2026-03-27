@@ -19,7 +19,7 @@ const notificationSchema = new Schema<INotification>(
     },
     type: {
       type: String,
-      enum: ['payment', 'maintenance', 'lease', 'general'],
+      enum: ['payment', 'maintenance', 'lease', 'invitation', 'general'],
       default: 'general',
     },
     isRead: {

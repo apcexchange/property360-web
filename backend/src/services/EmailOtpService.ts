@@ -787,6 +787,66 @@ Property360`;
 
     return { verified: true };
   }
+
+  /**
+   * Send notification when tenant accepts or declines a lease invitation
+   */
+  async sendLeaseInvitationResponse(
+    landlordEmail: string,
+    landlordName: string,
+    tenantName: string,
+    propertyName: string,
+    unitNumber: string,
+    status: 'accepted' | 'declined'
+  ): Promise<void> {
+    const isAccepted = status === 'accepted';
+    const statusColor = isAccepted ? '#4CAF50' : '#EF4444';
+    const bgColor = isAccepted ? '#E8F5E9' : '#FEE2E2';
+    const icon = isAccepted ? '✓' : '✗';
+
+    const html = `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #0D2B36 0%, #1a4a5c 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Property360</h1>
+          <p style="color: #8ECAE6; margin: 10px 0 0 0; font-size: 14px;">Lease Invitation Update</p>
+        </div>
+
+        <div style="padding: 40px 30px; background-color: #f8fafc;">
+          <h2 style="color: #0D2B36; margin: 0 0 20px 0; font-size: 24px; font-weight: 600;">Hello, ${landlordName}!</h2>
+
+          <div style="background-color: ${bgColor}; padding: 25px; border-radius: 12px; border-left: 4px solid ${statusColor}; margin: 0 0 30px 0;">
+            <p style="color: ${statusColor}; font-size: 18px; margin: 0; font-weight: 600;">
+              ${icon} ${tenantName} has ${status} the lease invitation
+            </p>
+          </div>
+
+          <div style="background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 0 0 20px 0;">
+            <p style="color: #4a5568; margin: 0 0 8px 0;"><strong>Property:</strong> ${propertyName}</p>
+            <p style="color: #4a5568; margin: 0 0 8px 0;"><strong>Unit:</strong> ${unitNumber}</p>
+            <p style="color: #4a5568; margin: 0;"><strong>Tenant:</strong> ${tenantName}</p>
+          </div>
+
+          <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0;">
+            ${isAccepted
+              ? 'The lease is now active and the unit has been marked as occupied. You can view the lease details in your dashboard.'
+              : 'The unit remains available for new tenants. You can send a new invitation from your dashboard.'}
+          </p>
+        </div>
+
+        <div style="background-color: #0D2B36; padding: 30px; text-align: center; border-radius: 0 0 12px 12px;">
+          <p style="color: #8ECAE6; font-size: 12px; margin: 0;">
+            &copy; ${new Date().getFullYear()} Property360. All rights reserved.
+          </p>
+        </div>
+      </div>
+    `;
+
+    await this.sendEmail(
+      landlordEmail,
+      `${tenantName} ${status} your lease invitation for ${propertyName}`,
+      html
+    );
+  }
 }
 
 export default new EmailOtpService();

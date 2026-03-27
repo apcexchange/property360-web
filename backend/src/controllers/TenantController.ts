@@ -67,7 +67,7 @@ export class TenantController {
     try {
       await TenantService.removeTenantFromUnit(
         req.params.unitId as string,
-        req.user!._id.toString()
+        req.landlordId?.toString() || req.user!._id.toString()
       );
 
       const response: ApiResponse = {
