@@ -13,3 +13,6 @@ export { Wallet } from './Wallet';
 export { BankAccount } from './BankAccount';
 export { WalletTransaction } from './WalletTransaction';
 export { Payout } from './Payout';
+export { Conversation } from './Conversation';
+export { Message } from './Message';
+export { ReservationRequest } from './ReservationRequest';

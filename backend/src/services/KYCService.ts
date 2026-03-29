@@ -60,6 +60,11 @@ class KYCService {
     user.kyc.selfieUrl = result.url;
     user.kyc.selfieUploadedAt = new Date();
 
+    // Also set as user avatar if not already set
+    if (!user.avatar) {
+      user.avatar = result.url;
+    }
+
     // Update status to pending if both selfie and document are uploaded
     if (user.kyc.document?.imageUrl) {
       user.kyc.status = KYCStatus.PENDING;

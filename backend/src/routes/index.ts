@@ -13,9 +13,14 @@ import walletRoutes from './wallet';
 import bankAccountRoutes from './bankAccounts';
 import payoutRoutes from './payouts';
 import notificationRoutes from './notifications';
+import listingRoutes from './listings';
+import chatRoutes from './chat';
 import TenancyAgreementController from '../controllers/TenancyAgreementController';
+import ListingController from '../controllers/ListingController';
 import TenantPaymentController from '../controllers/TenantPaymentController';
 import PayoutController from '../controllers/PayoutController';
+import reservationRoutes from './reservations';
+import ReservationController from '../controllers/ReservationController';
 
 const router = Router();
 
@@ -33,10 +38,14 @@ router.use('/wallet', walletRoutes);
 router.use('/bank-accounts', bankAccountRoutes);
 router.use('/payouts', payoutRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/listings', listingRoutes);
+router.use('/chat', chatRoutes);
+router.use('/reservations', reservationRoutes);
 
 // Webhooks (no authentication required)
 router.post('/webhooks/docuseal', TenancyAgreementController.handleWebhook);
 router.post('/webhooks/paystack', TenantPaymentController.handlePaystackWebhook);
 router.post('/webhooks/paystack/transfer', PayoutController.handleTransferWebhook);
+router.post('/webhooks/paystack/reservation', ReservationController.handleReservationWebhook);
 
 export default router;

@@ -365,6 +365,63 @@ export class TenantController {
       next(error);
     }
   }
+  // ============ Pending Payment Confirmation ============
+
+  async getPendingPayments(req: AuthRequestWithLandlord, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const landlordId = req.landlordId?.toString() || req.user!._id.toString();
+      const payments = await TenantService.getPendingPayments(landlordId);
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Pending payments retrieved',
+        data: payments,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async confirmPayment(req: AuthRequestWithLandlord, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const landlordId = req.landlordId?.toString() || req.user!._id.toString();
+      const result = await TenantService.confirmPayment(
+        req.params.transactionId as string,
+        landlordId
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: result.message,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectPayment(req: AuthRequestWithLandlord, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const landlordId = req.landlordId?.toString() || req.user!._id.toString();
+      const result = await TenantService.rejectPayment(
+        req.params.transactionId as string,
+        landlordId,
+        req.body.reason
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: result.message,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new TenantController();

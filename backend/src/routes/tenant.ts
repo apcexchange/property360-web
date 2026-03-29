@@ -181,4 +181,27 @@ router.delete(
   PaymentController.voidPayment
 );
 
+// ============ Pending Payment Confirmation ============
+
+// Get pending payments awaiting confirmation
+router.get(
+  '/payments/pending',
+  authorize(UserRole.LANDLORD, UserRole.AGENT),
+  TenantController.getPendingPayments
+);
+
+// Confirm a pending payment
+router.post(
+  '/payments/:transactionId/confirm',
+  authorize(UserRole.LANDLORD, UserRole.AGENT),
+  TenantController.confirmPayment
+);
+
+// Reject a pending payment
+router.post(
+  '/payments/:transactionId/reject',
+  authorize(UserRole.LANDLORD, UserRole.AGENT),
+  TenantController.rejectPayment
+);
+
 export default router;

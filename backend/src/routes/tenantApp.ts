@@ -50,6 +50,80 @@ router.post(
   TenantAppController.declineInvitation
 );
 
+// ============ Rent Payments ============
+
+// Mark rent as paid (cash/offline)
+router.post(
+  '/rent/mark-paid',
+  validate([
+    body('amount')
+      .isFloat({ min: 1 })
+      .withMessage('Amount must be a positive number'),
+    body('paymentMethod')
+      .isIn(['cash', 'bank_transfer', 'mobile_money', 'other'])
+      .withMessage('Invalid payment method'),
+    body('notes')
+      .optional()
+      .isString(),
+  ]),
+  TenantAppController.markRentPaid
+);
+
+// ============ Fee Payments ============
+
+// Mark a fee as paid (cash/offline)
+router.post(
+  '/fees/mark-paid',
+  validate([
+    body('feeType')
+      .isIn(['securityDeposit', 'cautionFee', 'agentFee', 'agreementFee', 'legalFee', 'serviceCharge', 'otherFee'])
+      .withMessage('Invalid fee type'),
+    body('amount')
+      .isFloat({ min: 1 })
+      .withMessage('Amount must be a positive number'),
+    body('paymentMethod')
+      .isIn(['cash', 'bank_transfer', 'mobile_money', 'other'])
+      .withMessage('Invalid payment method'),
+    body('notes')
+      .optional()
+      .isString(),
+  ]),
+  TenantAppController.markFeePaid
+);
+
+// Initiate Paystack payment for a fee
+router.post(
+  '/fees/pay',
+  validate([
+    body('feeType')
+      .isIn(['securityDeposit', 'cautionFee', 'agentFee', 'agreementFee', 'legalFee', 'serviceCharge', 'otherFee'])
+      .withMessage('Invalid fee type'),
+    body('amount')
+      .isFloat({ min: 1 })
+      .withMessage('Amount must be a positive number'),
+    body('callbackUrl')
+      .optional()
+      .isURL()
+      .withMessage('Invalid callback URL'),
+  ]),
+  TenantAppController.initiateFeePayment
+);
+
+// Mark all outstanding fees as paid
+router.post(
+  '/fees/mark-all-paid',
+  validate([
+    body('paymentMethod')
+      .optional()
+      .isIn(['cash', 'bank_transfer', 'mobile_money', 'other'])
+      .withMessage('Invalid payment method'),
+  ]),
+  TenantAppController.markAllFeesPaid
+);
+
+// Initiate Paystack payment for all outstanding fees
+router.post('/fees/pay-all', TenantAppController.initiateAllFeesPayment);
+
 // ============ Dashboard ============
 
 // Get tenant dashboard (lease info, property, landlord)

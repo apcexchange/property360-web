@@ -43,7 +43,7 @@ const leaseSchema = new Schema<ILease>(
     paymentFrequency: {
       type: String,
       enum: ['monthly', 'quarterly', 'annually'],
-      default: 'monthly',
+      default: 'annually',
     },
     // Late fee configuration
     gracePeriodDays: {

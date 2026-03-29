@@ -1,8 +1,10 @@
+import { createServer } from 'http';
 import app from './app';
 import config from './config';
 import { connectDatabase } from './config/database';
 import cron from 'node-cron';
 import LeaseExpirationService from './services/LeaseExpirationService';
+import { initializeSocket } from './socket/socketServer';
 
 const startServer = async (): Promise<void> => {
   try {
@@ -25,9 +27,13 @@ const startServer = async (): Promise<void> => {
       console.log(`[Cron] Expired ${result.expiredCount} lease(s)`);
     });
 
+    // Create HTTP server and initialize Socket.IO
+    const httpServer = createServer(app);
+    initializeSocket(httpServer);
+
     // Start server - bind to 0.0.0.0 to accept connections from emulators/devices
     const host = '0.0.0.0';
-    app.listen(config.port, host, () => {
+    httpServer.listen(config.port, host, () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                    Property360 API                        ║
@@ -35,6 +41,7 @@ const startServer = async (): Promise<void> => {
 ║  Environment: ${config.nodeEnv.padEnd(42)}║
 ║  Port: ${config.port.toString().padEnd(50)}║
 ║  API: ${config.api.prefix}/${config.api.version.padEnd(43)}║
+║  Socket.IO: Enabled                                      ║
 ╚═══════════════════════════════════════════════════════════╝
       `);
     });

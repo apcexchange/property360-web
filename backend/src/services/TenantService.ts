@@ -1,4 +1,4 @@
-import { User, Unit, Property, Lease } from '../models';
+import { User, Unit, Property, Lease, Transaction } from '../models';
 import { IUser, ILease, UserRole, IGuarantor, IEmergencyContact } from '../types';
 import { AppError } from '../middleware';
 import emailOtpService from './EmailOtpService';
@@ -53,7 +53,7 @@ export class TenantService {
       leaseStartDate,
       leaseEndDate,
       rentAmount,
-      paymentFrequency = 'monthly',
+      paymentFrequency = 'annually',
       // One-time fees
       securityDeposit = 0,
       cautionFee = 0,
@@ -751,6 +751,118 @@ export class TenantService {
     } catch (error) {
       console.error(`[TenantService] Failed to send invitation SMS to ${phone}:`, error);
     }
+  }
+  /**
+   * Get pending payments awaiting landlord confirmation
+   */
+  async getPendingPayments(landlordId: string) {
+    const payments = await Transaction.find({
+      landlord: landlordId,
+      status: 'pending',
+    })
+      .populate('tenant', 'firstName lastName email phone avatar')
+      .populate('lease', 'rentAmount paymentFrequency')
+      .sort({ createdAt: -1 });
+
+    // Get property/unit info for each payment via lease
+    const results = [];
+    for (const payment of payments) {
+      const lease = await Lease.findById(payment.lease)
+        .populate('property', 'name')
+        .populate('unit', 'unitNumber');
+
+      const tenant = payment.tenant as any;
+      const prop = (lease?.property as any);
+      const unit = (lease?.unit as any);
+
+      results.push({
+        id: payment._id.toString(),
+        amount: payment.amount,
+        type: payment.type,
+        description: payment.description,
+        paymentMethod: payment.paymentMethod,
+        paymentDate: payment.paymentDate,
+        notes: payment.notes,
+        reference: payment.reference,
+        createdAt: payment.createdAt,
+        tenant: tenant ? {
+          id: tenant._id.toString(),
+          firstName: tenant.firstName,
+          lastName: tenant.lastName,
+          avatar: tenant.avatar,
+        } : null,
+        property: prop ? { name: prop.name } : null,
+        unit: unit ? { unitNumber: unit.unitNumber } : null,
+      });
+    }
+
+    return results;
+  }
+
+  /**
+   * Confirm a pending payment
+   */
+  async confirmPayment(transactionId: string, landlordId: string) {
+    const transaction = await Transaction.findOne({
+      _id: transactionId,
+      landlord: landlordId,
+      status: 'pending',
+    });
+
+    if (!transaction) {
+      throw new AppError('Pending payment not found', 404);
+    }
+
+    transaction.status = 'completed';
+    transaction.notes = (transaction.notes || '').replace('awaiting landlord confirmation', 'confirmed by landlord');
+    await transaction.save();
+
+    // Notify tenant
+    const landlord = await User.findById(landlordId).select('firstName lastName');
+    const landlordName = landlord ? `${landlord.firstName} ${landlord.lastName}` : 'Landlord';
+
+    NotificationService.createNotification(
+      transaction.tenant.toString(),
+      'Payment Confirmed',
+      `${landlordName} confirmed your ${transaction.description || 'payment'} of ₦${transaction.amount.toLocaleString()}.`,
+      'payment',
+      { transactionId: transaction._id.toString(), status: 'confirmed' }
+    ).catch(err => console.error('[TenantService] Failed to notify tenant:', err));
+
+    return { message: 'Payment confirmed', transactionId: transaction._id.toString() };
+  }
+
+  /**
+   * Reject a pending payment
+   */
+  async rejectPayment(transactionId: string, landlordId: string, reason?: string) {
+    const transaction = await Transaction.findOne({
+      _id: transactionId,
+      landlord: landlordId,
+      status: 'pending',
+    });
+
+    if (!transaction) {
+      throw new AppError('Pending payment not found', 404);
+    }
+
+    transaction.status = 'failed';
+    transaction.notes = `Rejected by landlord${reason ? ': ' + reason : ''}`;
+    await transaction.save();
+
+    // Notify tenant
+    const landlord = await User.findById(landlordId).select('firstName lastName');
+    const landlordName = landlord ? `${landlord.firstName} ${landlord.lastName}` : 'Landlord';
+
+    NotificationService.createNotification(
+      transaction.tenant.toString(),
+      'Payment Rejected',
+      `${landlordName} rejected your ${transaction.description || 'payment'} of ₦${transaction.amount.toLocaleString()}.${reason ? ' Reason: ' + reason : ''}`,
+      'payment',
+      { transactionId: transaction._id.toString(), status: 'rejected', reason }
+    ).catch(err => console.error('[TenantService] Failed to notify tenant:', err));
+
+    return { message: 'Payment rejected', transactionId: transaction._id.toString() };
   }
 }
 

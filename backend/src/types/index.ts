@@ -111,6 +111,24 @@ export interface IUnit extends Document {
   isOccupied: boolean;
   tenant?: IUser['_id'];
   defaultFees?: IDefaultFees;
+  // Listing fields
+  isListed: boolean;
+  listingTitle?: string;
+  listingDescription?: string;
+  listingStatus: 'active' | 'inactive' | 'reserved';
+  listedAt?: Date;
+  reservedBy?: IUser['_id'];
+  reservedAt?: Date;
+  reservationExpiresAt?: Date;
+  reservationPaymentRef?: string;
+  // Enhanced listing details
+  inspectionFee: number;
+  inspectionFeeEnabled: boolean;
+  virtualTourUrl?: string;
+  preferredTenantType?: 'single' | 'family' | 'students' | 'professionals' | 'any';
+  availableFrom?: Date;
+  isNegotiable: boolean;
+  reservationDays: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -268,7 +286,7 @@ export interface INotification extends Document {
   user: IUser['_id'];
   title: string;
   message: string;
-  type: 'payment' | 'maintenance' | 'lease' | 'invitation' | 'general';
+  type: 'payment' | 'maintenance' | 'lease' | 'invitation' | 'marketplace' | 'chat' | 'general';
   isRead: boolean;
   data?: Record<string, unknown>;
   createdAt: Date;
@@ -536,6 +554,66 @@ export interface IPayout extends Document {
   requestedBy: IUser['_id'];
   isAutoPayout: boolean;
   walletTransaction?: IWalletTransaction['_id'];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// =====================
+// CHAT SYSTEM TYPES
+// =====================
+
+// Conversation interface
+export interface IConversation extends Document {
+  listing: IUnit['_id'];
+  property: IProperty['_id'];
+  tenant: IUser['_id'];
+  landlord: IUser['_id'];
+  lastMessage?: {
+    text: string;
+    sender: IUser['_id'];
+    createdAt: Date;
+  };
+  tenantUnreadCount: number;
+  landlordUnreadCount: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Message interface
+export interface IMessage extends Document {
+  conversation: IConversation['_id'];
+  sender: IUser['_id'];
+  text: string;
+  messageType: 'text' | 'image' | 'file' | 'audio' | 'system';
+  isRead: boolean;
+  // Attachment fields
+  attachmentUrl?: string;
+  attachmentPublicId?: string;
+  attachmentName?: string;
+  attachmentSize?: number;
+  attachmentMimeType?: string;
+  audioDuration?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Reservation Request interface
+export interface IReservationRequest extends Document {
+  tenant: IUser['_id'];
+  unit: IUnit['_id'];
+  property: IProperty['_id'];
+  landlord: IUser['_id'];
+  status: 'pending' | 'approved' | 'declined' | 'paid' | 'expired' | 'cancelled';
+  message?: string;
+  declineReason?: string;
+  approvedAt?: Date;
+  paidAt?: Date;
+  paymentType?: 'inspection' | 'full';
+  paymentAmount?: number;
+  paymentRef?: string;
+  reservationDays: number;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

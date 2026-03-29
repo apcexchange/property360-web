@@ -1,8 +1,15 @@
-import { User, Lease, Property, Unit, Transaction, MaintenanceRequest, Invoice, Receipt } from '../models';
+import axios from 'axios';
+import crypto from 'crypto';
+import { User, Lease, Property, Unit, Transaction, MaintenanceRequest, Invoice, Receipt, PaymentGateway } from '../models';
 import { IUser, ILease, ITransaction, IMaintenanceRequest, IInvoice, IReceipt } from '../types';
 import { AppError } from '../middleware';
+import { config } from '../config';
 import NotificationService from './NotificationService';
 import emailOtpService from './EmailOtpService';
+
+function formatAmount(amount: number): string {
+  return `₦${amount.toLocaleString()}`;
+}
 
 interface TenantLeaseInfo {
   lease: {
@@ -12,6 +19,14 @@ interface TenantLeaseInfo {
     rentAmount: number;
     paymentFrequency: string;
     status: string;
+    securityDeposit: number;
+    cautionFee: number;
+    agentFee: number;
+    agreementFee: number;
+    legalFee: number;
+    serviceCharge: number;
+    otherFee: number;
+    otherFeeDescription: string;
   };
   property: {
     id: string;
@@ -37,12 +52,28 @@ interface TenantLeaseInfo {
   };
 }
 
+interface FeeItem {
+  label: string;
+  amount: number;
+  paid: number;
+  pending: number;
+  outstanding: number;
+  type: string; // transaction type for tracking
+}
+
 interface PaymentSummary {
   monthlyRent: number;
   nextDueDate: Date | null;
   daysUntilDue: number;
   totalPaid: number;
   outstandingBalance: number;
+  rentOutstanding: number;
+  rentPaid: number;
+  rentPending: number;
+  fees: FeeItem[];
+  totalFeesDue: number;
+  totalFeesPaid: number;
+  totalFeesOutstanding: number;
 }
 
 export class TenantDashboardService {
@@ -74,6 +105,15 @@ export class TenantDashboardService {
         rentAmount: lease.rentAmount,
         paymentFrequency: lease.paymentFrequency,
         status: lease.status,
+        // One-time fees
+        securityDeposit: lease.securityDeposit,
+        cautionFee: lease.cautionFee,
+        agentFee: lease.agentFee,
+        agreementFee: lease.agreementFee,
+        legalFee: lease.legalFee,
+        serviceCharge: lease.serviceCharge,
+        otherFee: lease.otherFee,
+        otherFeeDescription: lease.otherFeeDescription,
       },
       property: {
         id: property._id.toString(),
@@ -112,46 +152,119 @@ export class TenantDashboardService {
         daysUntilDue: 0,
         totalPaid: 0,
         outstandingBalance: 0,
+        rentOutstanding: 0,
+        rentPaid: 0,
+        rentPending: 0,
+        fees: [],
+        totalFeesDue: 0,
+        totalFeesPaid: 0,
+        totalFeesOutstanding: 0,
       };
     }
 
-    // Calculate total paid for this lease
+    // Get all completed and pending payments for this lease
     const payments = await Transaction.find({
       lease: lease._id,
       tenant: tenantId,
-      status: 'completed',
+      status: { $in: ['completed', 'pending'] },
     });
 
-    const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+    // Separate by type and status
+    const completedPayments = payments.filter(p => p.status === 'completed');
+    const pendingPayments = payments.filter(p => p.status === 'pending');
 
-    // Calculate expected payments based on lease duration and payment frequency
+    const rentPaidCompleted = completedPayments.filter(p => p.type === 'rent');
+    const rentPending = pendingPayments.filter(p => p.type === 'rent');
+    const feePaidCompleted = completedPayments.filter(p => p.type === 'deposit' || p.type === 'other');
+    const feePending = pendingPayments.filter(p => p.type === 'deposit' || p.type === 'other');
+
+    const totalRentPaid = rentPaidCompleted.reduce((sum, p) => sum + p.amount, 0);
+    const totalRentPending = rentPending.reduce((sum, p) => sum + p.amount, 0);
+    const totalFeesPaid = feePaidCompleted.reduce((sum, p) => sum + p.amount, 0);
+    const totalFeesPending = feePending.reduce((sum, p) => sum + p.amount, 0);
+
+    // Calculate expected rent payments based on lease duration and payment frequency
+    // rentAmount is the amount per payment period (monthly/quarterly/annually)
+    // The first period is due immediately, so a lease that started this month = 1 period due
     const now = new Date();
     const leaseStart = new Date(lease.startDate);
-    const monthsElapsed = this.getMonthsDifference(leaseStart, now);
+    const leaseEnd = new Date(lease.endDate);
+    const monthsElapsed = this.getMonthsDifference(leaseStart, now > leaseEnd ? leaseEnd : now);
 
-    let expectedPayments = 0;
+    let periodsElapsed = 0;
     switch (lease.paymentFrequency) {
       case 'monthly':
-        expectedPayments = Math.ceil(monthsElapsed) * lease.rentAmount;
+        periodsElapsed = monthsElapsed;
         break;
       case 'quarterly':
-        expectedPayments = Math.ceil(monthsElapsed / 3) * (lease.rentAmount * 3);
+        periodsElapsed = Math.ceil(monthsElapsed / 3);
         break;
       case 'annually':
-        expectedPayments = Math.ceil(monthsElapsed / 12) * (lease.rentAmount * 12);
+        periodsElapsed = Math.ceil(monthsElapsed / 12);
         break;
     }
+    const expectedRent = Math.max(0, periodsElapsed) * lease.rentAmount;
+
+    // Build fee breakdown
+    const feeDefinitions: { label: string; amount: number; type: string }[] = [
+      { label: 'Security Deposit', amount: lease.securityDeposit, type: 'deposit' },
+      { label: 'Caution Fee', amount: lease.cautionFee, type: 'deposit' },
+      { label: 'Agent Fee', amount: lease.agentFee, type: 'other' },
+      { label: 'Agreement Fee', amount: lease.agreementFee, type: 'other' },
+      { label: 'Legal Fee', amount: lease.legalFee, type: 'other' },
+      { label: 'Service Charge', amount: lease.serviceCharge, type: 'other' },
+    ];
+
+    if (lease.otherFee > 0) {
+      feeDefinitions.push({
+        label: lease.otherFeeDescription || 'Other Fee',
+        amount: lease.otherFee,
+        type: 'other',
+      });
+    }
+
+    // Distribute fee payments across fee items (simple allocation in order)
+    let remainingFeePaid = totalFeesPaid;
+    let remainingFeePending = totalFeesPending;
+    const fees: FeeItem[] = feeDefinitions
+      .filter(f => f.amount > 0)
+      .map(f => {
+        const paid = Math.min(f.amount, remainingFeePaid);
+        remainingFeePaid = Math.max(0, remainingFeePaid - paid);
+        const pendingForFee = Math.min(f.amount - paid, remainingFeePending);
+        remainingFeePending = Math.max(0, remainingFeePending - pendingForFee);
+        return {
+          label: f.label,
+          amount: f.amount,
+          paid,
+          pending: pendingForFee,
+          outstanding: Math.max(0, f.amount - paid - pendingForFee),
+          type: f.type,
+        };
+      });
+
+    const totalFeesDue = fees.reduce((sum, f) => sum + f.amount, 0);
+    const totalFeesOutstanding = fees.reduce((sum, f) => sum + f.outstanding, 0);
 
     // Calculate next due date based on payment frequency
     const nextDueDate = this.calculateNextDueDate(lease.startDate, lease.paymentFrequency);
     const daysUntilDue = nextDueDate ? Math.ceil((nextDueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
+    const rentOutstanding = Math.max(0, expectedRent - totalRentPaid);
+
     return {
       monthlyRent: lease.rentAmount,
       nextDueDate,
       daysUntilDue: Math.max(0, daysUntilDue),
-      totalPaid,
-      outstandingBalance: Math.max(0, expectedPayments - totalPaid),
+      totalPaid: totalRentPaid + totalFeesPaid,
+      outstandingBalance: rentOutstanding + totalFeesOutstanding,
+      rentOutstanding,
+      rentPaid: totalRentPaid,
+      rentPending: totalRentPending,
+      fees,
+      totalFeesDue,
+      totalFeesPaid,
+      totalFeesOutstanding,
     };
   }
 
@@ -466,7 +579,6 @@ export class TenantDashboardService {
     const lease = await Lease.findOne({
       _id: leaseId,
       tenant: tenantId,
-      status: 'pending',
     })
       .populate('property', 'name address images propertyType')
       .populate('unit', 'unitNumber bedrooms bathrooms size rentAmount')
@@ -518,6 +630,7 @@ export class TenantDashboardService {
         otherFee: lease.otherFee,
         otherFeeDescription: lease.otherFeeDescription,
       },
+      status: lease.status,
       createdAt: lease.createdAt,
     };
   }
@@ -542,6 +655,12 @@ export class TenantDashboardService {
     if (unit) {
       unit.isOccupied = true;
       unit.tenant = lease.tenant;
+      // Auto-unlist from marketplace
+      unit.isListed = false;
+      unit.listingStatus = 'inactive';
+      unit.reservedBy = undefined;
+      unit.reservedAt = undefined;
+      unit.reservationExpiresAt = undefined;
       await unit.save();
     }
 
@@ -629,6 +748,397 @@ export class TenantDashboardService {
     }
 
     return { message: 'Lease invitation declined' };
+  }
+
+  // ============ Fee Payments ============
+
+  /**
+   * Record a cash/offline fee payment (creates a pending transaction for landlord to confirm)
+   */
+  /**
+   * Record a rent payment (cash/offline)
+   */
+  async markRentPaid(
+    tenantId: string,
+    data: { amount: number; paymentMethod: 'cash' | 'bank_transfer' | 'mobile_money' | 'other'; notes?: string }
+  ) {
+    const lease = await Lease.findOne({ tenant: tenantId, status: 'active' })
+      .populate('property', 'name')
+      .populate('unit', 'unitNumber');
+
+    if (!lease) {
+      throw new AppError('No active lease found', 400);
+    }
+
+    if (data.amount <= 0) {
+      throw new AppError('Amount must be greater than 0', 400);
+    }
+
+    const reference = `P360-RENT-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
+
+    const transaction = await Transaction.create({
+      lease: lease._id,
+      tenant: tenantId,
+      landlord: lease.landlord,
+      amount: data.amount,
+      type: 'rent',
+      status: 'pending',
+      paymentMethod: data.paymentMethod,
+      reference,
+      description: 'Rent payment',
+      paymentDate: new Date(),
+      recordedBy: tenantId,
+      notes: data.notes || 'Rent marked as paid by tenant — awaiting landlord confirmation',
+    });
+
+    const tenant = await User.findById(tenantId).select('firstName lastName');
+    const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Tenant';
+    const property = lease.property as any;
+    const unit = lease.unit as any;
+
+    NotificationService.createNotification(
+      lease.landlord.toString(),
+      'Rent Payment — Confirm',
+      `${tenantName} says they paid rent (${formatAmount(data.amount)}) for Unit ${unit?.unitNumber} at ${property?.name}. Please confirm or reject.`,
+      'payment',
+      { leaseId: lease._id.toString(), amount: data.amount, transactionId: transaction._id.toString(), action: 'confirm_payment' }
+    ).catch(err => console.error('[TenantDashboard] Failed to notify landlord:', err));
+
+    return {
+      transactionId: transaction._id.toString(),
+      amount: data.amount,
+      status: 'pending',
+    };
+  }
+
+  async markFeePaid(
+    tenantId: string,
+    data: { feeType: string; amount: number; paymentMethod: 'cash' | 'bank_transfer' | 'mobile_money' | 'other'; notes?: string }
+  ) {
+    const lease = await Lease.findOne({ tenant: tenantId, status: 'active' })
+      .populate('property', 'name')
+      .populate('unit', 'unitNumber');
+
+    if (!lease) {
+      throw new AppError('No active lease found', 400);
+    }
+
+    // Map fee type to transaction type
+    const transactionType = ['securityDeposit', 'cautionFee'].includes(data.feeType) ? 'deposit' : 'other';
+
+    // Get the fee label for description
+    const feeLabels: Record<string, string> = {
+      securityDeposit: 'Security Deposit',
+      cautionFee: 'Caution Fee',
+      agentFee: 'Agent Fee',
+      agreementFee: 'Agreement Fee',
+      legalFee: 'Legal Fee',
+      serviceCharge: 'Service Charge',
+      otherFee: (lease as any).otherFeeDescription || 'Other Fee',
+    };
+
+    const feeLabel = feeLabels[data.feeType];
+    if (!feeLabel) {
+      throw new AppError('Invalid fee type', 400);
+    }
+
+    // Validate amount against fee
+    const feeAmount = (lease as any)[data.feeType] || 0;
+    if (feeAmount <= 0) {
+      throw new AppError('This fee is not applicable to your lease', 400);
+    }
+
+    if (data.amount <= 0 || data.amount > feeAmount) {
+      throw new AppError(`Payment amount must be between 1 and ${feeAmount}`, 400);
+    }
+
+    const reference = `P360-FEE-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
+
+    const transaction = await Transaction.create({
+      lease: lease._id,
+      tenant: tenantId,
+      landlord: lease.landlord,
+      amount: data.amount,
+      type: transactionType,
+      status: 'pending',
+      paymentMethod: data.paymentMethod,
+      reference,
+      description: `${feeLabel} payment`,
+      paymentDate: new Date(),
+      recordedBy: tenantId,
+      notes: data.notes || `${feeLabel} marked as paid by tenant — awaiting landlord confirmation`,
+    });
+
+    const tenant = await User.findById(tenantId).select('firstName lastName');
+    const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Tenant';
+    const property = lease.property as any;
+    const unit = lease.unit as any;
+
+    NotificationService.createNotification(
+      lease.landlord.toString(),
+      `${feeLabel} Payment — Confirm`,
+      `${tenantName} says they paid ${feeLabel} (${formatAmount(data.amount)}) for Unit ${unit?.unitNumber} at ${property?.name}. Please confirm or reject.`,
+      'payment',
+      { leaseId: lease._id.toString(), feeType: data.feeType, amount: data.amount, transactionId: transaction._id.toString(), action: 'confirm_payment' }
+    ).catch(err => console.error('[TenantDashboard] Failed to notify landlord:', err));
+
+    return {
+      transactionId: transaction._id.toString(),
+      feeType: data.feeType,
+      feeLabel,
+      amount: data.amount,
+      status: 'pending',
+    };
+  }
+
+  /**
+   * Mark all outstanding fees as paid at once
+   */
+  async markAllFeesPaid(
+    tenantId: string,
+    paymentMethod: 'cash' | 'bank_transfer' | 'mobile_money' | 'other'
+  ) {
+    const lease = await Lease.findOne({ tenant: tenantId, status: 'active' })
+      .populate('property', 'name')
+      .populate('unit', 'unitNumber');
+
+    if (!lease) {
+      throw new AppError('No active lease found', 400);
+    }
+
+    // Get existing fee payments
+    const existingPayments = await Transaction.find({
+      lease: lease._id,
+      tenant: tenantId,
+      type: { $in: ['deposit', 'other'] },
+      status: 'completed',
+    });
+    const totalFeesPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
+
+    // Build fee list and calculate outstanding
+    const feeDefinitions = [
+      { label: 'Security Deposit', amount: lease.securityDeposit, type: 'deposit' },
+      { label: 'Caution Fee', amount: lease.cautionFee, type: 'deposit' },
+      { label: 'Agent Fee', amount: lease.agentFee, type: 'other' },
+      { label: 'Agreement Fee', amount: lease.agreementFee, type: 'other' },
+      { label: 'Legal Fee', amount: lease.legalFee, type: 'other' },
+      { label: 'Service Charge', amount: lease.serviceCharge, type: 'other' },
+    ];
+    if (lease.otherFee > 0) {
+      feeDefinitions.push({ label: lease.otherFeeDescription || 'Other Fee', amount: lease.otherFee, type: 'other' });
+    }
+
+    const totalFeesDue = feeDefinitions.reduce((sum, f) => sum + f.amount, 0);
+    const totalOutstanding = Math.max(0, totalFeesDue - totalFeesPaid);
+
+    if (totalOutstanding <= 0) {
+      throw new AppError('All fees are already paid', 400);
+    }
+
+    const reference = `P360-ALLFEE-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
+
+    const transaction = await Transaction.create({
+      lease: lease._id,
+      tenant: tenantId,
+      landlord: lease.landlord,
+      amount: totalOutstanding,
+      type: 'other',
+      status: 'pending',
+      paymentMethod,
+      reference,
+      description: 'All outstanding fees payment',
+      paymentDate: new Date(),
+      recordedBy: tenantId,
+      notes: 'All outstanding fees marked as paid by tenant — awaiting landlord confirmation',
+    });
+
+    const tenant = await User.findById(tenantId).select('firstName lastName');
+    const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : 'Tenant';
+    const property = lease.property as any;
+    const unit = lease.unit as any;
+
+    NotificationService.createNotification(
+      lease.landlord.toString(),
+      'All Fees Payment — Confirm',
+      `${tenantName} says they paid all fees (${formatAmount(totalOutstanding)}) for Unit ${unit?.unitNumber} at ${property?.name}. Please confirm or reject.`,
+      'payment',
+      { leaseId: lease._id.toString(), amount: totalOutstanding, transactionId: transaction._id.toString(), action: 'confirm_payment' }
+    ).catch(err => console.error('[TenantDashboard] Failed to notify landlord:', err));
+
+    return {
+      transactionId: transaction._id.toString(),
+      amount: totalOutstanding,
+      status: 'completed',
+    };
+  }
+
+  /**
+   * Initiate Paystack payment for all outstanding fees
+   */
+  async initiateAllFeesPayment(
+    tenantId: string,
+    data: { email: string; callbackUrl?: string }
+  ) {
+    const lease = await Lease.findOne({ tenant: tenantId, status: 'active' });
+    if (!lease) throw new AppError('No active lease found', 400);
+
+    const existingPayments = await Transaction.find({
+      lease: lease._id, tenant: tenantId,
+      type: { $in: ['deposit', 'other'] }, status: 'completed',
+    });
+    const totalFeesPaid = existingPayments.reduce((sum, p) => sum + p.amount, 0);
+
+    const feeItems = [
+      lease.securityDeposit, lease.cautionFee, lease.agentFee,
+      lease.agreementFee, lease.legalFee, lease.serviceCharge, lease.otherFee,
+    ];
+    const totalFeesDue = feeItems.reduce((sum, f) => sum + f, 0);
+    const totalOutstanding = Math.max(0, totalFeesDue - totalFeesPaid);
+
+    if (totalOutstanding <= 0) throw new AppError('All fees are already paid', 400);
+
+    const reference = `P360-ALLFEE-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
+
+    const paymentGateway = await PaymentGateway.create({
+      reference,
+      tenant: tenantId,
+      landlord: lease.landlord,
+      amount: totalOutstanding,
+      gateway: 'paystack',
+      status: 'pending',
+      metadata: { type: 'all_fees_payment', leaseId: lease._id.toString() },
+    });
+
+    try {
+      const paystackSecretKey = config.paystack?.secretKey || '';
+      const response = await axios.post<any>(
+        'https://api.paystack.co/transaction/initialize',
+        {
+          email: data.email,
+          amount: Math.round(totalOutstanding * 100),
+          reference,
+          callback_url: data.callbackUrl || config.paystack?.callbackUrl,
+          metadata: {
+            type: 'all_fees_payment',
+            leaseId: lease._id.toString(),
+            tenantId,
+            paymentGatewayId: paymentGateway._id.toString(),
+          },
+        },
+        { headers: { Authorization: `Bearer ${paystackSecretKey}`, 'Content-Type': 'application/json' } }
+      );
+
+      if (!response.data.status) throw new AppError('Failed to initialize payment', 500);
+
+      return {
+        authorizationUrl: response.data.data.authorization_url,
+        reference: response.data.data.reference,
+        amount: totalOutstanding,
+      };
+    } catch (error: any) {
+      await PaymentGateway.findByIdAndUpdate(paymentGateway._id, { status: 'failed', gatewayResponse: error.response?.data || error.message });
+      if (error instanceof AppError) throw error;
+      throw new AppError('Failed to initialize payment', 500);
+    }
+  }
+
+  /**
+   * Initiate Paystack payment for a fee
+   */
+  async initiateFeePayment(
+    tenantId: string,
+    data: { feeType: string; amount: number; email: string; callbackUrl?: string }
+  ) {
+    const lease = await Lease.findOne({ tenant: tenantId, status: 'active' });
+
+    if (!lease) {
+      throw new AppError('No active lease found', 400);
+    }
+
+    const feeLabels: Record<string, string> = {
+      securityDeposit: 'Security Deposit',
+      cautionFee: 'Caution Fee',
+      agentFee: 'Agent Fee',
+      agreementFee: 'Agreement Fee',
+      legalFee: 'Legal Fee',
+      serviceCharge: 'Service Charge',
+      otherFee: (lease as any).otherFeeDescription || 'Other Fee',
+    };
+
+    const feeLabel = feeLabels[data.feeType];
+    if (!feeLabel) {
+      throw new AppError('Invalid fee type', 400);
+    }
+
+    const feeAmount = (lease as any)[data.feeType] || 0;
+    if (feeAmount <= 0) {
+      throw new AppError('This fee is not applicable to your lease', 400);
+    }
+
+    if (data.amount <= 0 || data.amount > feeAmount) {
+      throw new AppError(`Payment amount must be between 1 and ${feeAmount}`, 400);
+    }
+
+    // Create PaymentGateway record
+    const reference = `P360-FEE-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
+
+    const paymentGateway = await PaymentGateway.create({
+      reference,
+      tenant: tenantId,
+      landlord: lease.landlord,
+      amount: data.amount,
+      gateway: 'paystack',
+      status: 'pending',
+      metadata: {
+        type: 'fee_payment',
+        feeType: data.feeType,
+        feeLabel,
+        leaseId: lease._id.toString(),
+      },
+    });
+
+    try {
+      const paystackSecretKey = config.paystack?.secretKey || '';
+      const response = await axios.post<any>(
+        'https://api.paystack.co/transaction/initialize',
+        {
+          email: data.email,
+          amount: Math.round(data.amount * 100),
+          reference,
+          callback_url: data.callbackUrl || config.paystack?.callbackUrl,
+          metadata: {
+            type: 'fee_payment',
+            feeType: data.feeType,
+            feeLabel,
+            leaseId: lease._id.toString(),
+            tenantId,
+            paymentGatewayId: paymentGateway._id.toString(),
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${paystackSecretKey}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.data.status) {
+        throw new AppError('Failed to initialize payment', 500);
+      }
+
+      return {
+        authorizationUrl: response.data.data.authorization_url,
+        reference: response.data.data.reference,
+      };
+    } catch (error: any) {
+      await PaymentGateway.findByIdAndUpdate(paymentGateway._id, {
+        status: 'failed',
+        gatewayResponse: error.response?.data || error.message,
+      });
+      if (error instanceof AppError) throw error;
+      throw new AppError('Failed to initialize payment', 500);
+    }
   }
 
   // Helper methods

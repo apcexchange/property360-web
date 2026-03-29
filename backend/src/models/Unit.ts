@@ -47,6 +47,32 @@ const unitSchema = new Schema<IUnit>(
       otherFee: { type: Number, default: 0 },
       otherFeeDescription: { type: String, default: '' },
     },
+    // Listing / Marketplace fields
+    isListed: { type: Boolean, default: false },
+    listingTitle: { type: String, trim: true },
+    listingDescription: { type: String, trim: true },
+    listingStatus: {
+      type: String,
+      enum: ['active', 'inactive', 'reserved'],
+      default: 'inactive',
+    },
+    listedAt: { type: Date },
+    reservedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    reservedAt: { type: Date },
+    reservationExpiresAt: { type: Date },
+    reservationPaymentRef: { type: String },
+    // Enhanced listing details
+    inspectionFee: { type: Number, default: 0 },
+    inspectionFeeEnabled: { type: Boolean, default: false },
+    virtualTourUrl: { type: String, trim: true },
+    preferredTenantType: {
+      type: String,
+      enum: ['single', 'family', 'students', 'professionals', 'any'],
+      default: 'any',
+    },
+    availableFrom: { type: Date },
+    isNegotiable: { type: Boolean, default: false },
+    reservationDays: { type: Number, default: 7 },
   },
   {
     timestamps: true,
@@ -72,6 +98,8 @@ const unitSchema = new Schema<IUnit>(
 );
 
 unitSchema.index({ property: 1, unitNumber: 1 }, { unique: true });
+unitSchema.index({ isListed: 1, listingStatus: 1 });
+unitSchema.index({ rentAmount: 1 });
 
 export const Unit = mongoose.model<IUnit>('Unit', unitSchema);
 export default Unit;

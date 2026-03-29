@@ -299,6 +299,117 @@ export class TenantAppController {
     }
   }
 
+  // ============ Fee Payments ============
+
+  async markRentPaid(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.markRentPaid(
+        req.user!._id.toString(),
+        {
+          amount: req.body.amount,
+          paymentMethod: req.body.paymentMethod,
+          notes: req.body.notes,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Rent payment recorded successfully',
+        data: result,
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async markFeePaid(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.markFeePaid(
+        req.user!._id.toString(),
+        {
+          feeType: req.body.feeType,
+          amount: req.body.amount,
+          paymentMethod: req.body.paymentMethod,
+          notes: req.body.notes,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Fee payment recorded successfully',
+        data: result,
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async markAllFeesPaid(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.markAllFeesPaid(
+        req.user!._id.toString(),
+        req.body.paymentMethod || 'cash'
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'All outstanding fees marked as paid',
+        data: result,
+      };
+
+      res.status(201).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async initiateAllFeesPayment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.initiateAllFeesPayment(
+        req.user!._id.toString(),
+        { email: req.user!.email, callbackUrl: req.body.callbackUrl }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Payment initialized for all outstanding fees',
+        data: result,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async initiateFeePayment(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await TenantDashboardService.initiateFeePayment(
+        req.user!._id.toString(),
+        {
+          feeType: req.body.feeType,
+          amount: req.body.amount,
+          email: req.user!.email,
+          callbackUrl: req.body.callbackUrl,
+        }
+      );
+
+      const response: ApiResponse = {
+        success: true,
+        message: 'Fee payment initialized',
+        data: result,
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Get tenant receipts
    */
