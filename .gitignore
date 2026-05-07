@@ -30,3 +30,23 @@ coverage/
 # Temporary files
 tmp/
 temp/
+
+# Ruby / fastlane (mobile release pipeline)
+.bundle/
+vendor/bundle/
+mobile/ios/fastlane/report.xml
+mobile/ios/fastlane/README.md
+mobile/ios/fastlane/certs/
+mobile/ios/fastlane/profiles/
+mobile/ios/fastlane/.env*
+mobile/android/fastlane/report.xml
+mobile/android/fastlane/README.md
+mobile/android/fastlane/.env*
+
+# Signing material — must NEVER be committed
+*.p8
+*.p12
+*.mobileprovision
+*.keystore
+!mobile/android/app/debug.keystore
+mobile/android/app/keystore/

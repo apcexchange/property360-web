@@ -1,4 +1,4 @@
-import sgMail from '@sendgrid/mail';
+import { Resend } from 'resend';
 import { config } from '../config';
 import { AppError } from '../middleware';
 
@@ -16,13 +16,35 @@ interface VerifyEmailOtpResult {
 const otpStore = new Map<string, { code: string; expiresAt: Date }>();
 
 class EmailOtpService {
-  private fromEmail: string;
-  private fromName: string;
+  private resend: Resend;
+  private fromAddress: string;
 
   constructor() {
-    sgMail.setApiKey(config.sendgrid?.apiKey || '');
-    this.fromEmail = config.sendgrid?.fromEmail || 'noreply@property360.com';
-    this.fromName = config.sendgrid?.fromName || 'Property360';
+    this.resend = new Resend(config.resend?.apiKey || '');
+    // Resend's `from` is a single formatted string: "Display Name <addr@domain>"
+    this.fromAddress = config.resend?.fromEmail || 'Property360 <onboarding@resend.dev>';
+  }
+
+  private async send(msg: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+    attachments?: Array<{ content: Buffer; filename: string }>;
+  }): Promise<void> {
+    const { error } = await this.resend.emails.send({
+      from: this.fromAddress,
+      to: msg.to,
+      subject: msg.subject,
+      html: msg.html,
+      text: msg.text,
+      attachments: msg.attachments,
+    });
+
+    if (error) {
+      console.error('[Email] Resend error:', error);
+      throw new AppError('Failed to send email', 500);
+    }
   }
 
   /**
@@ -45,16 +67,7 @@ class EmailOtpService {
 
       console.log(`[EmailOTP] Sending OTP ${otp} to ${email}`);
 
-      // Send email via SendGrid
-      const msg = {
-        to: email,
-        from: {
-          email: this.fromEmail,
-          name: this.fromName,
-        },
-        subject: 'Your Property360 Verification Code',
-        text: `Your verification code is: ${otp}. This code expires in 10 minutes.`,
-        html: `
+      const html = `
           <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
             <!-- Header -->
             <div style="background: linear-gradient(135deg, #0D2B36 0%, #1a4a5c 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
@@ -89,10 +102,14 @@ class EmailOtpService {
               </p>
             </div>
           </div>
-        `,
-      };
+        `;
 
-      await sgMail.send(msg);
+      await this.send({
+        to: email,
+        subject: 'Your Property360 Verification Code',
+        text: `Your verification code is: ${otp}. This code expires in 10 minutes.`,
+        html,
+      });
 
       console.log(`[EmailOTP] Email sent successfully to ${email}`);
 
@@ -102,13 +119,10 @@ class EmailOtpService {
         expiresAt: expiresAt.toISOString(),
       };
     } catch (error: any) {
-      console.error('[EmailOTP] SendGrid error:', error);
-
-      if (error.response) {
-        console.error('[EmailOTP] SendGrid response body:', error.response.body);
-      }
-
-      throw new AppError('Failed to send verification email', 500);
+      console.error('[EmailOTP] sendOtp failed:', error);
+      throw error instanceof AppError
+        ? error
+        : new AppError('Failed to send verification email', 500);
     }
   }
 
@@ -121,24 +135,13 @@ class EmailOtpService {
     htmlContent: string,
     textContent?: string
   ): Promise<void> {
-    try {
-      const msg = {
-        to,
-        from: {
-          email: this.fromEmail,
-          name: this.fromName,
-        },
-        subject,
-        text: textContent || subject,
-        html: htmlContent,
-      };
-
-      await sgMail.send(msg);
-      console.log(`[EmailOTP] Email sent successfully to ${to}`);
-    } catch (error: any) {
-      console.error('[EmailOTP] SendGrid error:', error);
-      throw new AppError('Failed to send email', 500);
-    }
+    await this.send({
+      to,
+      subject,
+      text: textContent || subject,
+      html: htmlContent,
+    });
+    console.log(`[EmailOTP] Email sent successfully to ${to}`);
   }
 
   /**
@@ -724,32 +727,19 @@ Please ensure timely payment to avoid any late fees.
 
 Property360`;
 
-    try {
-      const msg = {
-        to: email,
-        from: {
-          email: this.fromEmail,
-          name: this.fromName,
+    await this.send({
+      to: email,
+      subject: `Invoice ${invoiceNumber} - ${propertyName}`,
+      text: textContent,
+      html,
+      attachments: [
+        {
+          content: pdfBuffer,
+          filename: `${invoiceNumber}.pdf`,
         },
-        subject: `Invoice ${invoiceNumber} - ${propertyName}`,
-        text: textContent,
-        html,
-        attachments: [
-          {
-            content: pdfBuffer.toString('base64'),
-            filename: `${invoiceNumber}.pdf`,
-            type: 'application/pdf',
-            disposition: 'attachment',
-          },
-        ],
-      };
-
-      await sgMail.send(msg);
-      console.log(`[EmailOTP] Invoice email sent successfully to ${email}`);
-    } catch (error: any) {
-      console.error('[EmailOTP] SendGrid error:', error);
-      throw new AppError('Failed to send invoice email', 500);
-    }
+      ],
+    });
+    console.log(`[EmailOTP] Invoice email sent successfully to ${email}`);
   }
 
   /**

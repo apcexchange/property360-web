@@ -9,6 +9,10 @@ import { errorHandler } from './middleware';
 
 const app = express();
 
+// Behind Render / any TLS-terminating proxy: trust X-Forwarded-* so req.ip,
+// secure cookies, and rate limiting see the real client IP.
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 

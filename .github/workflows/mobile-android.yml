@@ -1,0 +1,108 @@
+name: Mobile Android
+
+on:
+  push:
+    tags:
+      - 'mobile-v*.*.*'
+      - 'mobile-staging-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'fastlane lane'
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+        required: true
+
+concurrency:
+  group: mobile-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  android:
+    name: Build & upload Android
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve lane
+        id: lane
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "lane=${{ inputs.profile }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref_name }}" == mobile-staging-v* ]]; then
+            echo "lane=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "lane=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Materialize keystore + keystore.properties
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/property360-release.keystore
+          umask 077
+          {
+            printf 'storeFile=app/property360-release.keystore\n'
+            printf 'storePassword=%s\n' "$ANDROID_KEYSTORE_PASSWORD"
+            printf 'keyAlias=%s\n' "$ANDROID_KEY_ALIAS"
+            printf 'keyPassword=%s\n' "$ANDROID_KEY_PASSWORD"
+          } > android/keystore.properties
+
+      - name: Run fastlane
+        env:
+          CI: 'true'
+          PLAY_STORE_JSON_KEY: ${{ secrets.PLAY_STORE_JSON_KEY }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          cd android
+          bundle exec fastlane ${{ steps.lane.outputs.lane }}
+
+      - name: Wipe local credentials
+        if: always()
+        run: |
+          rm -f android/keystore.properties android/app/property360-release.keystore
+
+      - name: Upload AAB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ steps.lane.outputs.lane }}-${{ github.run_number }}
+          path: mobile/android/app/build/outputs/bundle/**/*.aab
+          if-no-files-found: ignore
+          retention-days: 14

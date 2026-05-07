@@ -1,0 +1,77 @@
+# Render Blueprint — checked into git so the production service is reproducible.
+# Apply via: Render dashboard → New + → Blueprint → connect this repo.
+# Env vars marked `sync: false` must be set manually in the Render dashboard
+# (they're secrets that should never appear in git).
+services:
+  - type: web
+    name: property360-api
+    runtime: node
+    region: frankfurt          # Closest to Nigeria of Render's regions
+    plan: starter              # ~$7/mo. Free tier sleeps after 15 min and breaks cron + sockets.
+    branch: main
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_VERSION
+        value: v1
+      - key: API_PREFIX
+        value: /api
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+      - key: CORS_ORIGIN
+        value: "*"             # Tighten to specific origins once the web app is deployed.
+      # ↓ Secrets — set in dashboard, do NOT commit values.
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_VERIFY_SERVICE_SID
+        sync: false
+      - key: TWILIO_PHONE_NUMBER
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: DOCUSEAL_API_KEY
+        sync: false
+      - key: DOCUSEAL_API_URL
+        sync: false
+      - key: DOCUSEAL_WEBHOOK_SECRET
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: PAYSTACK_CALLBACK_URL
+        sync: false
+      - key: PAYSTACK_WEBHOOK_SECRET
+        sync: false
+      - key: GOOGLE_CLOUD_PROJECT_ID
+        sync: false
+      - key: GOOGLE_DOCUMENT_AI_PROCESSOR_ID
+        sync: false
+      - key: GOOGLE_DOCUMENT_AI_LOCATION
+        sync: false
+      # GOOGLE_APPLICATION_CREDENTIALS is set via Render Secret Files (not env vars).
+      # Upload your service-account JSON in dashboard → Secret Files → mount at /etc/secrets/gcloud.json
+      # then add an env var: GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/gcloud.json

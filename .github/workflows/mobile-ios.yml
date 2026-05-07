@@ -1,0 +1,89 @@
+name: Mobile iOS
+
+on:
+  push:
+    tags:
+      - 'mobile-v*.*.*'
+      - 'mobile-staging-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'fastlane lane'
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+        required: true
+
+concurrency:
+  group: mobile-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ios:
+    name: Build & upload iOS
+    runs-on: [self-hosted, macOS, mobile-ci]
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve lane
+        id: lane
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "lane=${{ inputs.profile }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref_name }}" == mobile-staging-v* ]]; then
+            echo "lane=staging" >> "$GITHUB_OUTPUT"
+          else
+            echo "lane=production" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Setup Ruby + Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2
+          bundler-cache: true
+          working-directory: mobile
+
+      - name: CocoaPods install
+        run: |
+          cd ios
+          bundle exec pod install --repo-update
+
+      - name: Run fastlane
+        env:
+          CI: 'true'
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ITC_TEAM_ID: ${{ secrets.APPLE_ITC_TEAM_ID }}
+          GITHUB_SHA: ${{ github.sha }}
+          RELEASE_NOTES: ${{ github.event.head_commit.message }}
+        run: |
+          cd ios
+          bundle exec fastlane ${{ steps.lane.outputs.lane }}
+
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ steps.lane.outputs.lane }}-${{ github.run_number }}
+          path: mobile/ios/build/Property360.ipa
+          if-no-files-found: ignore
+          retention-days: 14
