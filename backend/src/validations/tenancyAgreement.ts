@@ -1,4 +1,4 @@
-import { param, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 export const uploadAgreementValidation = [
   param('leaseId')
@@ -30,4 +30,20 @@ export const agreementIdValidation = [
   param('id')
     .isMongoId()
     .withMessage('Invalid agreement ID'),
+];
+
+export const acknowledgeAgreementValidation = [
+  param('id')
+    .isMongoId()
+    .withMessage('Invalid agreement ID'),
+  body('typedName')
+    .isString()
+    .trim()
+    .isLength({ min: 2, max: 200 })
+    .withMessage('Type your full name to sign'),
+  body('documentHash')
+    .isString()
+    .trim()
+    .isLength({ min: 8, max: 200 })
+    .withMessage('Document hash is required'),
 ];

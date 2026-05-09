@@ -153,7 +153,7 @@ export class TenancyAgreementController {
   }
 
   /**
-   * Tenant acknowledges an agreement
+   * Tenant signs an agreement via clickwrap (checkbox + typed name).
    */
   async acknowledgeAgreement(
     req: AuthRequest,
@@ -161,14 +161,25 @@ export class TenancyAgreementController {
     next: NextFunction
   ): Promise<void> {
     try {
+      const { typedName, documentHash } = req.body as {
+        typedName?: string;
+        documentHash?: string;
+      };
+
       const agreement = await TenancyAgreementService.acknowledgeAgreement(
         req.params.id as string,
-        req.user!._id.toString()
+        req.user!._id.toString(),
+        {
+          typedName: typedName ?? '',
+          documentHash: documentHash ?? '',
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        }
       );
 
       const response: ApiResponse = {
         success: true,
-        message: 'Agreement acknowledged successfully',
+        message: 'Agreement signed successfully',
         data: agreement,
       };
 

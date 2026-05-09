@@ -213,6 +213,39 @@ export class TenantService {
   }
 
   /**
+   * Get active tenants for a property without an ownership check.
+   * Used by tenant-context callers (e.g. building chat membership) where
+   * ownership doesn't apply. Returns the same shape as getTenantsByProperty
+   * minus the property-existence guard.
+   */
+  async getActiveTenantsForProperty(propertyId: string) {
+    const units = await Unit.find({ property: propertyId, isOccupied: true })
+      .populate('tenant', 'firstName lastName email phone avatar isDeleted');
+
+    const leases = await Lease.find({
+      property: propertyId,
+      status: 'active',
+    });
+
+    return units
+      .filter(unit => {
+        const tenant = unit.tenant as any;
+        return tenant && !tenant.isDeleted;
+      })
+      .map(unit => {
+        const lease = leases.find(l => l.unit.toString() === unit._id.toString());
+        return {
+          tenant: unit.tenant,
+          unit: {
+            id: unit._id,
+            unitNumber: unit.unitNumber,
+          },
+          lease: lease ? { id: lease._id, status: lease.status } : null,
+        };
+      });
+  }
+
+  /**
    * Get all tenants for a property
    */
   async getTenantsByProperty(propertyId: string, landlordId: string) {

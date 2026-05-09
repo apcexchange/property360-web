@@ -84,6 +84,7 @@ export interface IProperty extends Document {
   images: string[];
   amenities: string[];
   isActive: boolean;
+  currentValue?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -353,10 +354,15 @@ export interface ITenancyAgreement extends Document {
   // Processing status
   processingStatus: 'pending' | 'processing' | 'completed' | 'failed';
   processingError?: string;
-  // Tenant acknowledgment (legacy)
+  // Tenant clickwrap sign-off
   tenantAcknowledged: boolean;
   tenantAcknowledgedAt?: Date;
-  // E-signature / DocuSeal integration
+  signedTypedName?: string;
+  signedDocumentHash?: string;
+  signedIpAddress?: string;
+  signedUserAgent?: string;
+  // Signing status. Clickwrap flow uses 'not_sent' | 'signed'; remaining values
+  // exist only for legacy DocuSeal records.
   signingStatus: 'not_sent' | 'pending' | 'sent' | 'opened' | 'signed' | 'declined';
   docusealSubmissionId?: number;
   docusealSubmitterId?: number;
@@ -423,6 +429,14 @@ export interface ApiResponse<T = unknown> {
 // Extended AuthRequest with landlordId for agents
 export interface AuthRequestWithLandlord extends AuthRequest {
   landlordId?: IUser['_id'];
+}
+
+// Extended AuthRequest for building-scoped routes. Set by checkTenantBuildingMembership.
+//   - 'member': tenant with active lease in this property (full access)
+//   - 'monitor': landlord/agent observing the building (read-only)
+export interface AuthRequestBuilding extends AuthRequest {
+  buildingViewerRole?: 'member' | 'monitor';
+  buildingUnit?: IUnit['_id'];
 }
 
 // Receipt interface
@@ -594,6 +608,82 @@ export interface IMessage extends Document {
   attachmentSize?: number;
   attachmentMimeType?: string;
   audioDuration?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// =====================
+// BUILDING COMMUNITY TYPES
+// =====================
+
+// One group chat per Property; membership derived live from active leases.
+export interface IBuildingChat extends Document {
+  property: IProperty['_id'];
+  lastMessage?: {
+    text: string;
+    sender: IUser['_id'];
+    createdAt: Date;
+  };
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Message in a BuildingChat. readBy[] replaces single isRead because group chat.
+export interface IBuildingMessage extends Document {
+  chat: IBuildingChat['_id'];
+  sender: IUser['_id'];
+  text: string;
+  messageType: 'text' | 'image' | 'file' | 'audio' | 'system';
+  readBy: { user: IUser['_id']; at: Date }[];
+  attachmentUrl?: string;
+  attachmentPublicId?: string;
+  attachmentName?: string;
+  attachmentSize?: number;
+  attachmentMimeType?: string;
+  audioDuration?: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Tenant-created bill split across other tenants in the same building.
+export interface ISharedBill extends Document {
+  property: IProperty['_id'];
+  creator: IUser['_id'];
+  title: string;
+  description?: string;
+  category: 'water' | 'fuel' | 'security' | 'cleaning' | 'repairs' | 'other';
+  totalAmount: number;
+  splitMethod: 'equal' | 'by_unit_count' | 'custom';
+  participantSnapshot: {
+    tenant: IUser['_id'];
+    unit: IUnit['_id'];
+    unitNumber: string;
+  }[];
+  creatorIncluded: boolean;
+  bankDetails: {
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+  };
+  status: 'open' | 'settled' | 'cancelled';
+  dueDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Per-tenant share of a SharedBill.
+export interface IBillShare extends Document {
+  bill: ISharedBill['_id'];
+  tenant: IUser['_id'];
+  unit: IUnit['_id'];
+  amount: number;
+  status: 'unpaid' | 'pending_confirmation' | 'paid' | 'disputed' | 'exempt';
+  markedPaidAt?: Date;
+  confirmedAt?: Date;
+  disputedAt?: Date;
+  disputeReason?: string;
+  note?: string;
   createdAt: Date;
   updatedAt: Date;
 }

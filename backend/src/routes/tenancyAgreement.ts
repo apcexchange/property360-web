@@ -11,6 +11,7 @@ import {
   getAgreementsByLeaseValidation,
   getAgreementsByPropertyValidation,
   agreementIdValidation,
+  acknowledgeAgreementValidation,
 } from '../validations/tenancyAgreement';
 
 const router = Router();
@@ -137,13 +138,13 @@ router.delete(
 
 /**
  * @route   POST /tenancy-agreements/:id/acknowledge
- * @desc    Tenant acknowledges an agreement
+ * @desc    Tenant signs an agreement (clickwrap: checkbox + typed name).
  * @access  Private (Tenant only)
  */
 router.post(
   '/:id/acknowledge',
   authorize(UserRole.TENANT),
-  validate(agreementIdValidation),
+  validate(acknowledgeAgreementValidation),
   TenancyAgreementController.acknowledgeAgreement
 );
 

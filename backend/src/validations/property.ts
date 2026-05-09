@@ -35,6 +35,10 @@ export const updatePropertyValidation = [
     .optional()
     .isIn(['apartment', 'house', 'commercial', 'land'])
     .withMessage('Invalid property type'),
+  body('currentValue')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Property value must be a non-negative number'),
 ];
 
 export const propertyIdValidation = [

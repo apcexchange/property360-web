@@ -71,7 +71,10 @@ const tenancyAgreementSchema = new Schema<ITenancyAgreement>(
     processingError: {
       type: String,
     },
-    // Tenant acknowledgment (legacy - kept for backwards compatibility)
+    // Tenant clickwrap sign-off (current flow): tenant ticks the box and types
+    // their full name. We store the typed name plus evidence metadata for
+    // dispute defensibility. tenantAcknowledged stays the canonical "did the
+    // tenant agree?" flag and double-flips with signingStatus = 'signed'.
     tenantAcknowledged: {
       type: Boolean,
       default: false,
@@ -79,7 +82,21 @@ const tenancyAgreementSchema = new Schema<ITenancyAgreement>(
     tenantAcknowledgedAt: {
       type: Date,
     },
-    // E-signature / DocuSeal integration
+    signedTypedName: {
+      type: String,
+      trim: true,
+    },
+    signedDocumentHash: {
+      type: String,
+    },
+    signedIpAddress: {
+      type: String,
+    },
+    signedUserAgent: {
+      type: String,
+    },
+    // Signing status. Kept as an enum for the legacy DocuSeal vocabulary; the
+    // clickwrap flow only ever transitions not_sent -> signed.
     signingStatus: {
       type: String,
       enum: ['not_sent', 'pending', 'sent', 'opened', 'signed', 'declined'],

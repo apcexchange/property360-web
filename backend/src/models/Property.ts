@@ -57,6 +57,14 @@ const propertySchema = new Schema<IProperty>(
       type: Boolean,
       default: true,
     },
+    // Landlord's estimated current market value of the property in NGN.
+    // Used for the Balance Sheet asset side. Optional; properties without a
+    // value contribute zero rather than nothing.
+    currentValue: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
   },
   {
     timestamps: true,

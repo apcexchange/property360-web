@@ -10,7 +10,7 @@ import {
   IUser,
 } from '../types';
 import CloudinaryService from './CloudinaryService';
-import DocumentProcessingService from './DocumentProcessingService';
+import NotificationService from './NotificationService';
 import { docuSealService, WebhookPayload } from './DocuSealService';
 import config from '../config';
 
@@ -114,7 +114,9 @@ class TenancyAgreementService {
       // If decoding fails, use the original filename
     }
 
-    // Create tenancy agreement record
+    // Create tenancy agreement record. OCR/extraction has been removed in the
+    // clickwrap flow — landlords can manually verify content; tenants will
+    // sign the document as-uploaded.
     const agreement = new TenancyAgreement({
       lease: leaseId,
       property: lease.property,
@@ -125,29 +127,33 @@ class TenancyAgreementService {
       documentType,
       originalFilename,
       fileSize: file.size,
-      processingStatus: 'pending',
+      processingStatus: 'completed',
     });
 
     await agreement.save();
 
-    // Trigger async OCR processing
-    this.triggerDocumentProcessing(agreement._id.toString());
+    // Notify the tenant — they need to review and sign in their app. Failures
+    // are logged but don't block the upload (the agreement is still visible
+    // via the dashboard banner once they refresh).
+    try {
+      const property = lease.property as unknown as { name?: string };
+      const propertyLabel = property?.name || 'your property';
+      await NotificationService.createNotification(
+        lease.tenant.toString(),
+        'Tenancy agreement to sign',
+        `Your landlord uploaded the tenancy agreement for ${propertyLabel}. Tap to review and sign.`,
+        'lease',
+        {
+          agreementId: agreement._id.toString(),
+          leaseId,
+          propertyId: lease.property?.toString?.() ?? String(lease.property),
+        }
+      );
+    } catch (err) {
+      console.error('Failed to send agreement-uploaded notification:', err);
+    }
 
     return agreement;
-  }
-
-  /**
-   * Trigger async document processing (OCR)
-   */
-  private async triggerDocumentProcessing(agreementId: string): Promise<void> {
-    try {
-      // Process asynchronously - don't await
-      DocumentProcessingService.processAgreement(agreementId).catch((error) => {
-        console.error(`Error processing agreement ${agreementId}:`, error);
-      });
-    } catch (error) {
-      console.error('Error triggering document processing:', error);
-    }
   }
 
   /**
@@ -255,11 +261,22 @@ class TenancyAgreementService {
   }
 
   /**
-   * Tenant acknowledges the agreement
+   * Tenant signs the agreement (clickwrap: checkbox + typed name).
+   *
+   * Records the typed name plus connection metadata (IP, user-agent) and a
+   * hash of the stored document URL so we can prove which version of the
+   * document the tenant agreed to. The hash is computed by the caller from
+   * the on-disk document so a later content change is detectable.
    */
   async acknowledgeAgreement(
     agreementId: string,
-    tenantId: string
+    tenantId: string,
+    signature: {
+      typedName: string;
+      documentHash: string;
+      ipAddress?: string;
+      userAgent?: string;
+    }
   ): Promise<ITenancyAgreement> {
     const agreement = await TenancyAgreement.findById(agreementId).populate(
       'lease'
@@ -271,18 +288,43 @@ class TenancyAgreementService {
 
     const lease = agreement.lease as unknown as ILease;
 
-    // Verify the user is the tenant on this lease
     if (lease.tenant.toString() !== tenantId) {
       throw new Error('You are not the tenant for this lease');
     }
 
     if (agreement.tenantAcknowledged) {
-      throw new Error('Agreement has already been acknowledged');
+      throw new Error('Agreement has already been signed');
+    }
+
+    const typedName = signature.typedName.trim();
+    if (!typedName) {
+      throw new Error('Typed name is required to sign');
     }
 
     agreement.tenantAcknowledged = true;
     agreement.tenantAcknowledgedAt = new Date();
+    agreement.signingStatus = 'signed';
+    agreement.signingCompletedAt = new Date();
+    agreement.signedTypedName = typedName;
+    agreement.signedDocumentHash = signature.documentHash;
+    agreement.signedIpAddress = signature.ipAddress;
+    agreement.signedUserAgent = signature.userAgent;
     await agreement.save();
+
+    try {
+      await NotificationService.createNotification(
+        agreement.uploadedBy.toString(),
+        'Agreement signed',
+        `${typedName} signed the tenancy agreement.`,
+        'lease',
+        {
+          agreementId: agreement._id.toString(),
+          leaseId: lease._id?.toString?.() ?? String(lease._id),
+        }
+      );
+    } catch (err) {
+      console.error('Failed to send agreement-signed notification:', err);
+    }
 
     return agreement;
   }

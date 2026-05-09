@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { User } from '../models';
 import ChatService from '../services/ChatService';
+import BuildingChatService from '../services/BuildingChatService';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -65,8 +66,73 @@ export function initializeSocket(httpServer: HttpServer): Server {
     }
     onlineUsers.get(userId)!.add(socket.id);
 
+    // Personal room for targeted pushes (notification:new, bill:share-updated
+    // for the specific tenant, etc.). Always joined post-auth so services can
+    // emit reliably to a known room name regardless of which screen is open.
+    socket.join(`user:${userId}`);
+
     // Broadcast online status
     socket.broadcast.emit('user:online', { userId });
+
+    // ============ Building Chat Events ============
+    // The membership check on `building:join` is REQUIRED — without it any
+    // authenticated socket could silently subscribe to any building's chat.
+
+    socket.on('building:join', async (data: { propertyId: string }) => {
+      try {
+        await BuildingChatService.assertMembership(userId, data.propertyId);
+        socket.join(`building:${data.propertyId}`);
+      } catch {
+        socket.emit('building:error', {
+          code: 'forbidden',
+          message: 'Not a member of this building',
+        });
+      }
+    });
+
+    socket.on('building:leave', (data: { propertyId: string }) => {
+      socket.leave(`building:${data.propertyId}`);
+    });
+
+    socket.on(
+      'building:message',
+      async (data: { propertyId: string; text: string; messageType?: string }) => {
+        try {
+          await BuildingChatService.assertMembership(userId, data.propertyId);
+          const message = await BuildingChatService.sendMessage(
+            data.propertyId,
+            userId,
+            { text: data.text, messageType: data.messageType as any }
+          );
+          io.to(`building:${data.propertyId}`).emit('building:message', message);
+        } catch {
+          socket.emit('building:error', {
+            code: 'send_failed',
+            message: 'Failed to send building message',
+          });
+        }
+      }
+    );
+
+    socket.on('building:typing', (data: { propertyId: string }) => {
+      socket.to(`building:${data.propertyId}`).emit('building:typing', {
+        userId,
+        propertyId: data.propertyId,
+      });
+    });
+
+    socket.on('building:read', async (data: { propertyId: string }) => {
+      try {
+        await BuildingChatService.assertMembership(userId, data.propertyId);
+        await BuildingChatService.markAsRead(data.propertyId, userId);
+        io.to(`building:${data.propertyId}`).emit('building:read', {
+          propertyId: data.propertyId,
+          userId,
+        });
+      } catch {
+        /* silent */
+      }
+    });
 
     // ============ Chat Events ============
 

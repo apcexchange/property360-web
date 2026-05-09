@@ -21,6 +21,9 @@ import TenantPaymentController from '../controllers/TenantPaymentController';
 import PayoutController from '../controllers/PayoutController';
 import reservationRoutes from './reservations';
 import ReservationController from '../controllers/ReservationController';
+import buildingRoutes from './building';
+import sharedBillRoutes from './sharedBill';
+import reportsRoutes from './reports';
 
 const router = Router();
 
@@ -41,6 +44,9 @@ router.use('/notifications', notificationRoutes);
 router.use('/listings', listingRoutes);
 router.use('/chat', chatRoutes);
 router.use('/reservations', reservationRoutes);
+router.use('/buildings', buildingRoutes);
+router.use('/shared-bills', sharedBillRoutes);
+router.use('/reports', reportsRoutes);
 
 // Webhooks (no authentication required)
 router.post('/webhooks/docuseal', TenancyAgreementController.handleWebhook);

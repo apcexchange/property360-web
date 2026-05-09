@@ -16,3 +16,7 @@ export { Payout } from './Payout';
 export { Conversation } from './Conversation';
 export { Message } from './Message';
 export { ReservationRequest } from './ReservationRequest';
+export { BuildingChat } from './BuildingChat';
+export { BuildingMessage } from './BuildingMessage';
+export { SharedBill } from './SharedBill';
+export { BillShare } from './BillShare';

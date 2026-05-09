@@ -18,6 +18,7 @@ interface CreatePropertyData {
   agent?: string;
   images?: string[];
   amenities?: string[];
+  currentValue?: number;
 }
 
 interface PropertyQuery {
