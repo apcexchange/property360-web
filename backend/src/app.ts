@@ -36,15 +36,6 @@ if (config.nodeEnv === 'development') {
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Public static pages (privacy policy, terms of service) — required for Play Store / App Store listings.
-// `extensions: ['html']` lets /privacy and /terms resolve without the .html suffix.
-app.use(
-  express.static(path.join(process.cwd(), 'public'), {
-    extensions: ['html'],
-    maxAge: '1h',
-  })
-);
-
 // Health check
 app.get('/health', (_req, res) => {
   res.status(200).json({
