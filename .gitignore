@@ -50,3 +50,9 @@ mobile/android/fastlane/.env*
 *.keystore
 !mobile/android/app/debug.keystore
 mobile/android/app/keystore/
+
+# Standalone repos — these folders have their own .git and remote (see CLAUDE.md):
+#   backend/ → apcexchange/property360.git
+#   mobile/  → apcexchange/property360-mobile.git
+backend/
+mobile/
