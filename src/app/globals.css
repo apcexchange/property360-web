@@ -59,3 +59,43 @@
     color: var(--color-foundation-700);
   }
 }
+
+/* Long-form legal/marketing prose — used by /privacy and /terms */
+.prose-legal {
+  font-size: 16px;
+  line-height: 1.7;
+}
+.prose-legal h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 2.5rem 0 0.75rem;
+  color: var(--color-foundation-700);
+}
+.prose-legal h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--color-foundation-700);
+}
+.prose-legal p { margin: 0.75rem 0; color: var(--color-ink-body); }
+.prose-legal ul {
+  margin: 0.75rem 0;
+  padding-left: 1.4rem;
+  list-style: disc;
+  color: var(--color-ink-body);
+}
+.prose-legal li { margin: 0.35rem 0; }
+.prose-legal a {
+  color: var(--color-foundation-700);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-cryola-500);
+}
+.prose-legal a:hover { color: var(--color-foundation-900); }
+.prose-legal strong { color: var(--color-foundation-700); font-weight: 600; }
+.prose-legal code {
+  background: var(--color-muted-bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}

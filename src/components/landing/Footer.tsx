@@ -31,8 +31,8 @@ export function Footer() {
           </FooterCol>
 
           <FooterCol title="Legal">
-            <FooterLink href="https://api.property360.africa/privacy">Privacy</FooterLink>
-            <FooterLink href="https://api.property360.africa/terms">Terms</FooterLink>
+            <FooterLink href="/privacy">Privacy</FooterLink>
+            <FooterLink href="/terms">Terms</FooterLink>
             <FooterLink href="/admin">Admin login</FooterLink>
           </FooterCol>
         </div>
