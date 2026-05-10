@@ -23,6 +23,7 @@ export function LegalLayout({
           <nav className="flex items-center gap-5 text-sm text-ink-muted">
             <Link href="/privacy" className="hover:text-foundation-700">Privacy</Link>
             <Link href="/terms" className="hover:text-foundation-700">Terms</Link>
+            <Link href="/delete-account" className="hover:text-foundation-700">Delete account</Link>
           </nav>
         </div>
       </header>
@@ -46,6 +47,7 @@ export function LegalLayout({
           <div className="flex items-center gap-5">
             <Link href="/privacy" className="hover:text-foundation-700">Privacy</Link>
             <Link href="/terms" className="hover:text-foundation-700">Terms</Link>
+            <Link href="/delete-account" className="hover:text-foundation-700">Delete account</Link>
             <a href="mailto:legal@property360.africa" className="hover:text-foundation-700">
               legal@property360.africa
             </a>

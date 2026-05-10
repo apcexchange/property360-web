@@ -16,7 +16,28 @@ export interface Stats {
   activeLeaseCount: number;
   pendingKycCount: number;
   pendingReportCount: number;
+  pendingDeletionCount: number;
   rentCollected30d: number;
+}
+
+export interface AdminDeletionRequestRow {
+  _id: string;
+  email: string;
+  phone?: string;
+  reason?: string;
+  status: "pending" | "verified" | "completed" | "rejected";
+  notes?: string;
+  ipAddress?: string;
+  createdAt: string;
+  reviewedAt?: string;
+  user?: {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+  };
 }
 
 export type ReportAction = "message_deleted" | "user_warned" | "user_suspended" | "dismissed";
@@ -171,6 +192,26 @@ const adminApi = {
 
   async resolveReport(reportId: string, action: ReportAction, note?: string): Promise<void> {
     await api.post(`/admin/reports/${reportId}/resolve`, { action, note });
+  },
+
+  async listDeletionRequests(params: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Paginated<AdminDeletionRequestRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminDeletionRequestRow>>>(
+      "/admin/deletion-requests",
+      { params }
+    );
+    return unwrap(res.data);
+  },
+
+  async resolveDeletionRequest(
+    requestId: string,
+    action: "completed" | "rejected",
+    notes?: string,
+  ): Promise<void> {
+    await api.post(`/admin/deletion-requests/${requestId}/resolve`, { action, notes });
   },
 };
 

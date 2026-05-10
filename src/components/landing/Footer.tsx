@@ -33,6 +33,7 @@ export function Footer() {
           <FooterCol title="Legal">
             <FooterLink href="/privacy">Privacy</FooterLink>
             <FooterLink href="/terms">Terms</FooterLink>
+            <FooterLink href="/delete-account">Delete account</FooterLink>
             <FooterLink href="/admin">Admin login</FooterLink>
           </FooterCol>
         </div>

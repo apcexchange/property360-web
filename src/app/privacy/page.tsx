@@ -117,8 +117,10 @@ export default function PrivacyPage() {
       </ul>
       <p>
         To exercise any of these rights, email{" "}
-        <a href="mailto:privacy@property360.africa">privacy@property360.africa</a>. We
-        respond within 30 days.
+        <a href="mailto:privacy@property360.africa">privacy@property360.africa</a>. To
+        delete your account specifically, you can use our self-service form at{" "}
+        <a href="/delete-account">property360.africa/delete-account</a> — no login required.
+        We respond within 30 days.
       </p>
 
       <h2>8. Security</h2>

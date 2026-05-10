@@ -10,6 +10,7 @@ const items = [
   { href: "/admin/transactions", label: "Transactions" },
   { href: "/admin/kyc", label: "KYC reviews" },
   { href: "/admin/reports", label: "Reports" },
+  { href: "/admin/deletion-requests", label: "Deletion requests" },
 ];
 
 export function Sidebar() {
