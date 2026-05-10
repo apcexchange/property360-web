@@ -9,6 +9,7 @@ const items = [
   { href: "/admin/properties", label: "Properties" },
   { href: "/admin/transactions", label: "Transactions" },
   { href: "/admin/kyc", label: "KYC reviews" },
+  { href: "/admin/reports", label: "Reports" },
 ];
 
 export function Sidebar() {

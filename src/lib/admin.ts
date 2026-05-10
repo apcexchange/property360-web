@@ -15,7 +15,33 @@ export interface Stats {
   propertyCount: number;
   activeLeaseCount: number;
   pendingKycCount: number;
+  pendingReportCount: number;
   rentCollected30d: number;
+}
+
+export type ReportAction = "message_deleted" | "user_warned" | "user_suspended" | "dismissed";
+
+export interface AdminReportRow {
+  _id: string;
+  context: "building_chat" | "direct_chat";
+  message: string;
+  messageSnapshot?: string;
+  reason: string;
+  detail?: string;
+  status: "pending" | "resolved" | "dismissed";
+  createdAt: string;
+  reporter?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  reportedUser?: {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    isActive?: boolean;
+  };
+  building?: { _id: string; name?: string };
+  reviewAction?: ReportAction;
+  reviewNote?: string;
+  reviewedAt?: string;
 }
 
 export interface AdminUserRow {
@@ -132,6 +158,19 @@ const adminApi = {
 
   async rejectKyc(userId: string, reason: string): Promise<void> {
     await api.post(`/admin/kyc/${userId}/reject`, { reason });
+  },
+
+  async listReports(params: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Paginated<AdminReportRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminReportRow>>>("/admin/reports", { params });
+    return unwrap(res.data);
+  },
+
+  async resolveReport(reportId: string, action: ReportAction, note?: string): Promise<void> {
+    await api.post(`/admin/reports/${reportId}/resolve`, { action, note });
   },
 };
 
