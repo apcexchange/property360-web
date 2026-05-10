@@ -1,31 +1,61 @@
 @import "tailwindcss";
 
-@theme inline {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+@theme {
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
-  /* Navy colors */
-  --color-navy-950: #0A1628;
-  --color-navy-900: #0F172A;
-  --color-navy-800: #1E293B;
-  --color-navy-700: #334155;
-  --color-navy-600: #475569;
+  /* Foundation — primary dark teal (matches mobile theme.ts COLORS.foundation*) */
+  --color-foundation-50:  #E9ECED;
+  --color-foundation-100: #D7DEDF;
+  --color-foundation-200: #BAC4C7;
+  --color-foundation-300: #1F414A;
+  --color-foundation-400: #1C3B43;
+  --color-foundation-450: #98A2B3;
+  --color-foundation-500: #19343B;
+  --color-foundation-600: #173138;
+  --color-foundation-700: #13272C;
+  --color-foundation-800: #0E1D21;
+  --color-foundation-900: #0B171A;
 
-  /* Accent colors */
-  --color-accent: #10B981;
-  --color-accent-light: #22C55E;
-  --color-accent-dark: #059669;
+  /* Cryola — lime accent (matches mobile theme.ts) */
+  --color-cryola-50:  #F9FFF3;
+  --color-cryola-100: #ECFFD6;
+  --color-cryola-200: #DAFFB0;
+  --color-cryola-300: #BFFF84;
+  --color-cryola-400: #A6E865;
+  --color-cryola-500: #8AD148;
 
-  /* Surface colors */
-  --color-surface: #FFFFFF;
-  --color-surface-secondary: #F8FAFC;
-  --color-surface-tertiary: #F1F5F9;
+  /* Status (mirror mobile COLORS) */
+  --color-success: #06C270;
+  --color-error:   #FF3B3B;
+  --color-warning: #FF8784;
+  --color-info:    #84BFFF;
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
-  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-nav: 0 -1px 3px 0 rgb(0 0 0 / 0.05);
+  /* Surfaces & UI */
+  --color-surface:    #FFFFFF;
+  --color-canvas:     #F9FFF3;
+  --color-muted-bg:   #F4F6F7;
+  --color-border:     #E2E6E8;
+
+  /* Text */
+  --color-ink:        #020202;
+  --color-ink-body:   #111827;
+  --color-ink-muted:  #546881;
+
+  --shadow-card: 0 1px 3px 0 rgb(15 39 44 / 0.06), 0 1px 2px -1px rgb(15 39 44 / 0.06);
+  --shadow-pop:  0 12px 32px -16px rgb(15 39 44 / 0.30);
 }
 
-body {
-  font-family: var(--font-sans);
+@layer base {
+  html { color-scheme: light; }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-cryola-300);
+    color: var(--color-foundation-700);
+  }
 }
