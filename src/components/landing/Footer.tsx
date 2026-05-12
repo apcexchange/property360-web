@@ -26,7 +26,7 @@ export function Footer() {
 
           <FooterCol title="Company">
             <FooterLink href="mailto:hello@property360.africa">Contact</FooterLink>
-            <FooterLink href="mailto:support@property360.africa">Support</FooterLink>
+            <FooterLink href="/support">Support</FooterLink>
             <FooterLink href="mailto:partnerships@property360.africa">Partnerships</FooterLink>
           </FooterCol>
 

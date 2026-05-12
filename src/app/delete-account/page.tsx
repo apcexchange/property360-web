@@ -57,6 +57,7 @@ export default function DeleteAccountPage() {
             <span className="text-lg text-foundation-700">Property360</span>
           </Link>
           <nav className="flex items-center gap-5 text-sm text-ink-muted">
+            <Link href="/support" className="hover:text-foundation-700">Support</Link>
             <Link href="/privacy" className="hover:text-foundation-700">Privacy</Link>
             <Link href="/terms" className="hover:text-foundation-700">Terms</Link>
           </nav>
@@ -257,6 +258,7 @@ export default function DeleteAccountPage() {
         <div className="mx-auto flex max-w-3xl flex-col items-center justify-between gap-3 px-6 text-sm text-ink-muted md:flex-row">
           <p>© {new Date().getFullYear()} Property360. Lagos, Nigeria.</p>
           <div className="flex items-center gap-5">
+            <Link href="/support" className="hover:text-foundation-700">Support</Link>
             <Link href="/privacy" className="hover:text-foundation-700">Privacy</Link>
             <Link href="/terms" className="hover:text-foundation-700">Terms</Link>
             <a href="mailto:privacy@property360.africa" className="hover:text-foundation-700">
