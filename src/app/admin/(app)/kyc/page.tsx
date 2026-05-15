@@ -2,6 +2,9 @@
 
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable, StatusBadge } from "@/components/admin/DataTable";
+import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { Pagination } from "@/components/admin/ui/Pagination";
+import { Button } from "@/components/admin/ui/Filters";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import adminApi, { AdminKycRow } from "@/lib/admin";
@@ -38,23 +41,21 @@ export default function AdminKycPage() {
     },
   });
 
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
   return (
     <>
-      <Topbar title="KYC reviews" />
-      <main className="flex-1 overflow-y-auto px-6 py-8">
+      <Topbar />
+      <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <h2 className="text-xl font-semibold text-foundation-700">Pending KYC submissions</h2>
-          <p className="mt-1 mb-6 text-sm text-ink-muted">
-            Approve or reject identity documents submitted by users.
-          </p>
+          <PageHeader
+            title="Pending KYC submissions"
+            description="Approve or reject identity documents submitted by users."
+          />
 
           <DataTable
             loading={isLoading}
             rows={data?.items ?? []}
-            empty="No pending submissions."
+            empty="No pending submissions"
+            emptyDescription="All submissions have been reviewed. New ones will appear here automatically."
             columns={[
               {
                 key: "user",
@@ -96,48 +97,29 @@ export default function AdminKycPage() {
                         View doc
                       </a>
                     )}
-                    <button
+                    <Button
+                      size="sm"
+                      variant="success"
                       disabled={approve.isPending}
                       onClick={() => approve.mutate(r._id)}
-                      className="rounded-md border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
                     >
                       Approve
-                    </button>
-                    <button
-                      onClick={() => setRejectFor(r)}
-                      className="rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
-                    >
+                    </Button>
+                    <Button size="sm" variant="danger" onClick={() => setRejectFor(r)}>
                       Reject
-                    </button>
+                    </Button>
                   </div>
                 ),
               },
             ]}
           />
 
-          {total > limit && (
-            <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
-              <span>
-                Page {page} of {totalPages} · {total} total
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            total={data?.total ?? 0}
+            limit={limit}
+            onChange={setPage}
+          />
         </div>
       </main>
 

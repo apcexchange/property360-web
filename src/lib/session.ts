@@ -13,6 +13,13 @@ export interface AdminUser {
   role: string;
 }
 
+// Cache the parsed user keyed by the raw localStorage string. React's
+// useSyncExternalStore requires getSnapshot to return a stable reference when
+// nothing has changed — re-parsing JSON on every call produces a fresh object
+// each time and triggers an "infinite loop" error.
+let cachedRaw: string | null = null;
+let cachedUser: AdminUser | null = null;
+
 export const session = {
   getToken(): string | null {
     if (typeof window === "undefined") return null;
@@ -21,12 +28,18 @@ export const session = {
   getUser(): AdminUser | null {
     if (typeof window === "undefined") return null;
     const raw = window.localStorage.getItem(USER_KEY);
-    if (!raw) return null;
-    try {
-      return JSON.parse(raw) as AdminUser;
-    } catch {
+    if (raw === cachedRaw) return cachedUser;
+    cachedRaw = raw;
+    if (!raw) {
+      cachedUser = null;
       return null;
     }
+    try {
+      cachedUser = JSON.parse(raw) as AdminUser;
+    } catch {
+      cachedUser = null;
+    }
+    return cachedUser;
   },
   set(token: string, user: AdminUser) {
     if (typeof window === "undefined") return;
@@ -37,5 +50,7 @@ export const session = {
     if (typeof window === "undefined") return;
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(USER_KEY);
+    cachedRaw = null;
+    cachedUser = null;
   },
 };

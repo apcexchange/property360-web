@@ -1,5 +1,7 @@
-export const formatNgn = (amount: number) =>
-  `₦${amount.toLocaleString("en-NG", { maximumFractionDigits: 0 })}`;
+export const formatNgn = (amount: number | null | undefined) => {
+  if (typeof amount !== "number" || !Number.isFinite(amount)) return "—";
+  return `₦${amount.toLocaleString("en-NG", { maximumFractionDigits: 0 })}`;
+};
 
 export const formatDate = (raw?: string) => {
   if (!raw) return "—";
