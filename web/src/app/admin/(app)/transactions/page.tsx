@@ -2,6 +2,9 @@
 
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable, StatusBadge } from "@/components/admin/DataTable";
+import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { Pagination } from "@/components/admin/ui/Pagination";
+import { Select, Button } from "@/components/admin/ui/Filters";
 import { useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import adminApi from "@/lib/admin";
@@ -9,32 +12,73 @@ import { formatNgn, formatDate } from "@/lib/format";
 
 export default function AdminTransactionsPage() {
   const [page, setPage] = useState(1);
+  const [status, setStatus] = useState("");
+  const [type, setType] = useState("");
+  const [exporting, setExporting] = useState(false);
   const limit = 25;
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "transactions", { page }],
-    queryFn: () => adminApi.listTransactions({ page, limit }),
+    queryKey: ["admin", "transactions", { page, status, type }],
+    queryFn: () =>
+      adminApi.listTransactions({
+        page,
+        limit,
+        status: status || undefined,
+        type: type || undefined,
+      }),
     placeholderData: keepPreviousData,
   });
 
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const onExport = async () => {
+    setExporting(true);
+    try {
+      const stamp = new Date().toISOString().slice(0, 10);
+      await adminApi.downloadCsv(
+        "/admin/transactions/export",
+        `transactions-${stamp}.csv`,
+        { status: status || undefined, type: type || undefined }
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <>
-      <Topbar title="Transactions" />
-      <main className="flex-1 overflow-y-auto px-6 py-8">
+      <Topbar />
+      <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-foundation-700">All transactions</h2>
-            <p className="mt-1 text-sm text-ink-muted">
-              Rent, deposits, and platform-side movements.
-            </p>
-          </div>
+          <PageHeader
+            title="All transactions"
+            description="Rent, deposits, and other platform-side movements."
+            actions={
+              <Button onClick={onExport} disabled={exporting} size="sm">
+                {exporting ? "Exporting…" : "Export CSV"}
+              </Button>
+            }
+            filters={
+              <>
+                <Select value={status} onChange={(v) => { setStatus(v); setPage(1); }}>
+                  <option value="">All statuses</option>
+                  <option value="completed">Completed</option>
+                  <option value="pending">Pending</option>
+                  <option value="failed">Failed</option>
+                  <option value="voided">Voided</option>
+                </Select>
+                <Select value={type} onChange={(v) => { setType(v); setPage(1); }}>
+                  <option value="">All types</option>
+                  <option value="rent">Rent</option>
+                  <option value="deposit">Deposit</option>
+                  <option value="maintenance">Maintenance</option>
+                </Select>
+              </>
+            }
+          />
 
           <DataTable
             loading={isLoading}
             rows={data?.items ?? []}
+            empty="No transactions match these filters"
             columns={[
               {
                 key: "paymentDate",
@@ -69,29 +113,12 @@ export default function AdminTransactionsPage() {
             ]}
           />
 
-          {total > limit && (
-            <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
-              <span>
-                Page {page} of {totalPages} · {total} total
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            total={data?.total ?? 0}
+            limit={limit}
+            onChange={setPage}
+          />
         </div>
       </main>
     </>

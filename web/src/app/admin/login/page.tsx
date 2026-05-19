@@ -34,74 +34,132 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center bg-canvas px-6 py-12">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 shadow-pop">
-        <Link
-          href="/"
-          className="mb-8 flex items-center gap-2 font-semibold tracking-tight text-foundation-700"
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
+      {/* Editorial cover plate — left rail */}
+      <aside className="relative hidden flex-col justify-between overflow-hidden bg-foundation-700 px-12 py-14 text-paper lg:flex">
+        <div className="relative z-10">
+          <div className="flex items-baseline">
+            <span className="font-display text-[34px] font-medium leading-none tracking-[-0.035em] text-paper">
+              Property
+            </span>
+            <span className="font-display text-[34px] font-medium leading-none tracking-[-0.035em] text-cryola-300">
+              360
+            </span>
+          </div>
+          <div className="mt-3 flex items-center gap-2.5">
+            <span className="h-px w-8 bg-cryola-400" />
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cryola-300/90">
+              Admin desk · Vol. I
+            </span>
+          </div>
+        </div>
+
+        <div className="relative z-10">
+          <p className="font-display text-[42px] leading-[1.05] tracking-[-0.025em] text-paper">
+            The ledger of <em className="text-cryola-300">Nigerian</em> rent.
+          </p>
+          <p className="mt-5 max-w-md font-display text-[15px] italic leading-snug text-foundation-200">
+            Every payout, every lease, every tenant — recorded, reconciled,
+            and ready for review by the morning desk.
+          </p>
+          <div className="mt-8 h-px w-full bg-foundation-600/70" />
+          <p className="mt-4 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-foundation-450">
+            Internal access only · Lagos, WAT
+          </p>
+        </div>
+
+        {/* Faint serif watermark in the corner */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-12 -right-8 font-display text-[260px] font-medium leading-none text-foundation-600/40 select-none"
         >
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-foundation-700 text-cryola-300">
-            P
-          </span>
-          <span>Property360 Admin</span>
-        </Link>
+          ₦
+        </span>
+      </aside>
 
-        <h1 className="text-2xl font-semibold text-foundation-700">Sign in</h1>
-        <p className="mt-1 text-sm text-ink-muted">
-          Internal access only.
-        </p>
-
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              Email
-            </label>
-            <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-1.5 block w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foundation-700 outline-none transition focus:border-foundation-500 focus:ring-2 focus:ring-cryola-200"
-              placeholder="admin@property360.africa"
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-              Password
-            </label>
-            <input
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1.5 block w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foundation-700 outline-none transition focus:border-foundation-500 focus:ring-2 focus:ring-cryola-200"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && (
-            <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-2 w-full rounded-lg bg-foundation-700 px-4 py-2.5 text-sm font-semibold text-cryola-50 shadow-card transition hover:bg-foundation-800 disabled:opacity-60"
+      {/* Form column */}
+      <main className="flex items-center justify-center px-6 py-14 sm:px-10">
+        <div className="w-full max-w-[400px]">
+          <Link
+            href="/"
+            className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-faint hover:text-ink"
           >
-            {submitting ? "Signing in…" : "Sign in"}
-          </button>
-        </form>
+            ← Property360 home
+          </Link>
 
-        <Link
-          href="/"
-          className="mt-6 block text-center text-xs text-ink-muted hover:text-foundation-500"
-        >
-          ← Back to website
-        </Link>
-      </div>
+          <p className="mt-10 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-ink-faint">
+            Sign in
+          </p>
+          <h1 className="mt-2 font-display text-[40px] font-medium leading-[1.05] tracking-[-0.025em] text-ink">
+            Take the desk.
+          </h1>
+          <p className="mt-3 font-display text-[15px] italic leading-snug text-ink-muted">
+            Authenticate to enter the admin records.
+          </p>
+
+          <div className="mt-6 h-px w-full bg-rule-strong" />
+          <div className="mt-[3px] h-px w-full bg-rule-strong" />
+
+          <form onSubmit={onSubmit} className="mt-8 space-y-5">
+            <Field label="Email">
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700"
+                placeholder="admin@property360.africa"
+              />
+            </Field>
+
+            <Field label="Password">
+              <input
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700"
+                placeholder="••••••••"
+              />
+            </Field>
+
+            {error && (
+              <p className="border border-error/30 bg-error/5 px-3 py-2 text-[12.5px] text-error">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="mt-3 w-full bg-foundation-700 px-4 py-3 text-[11.5px] font-semibold uppercase tracking-[0.18em] text-paper transition hover:bg-foundation-800 disabled:opacity-60"
+            >
+              {submitting ? "Signing in…" : "Enter the desk"}
+            </button>
+          </form>
+
+          <p className="mt-10 font-display text-[12.5px] italic text-ink-faint">
+            For internal use by the Property360 operations team.
+          </p>
+        </div>
+      </main>
     </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-ink-faint">
+        {label}
+      </span>
+      <div className="mt-1">{children}</div>
+    </label>
   );
 }
