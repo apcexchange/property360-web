@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Type system — editorial pairing */
+  --font-display: var(--font-display), "Fraunces", "Iowan Old Style", "Apple Garamond", Georgia, serif;
+  --font-sans:    var(--font-sans), "Inter Tight", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    var(--font-mono), "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Mono", monospace;
 
   /* Foundation — primary dark teal (matches mobile theme.ts COLORS.foundation*) */
   --color-foundation-50:  #E9ECED;
@@ -16,7 +19,7 @@
   --color-foundation-800: #0E1D21;
   --color-foundation-900: #0B171A;
 
-  /* Cryola — lime accent (matches mobile theme.ts) */
+  /* Cryola — lime accent (used sparingly: active nav, fresh deltas, focus rings) */
   --color-cryola-50:  #F9FFF3;
   --color-cryola-100: #ECFFD6;
   --color-cryola-200: #DAFFB0;
@@ -30,33 +33,198 @@
   --color-warning: #FF8784;
   --color-info:    #84BFFF;
 
-  /* Surfaces & UI */
-  --color-surface:    #FFFFFF;
-  --color-canvas:     #F9FFF3;
-  --color-muted-bg:   #F4F6F7;
-  --color-border:     #E2E6E8;
+  /* Brand paper palette — cryola-50 canvas (the brand's signature pale lime),
+     pure white card surfaces so they read as elevated against the canvas. */
+  --color-paper:      #F9FFF3;  /* primary canvas = cryola-50 */
+  --color-paper-deep: #ECFFD6;  /* second-tier surface = cryola-100 */
+  --color-surface:    #FFFFFF;  /* card surface — pops against cryola canvas */
+  --color-canvas:     #F9FFF3;  /* alias for back-compat */
+  --color-muted-bg:   #ECFFD6;
+  --color-rule:       #DCE7DA;  /* hairline rule — cool sage, sits on cryola */
+  --color-rule-strong:#B6C5B0;  /* heavier rule for masthead / section dividers */
+  --color-border:     #DCE7DA;  /* alias for back-compat */
 
-  /* Text */
-  --color-ink:        #020202;
-  --color-ink-body:   #111827;
+  /* Ink — cool foundation-tinted near-black, harmonizes with the teal brand */
+  --color-ink:        #0B171A;
+  --color-ink-body:   #13272C;
   --color-ink-muted:  #546881;
+  --color-ink-faint:  #8C9CA0;
 
-  --shadow-card: 0 1px 3px 0 rgb(15 39 44 / 0.06), 0 1px 2px -1px rgb(15 39 44 / 0.06);
-  --shadow-pop:  0 12px 32px -16px rgb(15 39 44 / 0.30);
+  /* Shadows — almost imperceptible; editorial feel comes from rules, not lifts */
+  --shadow-card: 0 1px 0 0 rgb(15 39 44 / 0.06);
+  --shadow-pop:  0 24px 60px -32px rgb(15 39 44 / 0.30);
 }
 
 @layer base {
   html { color-scheme: light; }
   body {
-    background-color: var(--color-canvas);
+    background-color: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Subtle paper grain — foundation-tinted, harmonizes with the cryola canvas */
+    background-image:
+      radial-gradient(circle at 1px 1px, rgb(15 39 44 / 0.035) 1px, transparent 0);
+    background-size: 22px 22px;
+    background-attachment: fixed;
   }
+
   ::selection {
     background: var(--color-cryola-300);
     color: var(--color-foundation-700);
+  }
+
+  /* Default tabular figures everywhere — money should never reflow */
+  table, .num, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Distinctive editorial focus ring — lime hairline, no fat blue glow */
+  :where(input, select, textarea, button, a):focus-visible {
+    outline: 2px solid var(--color-cryola-400);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Editorial utilities
+ *  ──────────────────────────────────────────────────────────────────────── */
+
+/* Display headings — Fraunces with optical sizing dialed up, slightly tightened */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+.font-display-tight {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.03em;
+}
+
+/* Small caps eyebrow / section label — newspaper standfirst feel */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+/* Masthead double-rule — used under page titles and the topbar */
+.rule-masthead {
+  position: relative;
+}
+.rule-masthead::after {
+  content: "";
+  display: block;
+  margin-top: 6px;
+  height: 1px;
+  background: var(--color-rule-strong);
+  box-shadow: 0 3px 0 -2px var(--color-rule-strong);
+}
+
+/* Hairline divider that respects ink color */
+.rule-hair { border-color: var(--color-rule); }
+
+/* Live data indicator — lime pulse used in the topbar */
+@keyframes p360-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(0.85); }
+}
+.live-dot {
+  animation: p360-live-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Landing-page motion utilities
+ *  ──────────────────────────────────────────────────────────────────────── */
+
+/* Endless horizontal marquee — used for trust strips */
+@keyframes p360-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  animation: p360-marquee var(--marquee-duration, 40s) linear infinite;
+  will-change: transform;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* Slow gradient-mesh drift — hero atmosphere */
+@keyframes p360-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  33%      { transform: translate3d(4%, -3%, 0) rotate(8deg) scale(1.05); }
+  66%      { transform: translate3d(-3%, 4%, 0) rotate(-6deg) scale(0.97); }
+}
+.drift-slow { animation: p360-drift 22s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+.drift-fast { animation: p360-drift 14s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite reverse; }
+
+/* Animated underline that draws from left to right when revealed */
+@keyframes p360-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.draw-underline {
+  display: inline-block;
+  background-image: linear-gradient(transparent 60%, var(--color-cryola-300) 60%, var(--color-cryola-300) 88%, transparent 88%);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  transform-origin: left center;
+  animation: p360-draw 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  animation-delay: 0.55s;
+  transform: scaleX(0);
+}
+
+/* Cursor-followed spotlight — uses CSS variables set from JS. Uses
+   background-image only so the host element's background-color (e.g.
+   bg-foundation-700) is preserved underneath instead of clobbered. */
+.cursor-spotlight {
+  background-image:
+    radial-gradient(
+      600px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(190 255 132 / 0.18),
+      transparent 40%
+    );
+}
+
+/* Subtle 3D tilt on hover — used by feature cards. Restraint: 4-degree max. */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tilt-card:hover {
+  transform: perspective(1000px) rotateX(2deg) rotateY(-3deg) translateY(-4px);
+}
+
+/* Smooth section bands — a hairline transition gradient between sections */
+.band-top {
+  background-image: linear-gradient(to bottom, transparent, var(--color-paper-deep) 100%);
+  height: 64px;
+}
+.band-bottom {
+  background-image: linear-gradient(to top, transparent, var(--color-paper-deep) 100%);
+  height: 64px;
+}
+
+/* Honor the user's reduced-motion preference for everything above */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .drift-slow,
+  .drift-fast,
+  .draw-underline,
+  .live-dot {
+    animation: none !important;
+  }
+  .tilt-card:hover {
+    transform: none;
   }
 }
 
@@ -66,20 +234,23 @@
   line-height: 1.7;
 }
 .prose-legal h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 2.5rem 0 0.75rem;
-  color: var(--color-foundation-700);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 2.75rem 0 0.75rem;
+  color: var(--color-ink);
 }
 .prose-legal h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 1.5rem 0 0.5rem;
-  color: var(--color-foundation-700);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin: 1.75rem 0 0.5rem;
+  color: var(--color-ink);
 }
-.prose-legal p { margin: 0.75rem 0; color: var(--color-ink-body); }
+.prose-legal p { margin: 0.85rem 0; color: var(--color-ink-body); }
 .prose-legal ul {
-  margin: 0.75rem 0;
+  margin: 0.85rem 0;
   padding-left: 1.4rem;
   list-style: disc;
   color: var(--color-ink-body);
@@ -90,12 +261,14 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: var(--color-cryola-500);
+  text-decoration-thickness: 1.5px;
 }
 .prose-legal a:hover { color: var(--color-foundation-900); }
-.prose-legal strong { color: var(--color-foundation-700); font-weight: 600; }
+.prose-legal strong { color: var(--color-ink); font-weight: 600; }
 .prose-legal code {
   background: var(--color-muted-bg);
   padding: 1px 6px;
-  border-radius: 4px;
-  font-size: 0.9em;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
 }

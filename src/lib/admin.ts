@@ -8,16 +8,166 @@ export interface Paginated<T> {
   limit: number;
 }
 
+// All fields are optional because the API may omit any of them when the
+// underlying collection is empty or the rollup hasn't computed yet.
 export interface Stats {
-  landlordCount: number;
-  tenantCount: number;
-  agentCount: number;
-  propertyCount: number;
-  activeLeaseCount: number;
-  pendingKycCount: number;
-  pendingReportCount: number;
-  pendingDeletionCount: number;
-  rentCollected30d: number;
+  landlordCount?: number;
+  tenantCount?: number;
+  agentCount?: number;
+  propertyCount?: number;
+  unitCount?: number;
+  occupiedUnitCount?: number;
+  occupancyRate?: number;
+  activeLeaseCount?: number;
+  pendingKycCount?: number;
+  pendingReportCount?: number;
+  pendingDeletionCount?: number;
+  rentCollected30d?: number;
+  rentCollectedPrev30d?: number;
+  payoutsCompleted30d?: number;
+}
+
+export interface AdminLeaseRow {
+  _id: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  rentAmount: number;
+  paymentFrequency: string;
+  createdAt: string;
+  property?: { _id: string; name?: string; address?: { city?: string; state?: string } };
+  unit?: { _id: string; unitNumber?: string };
+  tenant?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
+}
+
+export interface AdminLeaseDetail {
+  lease: AdminLeaseRow & {
+    securityDeposit?: number;
+    cautionFee?: number;
+    agentFee?: number;
+    agreementFee?: number;
+    legalFee?: number;
+    serviceCharge?: number;
+    otherFee?: number;
+    gracePeriodDays?: number;
+    lateFeeType?: string;
+    lateFeeValue?: number;
+    autoGenerateInvoice?: boolean;
+  };
+  transactions: AdminTransactionRow[];
+}
+
+export interface AdminPayoutRow {
+  _id: string;
+  amount: number;
+  netAmount: number;
+  fee: number;
+  status: string;
+  reference: string;
+  requestedAt: string;
+  completedAt?: string;
+  failedAt?: string;
+  failureReason?: string;
+  landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  bankAccount?: { _id: string; bankName?: string; accountNumber?: string; accountName?: string };
+}
+
+export interface AdminUserDetail {
+  user: AdminUserRow & {
+    address?: { street?: string; city?: string; state?: string };
+    avatar?: string;
+    kyc?: {
+      status?: string;
+      rejectionReason?: string;
+      verifiedAt?: string;
+      document?: { type?: string; uploadedAt?: string; imageUrl?: string };
+      selfieUrl?: string;
+    };
+  };
+  stats: {
+    propertyCount: number;
+    leaseCount: number;
+    transactionCount: number;
+    totalPaidOut: number;
+  };
+  wallet: {
+    _id: string;
+    balance: number;
+    totalEarnings: number;
+    totalWithdrawn: number;
+    pendingBalance: number;
+  } | null;
+  leases: AdminLeaseRow[];
+  transactions: AdminTransactionRow[];
+}
+
+export interface FinancialReport {
+  rangeDays: number;
+  revenueSeries: { date: string; total: number }[];
+  topLandlords: {
+    landlordId: string;
+    landlordName: string;
+    email?: string;
+    total: number;
+    count: number;
+  }[];
+  statusBreakdown: { _id: string; count: number; total: number }[];
+  totals: {
+    revenue: number;
+    revenueCount: number;
+    payouts: number;
+    payoutsCount: number;
+  };
+}
+
+export interface AdminListingRow {
+  _id: string;
+  unitNumber: string;
+  rentAmount: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  listingTitle?: string;
+  listingStatus: "active" | "inactive" | "reserved";
+  listedAt?: string;
+  inspectionFee?: number;
+  inspectionFeeEnabled?: boolean;
+  preferredTenantType?: string;
+  isNegotiable?: boolean;
+  property?: {
+    _id: string;
+    name?: string;
+    address?: { city?: string; state?: string };
+    landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  };
+}
+
+export interface AdminReservationRow {
+  _id: string;
+  status: "pending" | "approved" | "declined" | "paid" | "expired" | "cancelled";
+  message?: string;
+  declineReason?: string;
+  createdAt: string;
+  approvedAt?: string;
+  paidAt?: string;
+  expiresAt?: string;
+  paymentType?: "inspection" | "full";
+  paymentAmount?: number;
+  tenant?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  property?: { _id: string; name?: string };
+  unit?: { _id: string; unitNumber?: string; rentAmount?: number };
+}
+
+export interface AdminAuditRow {
+  _id: string;
+  action: string;
+  actor?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  actorEmail?: string;
+  targetType?: string;
+  targetId?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
 }
 
 export interface AdminDeletionRequestRow {
@@ -160,9 +310,107 @@ const adminApi = {
   async listTransactions(params: {
     page?: number;
     limit?: number;
+    status?: string;
+    type?: string;
+    from?: string;
+    to?: string;
+    search?: string;
   }): Promise<Paginated<AdminTransactionRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminTransactionRow>>>("/admin/transactions", { params });
     return unwrap(res.data);
+  },
+
+  async getUserDetail(userId: string): Promise<AdminUserDetail> {
+    const res = await api.get<ApiEnvelope<AdminUserDetail>>(`/admin/users/${userId}`);
+    return unwrap(res.data);
+  },
+
+  async suspendUser(userId: string): Promise<void> {
+    await api.post(`/admin/users/${userId}/suspend`);
+  },
+
+  async activateUser(userId: string): Promise<void> {
+    await api.post(`/admin/users/${userId}/activate`);
+  },
+
+  async listLeases(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }): Promise<Paginated<AdminLeaseRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminLeaseRow>>>("/admin/leases", { params });
+    return unwrap(res.data);
+  },
+
+  async getLeaseDetail(leaseId: string): Promise<AdminLeaseDetail> {
+    const res = await api.get<ApiEnvelope<AdminLeaseDetail>>(`/admin/leases/${leaseId}`);
+    return unwrap(res.data);
+  },
+
+  async listPayouts(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<Paginated<AdminPayoutRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminPayoutRow>>>("/admin/payouts", { params });
+    return unwrap(res.data);
+  },
+
+  async getFinancialReport(rangeDays = 30): Promise<FinancialReport> {
+    const res = await api.get<ApiEnvelope<FinancialReport>>("/admin/reports/financial", {
+      params: { range: rangeDays },
+    });
+    return unwrap(res.data);
+  },
+
+  async listListings(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }): Promise<Paginated<AdminListingRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminListingRow>>>("/admin/listings", { params });
+    return unwrap(res.data);
+  },
+
+  async listReservations(params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }): Promise<Paginated<AdminReservationRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminReservationRow>>>("/admin/reservations", { params });
+    return unwrap(res.data);
+  },
+
+  async listAuditLog(params: {
+    page?: number;
+    limit?: number;
+    action?: string;
+  }): Promise<Paginated<AdminAuditRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminAuditRow>>>("/admin/audit-log", { params });
+    return unwrap(res.data);
+  },
+
+  /**
+   * Trigger a CSV download by hitting the export endpoint with a blob response,
+   * then materialising it as a temporary file download in the browser.
+   */
+  async downloadCsv(
+    path: "/admin/transactions/export" | "/admin/payouts/export",
+    filename: string,
+    params: Record<string, string | undefined> = {}
+  ): Promise<void> {
+    const res = await api.get(path, { params, responseType: "blob" });
+    const blob = res.data as Blob;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   },
 
   async listPendingKyc(params: {

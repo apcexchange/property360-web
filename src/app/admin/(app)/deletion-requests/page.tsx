@@ -2,6 +2,9 @@
 
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable, StatusBadge } from "@/components/admin/DataTable";
+import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { Pagination } from "@/components/admin/ui/Pagination";
+import { Select, Button } from "@/components/admin/ui/Filters";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import adminApi, { AdminDeletionRequestRow } from "@/lib/admin";
@@ -39,40 +42,29 @@ export default function AdminDeletionRequestsPage() {
     },
   });
 
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-
   return (
     <>
-      <Topbar title="Account deletion requests" />
-      <main className="flex-1 overflow-y-auto px-6 py-8">
+      <Topbar />
+      <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold text-foundation-700">Pending deletions</h2>
-              <p className="mt-1 text-sm text-ink-muted">
-                NDPA requires us to action these within 30 days.
-              </p>
-            </div>
-            <select
-              value={status}
-              onChange={(e) => {
-                setStatus(e.target.value);
-                setPage(1);
-              }}
-              className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foundation-700"
-            >
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-              <option value="rejected">Rejected</option>
-              <option value="all">All</option>
-            </select>
-          </div>
+          <PageHeader
+            title="Account deletion requests"
+            description="NDPA requires us to action these within 30 days."
+            filters={
+              <Select value={status} onChange={(v) => { setStatus(v); setPage(1); }}>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+                <option value="rejected">Rejected</option>
+                <option value="all">All</option>
+              </Select>
+            }
+          />
 
           <DataTable
             loading={isLoading}
             rows={data?.items ?? []}
-            empty="No deletion requests."
+            empty="No deletion requests"
+            emptyDescription="Nothing in this queue right now."
             columns={[
               {
                 key: "createdAt",
@@ -120,44 +112,27 @@ export default function AdminDeletionRequestsPage() {
                 className: "text-right",
                 render: (r) =>
                   r.status === "pending" || r.status === "verified" ? (
-                    <button
+                    <Button
+                      size="sm"
                       onClick={() => {
                         setReviewing(r);
                         setAction(r.user ? "completed" : "rejected");
                         setNotes("");
                       }}
-                      className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foundation-700 hover:bg-canvas"
                     >
                       Review
-                    </button>
+                    </Button>
                   ) : null,
               },
             ]}
           />
 
-          {total > limit && (
-            <div className="mt-4 flex items-center justify-between text-sm text-ink-muted">
-              <span>
-                Page {page} of {totalPages} · {total} total
-              </span>
-              <div className="flex gap-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foundation-700 hover:bg-canvas disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            total={data?.total ?? 0}
+            limit={limit}
+            onChange={setPage}
+          />
         </div>
       </main>
 
