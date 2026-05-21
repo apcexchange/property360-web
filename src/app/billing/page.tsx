@@ -86,11 +86,40 @@ export default function BillingPage() {
   }, []);
 
   useEffect(() => {
-    if (!session.getToken()) {
-      router.replace("/billing/login?next=/billing");
-      return;
+    // Mobile app deep-link path: when the user taps "Manage plan on the web"
+    // in the app, it opens this page with ?handoff=<single-use-token>. We
+    // swap the token for a real session BEFORE the auth check below so the
+    // user lands signed in without typing credentials. If redeem fails
+    // (expired, already-used, bad token) we fall through to the normal
+    // login bounce.
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    const handoff = params?.get("handoff");
+
+    async function init() {
+      if (handoff) {
+        try {
+          await billingApi.redeemHandoff(handoff);
+        } catch {
+          // Silent fall-through — the next session.getToken() check will
+          // bounce to login if we still have no session.
+        }
+        // Strip the param either way so a reload doesn't try to redeem
+        // the (now consumed) token a second time. router.replace keeps
+        // history clean.
+        router.replace("/billing");
+      }
+
+      if (!session.getToken()) {
+        router.replace("/billing/login?next=/billing");
+        return;
+      }
+      void load();
     }
-    void load();
+
+    void init();
   }, [router, load]);
 
   function signOut() {

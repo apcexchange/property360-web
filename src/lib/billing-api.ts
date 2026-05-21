@@ -105,4 +105,20 @@ export const billingApi = {
   async cancel(): Promise<void> {
     await api.post("/subscriptions/cancel");
   },
+
+  /**
+   * Trade a single-use mobile handoff token for a real access JWT. Used by
+   * /billing when it sees ?handoff=… on the URL — the mobile app produced
+   * the token via POST /auth/web-handoff while signed in, then opened this
+   * page in the system browser. Sets the session on success.
+   */
+  async redeemHandoff(token: string): Promise<LoginResponse> {
+    const res = await api.post("/auth/web-handoff/redeem", { token });
+    const data = unwrap(res.data) as LoginResponse;
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Invalid handoff response");
+    }
+    session.set(data.accessToken, data.user);
+    return data;
+  },
 };
