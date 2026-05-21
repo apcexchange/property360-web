@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { UserPlus, Phone, Mail } from "lucide-react";
+import { UserPlus, Phone, Mail, Building2 } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -21,6 +22,21 @@ export default function TenantsPage() {
     queryKey: ["tenants", "occupied-units"],
     queryFn: () => landlordApi.getOccupiedUnits(),
   });
+  const [propertyId, setPropertyId] = useState("");
+
+  const propertyOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const row of q.data ?? []) {
+      if (row.property?.id && !seen.has(row.property.id)) {
+        seen.set(row.property.id, row.property.name);
+      }
+    }
+    return Array.from(seen, ([id, name]) => ({ id, name }));
+  }, [q.data]);
+
+  const filtered = propertyId
+    ? (q.data ?? []).filter((r) => r.property?.id === propertyId)
+    : q.data ?? [];
 
   return (
     <>
@@ -58,15 +74,45 @@ export default function TenantsPage() {
             cta={{ label: "Add tenant", href: "/app/tenants/new" }}
           />
         ) : (
+          <>
+            {propertyOptions.length > 1 && (
+              <div className="mb-4 flex items-center gap-3">
+                <Building2 className="h-4 w-4 text-foundation-700" />
+                <select
+                  value={propertyId}
+                  onChange={(e) => setPropertyId(e.target.value)}
+                  className="rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2 text-[13.5px] text-foundation-700"
+                >
+                  <option value="">All properties · {q.data!.length}</option>
+                  {propertyOptions.map((p) => {
+                    const count = q.data!.filter(
+                      (r) => r.property?.id === p.id
+                    ).length;
+                    return (
+                      <option key={p.id} value={p.id}>
+                        {p.name} · {count}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            )}
+            {filtered.length === 0 ? (
+              <EmptyState
+                title="No tenants in this property"
+                body="Pick a different property or add a tenant to a vacant unit."
+                cta={{ label: "Add tenant", href: "/app/tenants/new" }}
+              />
+            ) : (
           <Card className="divide-y divide-foundation-700/10">
-            {q.data!.map((row) => {
+            {filtered.map((row) => {
               const RowEl: React.ElementType = row.lease ? Link : "div";
               const rowProps = row.lease
                 ? { href: `/app/leases/${row.lease.id}` }
                 : {};
               return (
               <RowEl
-                key={row.tenant._id + row.unit._id}
+                key={row.tenant.id + row.unit.id}
                 {...rowProps}
                 className={`block p-4 ${row.lease ? "transition hover:bg-foundation-700/5" : ""}`}
               >
@@ -124,6 +170,8 @@ export default function TenantsPage() {
               );
             })}
           </Card>
+            )}
+          </>
         )}
       </PageContainer>
     </>

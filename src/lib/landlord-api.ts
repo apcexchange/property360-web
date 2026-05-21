@@ -141,6 +141,28 @@ export interface LeaseSummary {
   status: LeaseStatus;
 }
 
+/** Slimmed property/unit/tenant shapes that /tenants/occupied-units returns. */
+export interface PropertySummary {
+  id: string;
+  name: string;
+  address?: Address;
+}
+export interface UnitSummary {
+  id: string;
+  unitNumber: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  rentAmount?: number;
+}
+export interface TenantSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+}
+
 export type InvoiceStatus =
   | "draft"
   | "sent"
@@ -559,18 +581,18 @@ export const landlordApi = {
 
   // Tenants / leases
   async listTenants(): Promise<Array<{
-    tenant: Tenant;
-    property: Property;
-    unit: Unit;
+    tenant: TenantSummary;
+    property: PropertySummary;
+    unit: UnitSummary;
     lease: LeaseSummary | null;
   }>> {
     const res = await api.get("/tenants/occupied-units");
     return asList(unwrap(res.data));
   },
   async getOccupiedUnits(): Promise<Array<{
-    tenant: Tenant;
-    property: Property;
-    unit: Unit;
+    tenant: TenantSummary;
+    property: PropertySummary;
+    unit: UnitSummary;
     lease: LeaseSummary | null;
   }>> {
     const res = await api.get("/tenants/occupied-units");
