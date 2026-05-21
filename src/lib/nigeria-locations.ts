@@ -184,7 +184,7 @@ export const NIGERIA_STATES: NigeriaState[] = [
     ],
   },
   {
-    name: "Federal Capital Territory",
+    name: "FCT",
     cities: [
       "Abuja",
       "Garki",
@@ -213,15 +213,7 @@ export const NIGERIA_STATES: NigeriaState[] = [
   },
   {
     name: "Gombe",
-    cities: [
-      "Gombe",
-      "Billiri",
-      "Kaltungo",
-      "Dukku",
-      "Bajoga",
-      "Deba",
-      "Akko",
-    ],
+    cities: ["Gombe", "Billiri", "Kaltungo", "Dukku", "Bajoga", "Deba", "Akko"],
   },
   {
     name: "Imo",
@@ -409,6 +401,7 @@ export const NIGERIA_STATES: NigeriaState[] = [
       "Ijebu Igbo",
       "Mowe",
       "Ibafo",
+      "Ofada",
     ],
   },
   {
