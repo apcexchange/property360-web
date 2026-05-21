@@ -16,7 +16,10 @@ interface NavSection {
 export const APP_NAV_SECTIONS: NavSection[] = [
   {
     label: "Overview",
-    items: [{ href: "/app/dashboard", label: "Dashboard" }],
+    items: [
+      { href: "/app/dashboard", label: "Dashboard" },
+      { href: "/app/notifications", label: "Notifications" },
+    ],
   },
   {
     label: "Portfolio",
@@ -24,6 +27,7 @@ export const APP_NAV_SECTIONS: NavSection[] = [
       { href: "/app/properties", label: "Properties" },
       { href: "/app/tenants", label: "Tenants" },
       { href: "/app/agents", label: "Agents" },
+      { href: "/app/community", label: "Community" },
     ],
   },
   {
@@ -34,8 +38,19 @@ export const APP_NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: "Marketplace",
+    items: [{ href: "/app/marketplace", label: "Listings" }],
+  },
+  {
+    label: "Communication",
+    items: [{ href: "/app/chat", label: "Messages" }],
+  },
+  {
     label: "Account",
-    items: [{ href: "/billing", label: "Subscription" }],
+    items: [
+      { href: "/app/profile", label: "Profile" },
+      { href: "/billing", label: "Subscription" },
+    ],
   },
 ];
 
