@@ -24,7 +24,7 @@ export default function RenewLeasePage() {
     queryKey: ["tenants", "occupied-units"],
     queryFn: () => landlordApi.getOccupiedUnits(),
   });
-  const row = occupied.data?.find((r) => r.lease?._id === id);
+  const row = occupied.data?.find((r) => r.lease?.id === id);
   const lease = row?.lease;
 
   const [newEndDate, setNewEndDate] = useState("");

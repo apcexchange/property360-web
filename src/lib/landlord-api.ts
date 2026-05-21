@@ -126,6 +126,21 @@ export interface Lease {
   createdAt: string;
 }
 
+/**
+ * Shape returned by /tenants/occupied-units — a slimmed Lease the
+ * backend builds explicitly with `id` (not `_id`). Keep it separate
+ * from `Lease` so callers using the full Lease shape elsewhere still
+ * get `_id`.
+ */
+export interface LeaseSummary {
+  id: string;
+  startDate: string;
+  endDate: string;
+  rentAmount: number;
+  paymentFrequency: PaymentFrequency;
+  status: LeaseStatus;
+}
+
 export type InvoiceStatus =
   | "draft"
   | "sent"
@@ -445,7 +460,7 @@ export const landlordApi = {
     tenant: Tenant;
     property: Property;
     unit: Unit;
-    lease: Lease | null;
+    lease: LeaseSummary | null;
   }>> {
     const res = await api.get("/tenants/occupied-units");
     return asList(unwrap(res.data));
@@ -454,7 +469,7 @@ export const landlordApi = {
     tenant: Tenant;
     property: Property;
     unit: Unit;
-    lease: Lease | null;
+    lease: LeaseSummary | null;
   }>> {
     const res = await api.get("/tenants/occupied-units");
     return asList(unwrap(res.data));

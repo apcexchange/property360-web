@@ -62,7 +62,7 @@ export default function TenantsPage() {
             {q.data!.map((row) => {
               const RowEl: React.ElementType = row.lease ? Link : "div";
               const rowProps = row.lease
-                ? { href: `/app/leases/${row.lease._id}` }
+                ? { href: `/app/leases/${row.lease.id}` }
                 : {};
               return (
               <RowEl

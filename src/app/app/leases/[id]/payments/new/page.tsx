@@ -18,7 +18,7 @@ export default function RecordPaymentPage() {
     queryKey: ["tenants", "occupied-units"],
     queryFn: () => landlordApi.getOccupiedUnits(),
   });
-  const row = occupied.data?.find((r) => r.lease?._id === id);
+  const row = occupied.data?.find((r) => r.lease?.id === id);
 
   const [amount, setAmount] = useState(0);
   const [method, setMethod] = useState<LeasePaymentMethod>("cash");

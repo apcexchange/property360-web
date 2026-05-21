@@ -80,7 +80,7 @@ export default function NewInvoicePage() {
     tenantsQ.data
       ?.filter((r) => r.lease)
       .map((r) => ({
-        value: r.lease!._id,
+        value: r.lease!.id,
         label: `${r.tenant.firstName} ${r.tenant.lastName} — ${r.property.name}, Unit ${r.unit.unitNumber}`,
       })) ?? [];
 
