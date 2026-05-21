@@ -73,7 +73,7 @@ export default function ReservationsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="text-[14px] font-semibold text-foundation-700">
-                      {r.prospect.firstName} {r.prospect.lastName}
+                      {r.tenant?.firstName} {r.tenant?.lastName}
                     </p>
                     <StatusPill label={r.status} tone={TONE[r.status]} />
                   </div>

@@ -61,7 +61,7 @@ export default function ReservationDetailPage() {
     <>
       <AppTopbar
         title="Reservation request"
-        subtitle={r ? `${r.prospect.firstName} ${r.prospect.lastName}` : undefined}
+        subtitle={r ? `${r.tenant?.firstName} ${r.tenant?.lastName}` : undefined}
         actions={
           <Link
             href="/app/marketplace/reservations"
@@ -87,15 +87,15 @@ export default function ReservationDetailPage() {
                     Prospect
                   </p>
                   <p className="mt-2 font-display text-[22px] font-extrabold text-foundation-700">
-                    {r.prospect.firstName} {r.prospect.lastName}
+                    {r.tenant?.firstName} {r.tenant?.lastName}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[12.5px] text-ink-muted">
                     <span className="inline-flex items-center gap-1">
-                      <Mail className="h-3 w-3" /> {r.prospect.email}
+                      <Mail className="h-3 w-3" /> {r.tenant?.email}
                     </span>
-                    {r.prospect.phone && (
+                    {r.tenant?.phone && (
                       <span className="inline-flex items-center gap-1">
-                        <Phone className="h-3 w-3" /> {r.prospect.phone}
+                        <Phone className="h-3 w-3" /> {r.tenant?.phone}
                       </span>
                     )}
                   </div>

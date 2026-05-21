@@ -164,23 +164,38 @@ export interface TenantNotification {
 }
 
 export interface ConversationParticipant {
-  _id: string;
+  id: string;
   firstName: string;
   lastName: string;
   email?: string;
+  phone?: string;
   avatar?: string;
 }
 
+/**
+ * Backend ChatService.getConversations builds a hand-shaped object —
+ * `id`, `otherParty`, and an optional listing/property summary — so
+ * mirror that exactly. There is no `participants` array.
+ */
 export interface Conversation {
-  _id: string;
-  participants: ConversationParticipant[];
+  id: string;
+  otherParty: ConversationParticipant;
+  listing?: {
+    id: string;
+    unitNumber?: string;
+    rentAmount?: number;
+    listingTitle?: string;
+  } | null;
+  property?: {
+    id: string;
+    name?: string;
+    image?: string | null;
+  } | null;
   lastMessage?: {
-    text?: string;
-    content?: string;
+    text: string;
     createdAt: string;
-    senderId?: string;
-    sender?: string;
-  };
+    isOwn: boolean;
+  } | null;
   unreadCount: number;
   updatedAt: string;
 }
@@ -188,7 +203,15 @@ export interface Conversation {
 export interface Message {
   _id: string;
   conversation: string;
-  sender: string;
+  /** Backend populates `sender` with a user summary, not just an id. */
+  sender:
+    | string
+    | {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        avatar?: string;
+      };
   text?: string;
   content?: string;
   messageType?: "text" | "image" | "file" | "audio";

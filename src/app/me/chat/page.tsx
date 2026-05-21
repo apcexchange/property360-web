@@ -11,14 +11,14 @@ import {
   formatDate,
 } from "@/components/app/ui";
 import { session } from "@/lib/session";
-import { tenantApi, Conversation, Message } from "@/lib/tenant-api";
-
-function counterparty(c: Conversation, meId?: string) {
-  return c.participants.find((p) => p._id !== meId);
-}
+import { tenantApi, Message } from "@/lib/tenant-api";
 
 function messageText(m: Message): string {
   return m.text ?? m.content ?? "";
+}
+
+function messageSenderId(m: Message): string {
+  return typeof m.sender === "string" ? m.sender : m.sender._id;
 }
 
 export default function TenantChatPage() {
@@ -36,7 +36,7 @@ export default function TenantChatPage() {
 
   useEffect(() => {
     if (!activeId && (conversations.data ?? []).length > 0) {
-      setActiveId(conversations.data![0]._id);
+      setActiveId(conversations.data![0].id);
     }
   }, [activeId, conversations.data]);
 
@@ -68,9 +68,9 @@ export default function TenantChatPage() {
 
   const active =
     activeId
-      ? conversations.data?.find((c) => c._id === activeId) ?? null
+      ? conversations.data?.find((c) => c.id === activeId) ?? null
       : null;
-  const other = active ? counterparty(active, me?._id) : null;
+  const other = active ? active.otherParty : null;
 
   return (
     <>
@@ -104,16 +104,16 @@ export default function TenantChatPage() {
             ) : (
               <ul className="divide-y divide-foundation-700/10">
                 {conversations.data!.map((c) => {
-                  const p = counterparty(c, me?._id);
-                  const isActive = activeId === c._id;
+                  const p = c.otherParty;
+                  const isActive = activeId === c.id;
                   const initials =
                     ((p?.firstName?.[0] ?? "") + (p?.lastName?.[0] ?? "")) || "?";
-                  const last = c.lastMessage?.text ?? c.lastMessage?.content;
+                  const last = c.lastMessage?.text;
                   return (
-                    <li key={c._id}>
+                    <li key={c.id}>
                       <button
                         type="button"
-                        onClick={() => setActiveId(c._id)}
+                        onClick={() => setActiveId(c.id)}
                         className={`flex w-full items-start gap-3 p-3 text-left transition hover:bg-foundation-700/5 ${
                           isActive ? "bg-foundation-700/5" : ""
                         }`}
@@ -166,9 +166,9 @@ export default function TenantChatPage() {
                 className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[13px] text-foundation-700"
               >
                 {conversations.data!.map((c) => {
-                  const p = counterparty(c, me?._id);
+                  const p = c.otherParty;
                   return (
-                    <option key={c._id} value={c._id}>
+                    <option key={c.id} value={c.id}>
                       {p?.firstName} {p?.lastName}
                     </option>
                   );
@@ -218,7 +218,7 @@ export default function TenantChatPage() {
                   </p>
                 ) : (
                   messages.data!.map((m) => {
-                    const mine = m.sender === me?._id;
+                    const mine = messageSenderId(m) === me?._id;
                     const initials =
                       ((other?.firstName?.[0] ?? "") +
                         (other?.lastName?.[0] ?? "")) ||

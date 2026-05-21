@@ -21,9 +21,7 @@ export default function ChatThreadPage() {
     queryKey: ["chat", "conversations"],
     queryFn: () => landlordApi.chatConversations(),
   });
-  const other = conversations.data
-    ?.find((c) => c._id === id)
-    ?.participants.find((p) => p._id !== me?._id);
+  const other = conversations.data?.find((c) => c.id === id)?.otherParty;
 
   const messages = useQuery({
     queryKey: ["chat", "messages", id],
@@ -93,7 +91,9 @@ export default function ChatThreadPage() {
             </p>
           ) : (
             messages.data!.map((m) => {
-              const mine = m.sender === me?._id;
+              const senderId =
+                typeof m.sender === "string" ? m.sender : m.sender._id;
+              const mine = senderId === me?._id;
               return (
                 <div
                   key={m._id}

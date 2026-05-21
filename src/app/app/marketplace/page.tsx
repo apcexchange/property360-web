@@ -120,7 +120,7 @@ export default function MarketplacePage() {
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-[13.5px] font-semibold text-foundation-700">
-                        {r.prospect.firstName} {r.prospect.lastName}
+                        {r.tenant?.firstName} {r.tenant?.lastName}
                       </p>
                       <StatusPill
                         label={r.status}

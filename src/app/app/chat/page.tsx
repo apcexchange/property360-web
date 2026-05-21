@@ -12,11 +12,9 @@ import {
   ErrorBox,
   formatDate,
 } from "@/components/app/ui";
-import { session } from "@/lib/session";
 import { landlordApi } from "@/lib/landlord-api";
 
 export default function ChatListPage() {
-  const me = session.getUser();
   const q = useQuery({
     queryKey: ["chat", "conversations"],
     queryFn: () => landlordApi.chatConversations(),
@@ -49,14 +47,14 @@ export default function ChatListPage() {
         ) : (
           <Card className="divide-y divide-foundation-700/10">
             {q.data!.map((c) => {
-              const other = c.participants.find((p) => p._id !== me?._id);
+              const other = c.otherParty;
               const initials =
                 ((other?.firstName?.[0] ?? "") + (other?.lastName?.[0] ?? "")) ||
                 "?";
               return (
                 <Link
-                  key={c._id}
-                  href={`/app/chat/${c._id}`}
+                  key={c.id}
+                  href={`/app/chat/${c.id}`}
                   className="flex items-start gap-3 p-4 transition hover:bg-foundation-700/5"
                 >
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-foundation-700 text-[12px] font-semibold uppercase text-paper">

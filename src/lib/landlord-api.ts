@@ -283,9 +283,11 @@ export type ReservationStatus =
 
 export interface ReservationRequest {
   _id: string;
+  id?: string;
   unit: Unit | string;
   property: Property | string;
-  prospect: Tenant;
+  /** Backend populates this as `tenant`, not `prospect`. */
+  tenant: Tenant;
   message?: string;
   status: ReservationStatus;
   reservationFee?: number;
@@ -303,22 +305,53 @@ export interface Notification {
   data?: Record<string, unknown>;
 }
 
+/**
+ * Backend ChatService.getConversations returns a hand-built object with
+ * `id`, `otherParty`, and an optional `listing` / `property` summary —
+ * NOT the raw Mongoose doc. Match that shape exactly.
+ */
 export interface ChatConversation {
-  _id: string;
-  participants: Tenant[];
+  id: string;
+  otherParty: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+    email?: string;
+    phone?: string;
+  };
+  listing?: {
+    id: string;
+    unitNumber?: string;
+    rentAmount?: number;
+    listingTitle?: string;
+  } | null;
+  property?: {
+    id: string;
+    name?: string;
+    image?: string | null;
+  } | null;
   lastMessage?: {
     text: string;
     createdAt: string;
-    senderId: string;
-  };
+    isOwn: boolean;
+  } | null;
   unreadCount: number;
   updatedAt: string;
 }
 
+/** Backend populates `sender` with a user summary, not a bare id. */
 export interface ChatMessage {
   _id: string;
   conversation: string;
-  sender: string;
+  sender:
+    | string
+    | {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        avatar?: string;
+      };
   text: string;
   attachments?: Array<{ url: string; type: string; name?: string }>;
   readBy?: string[];
