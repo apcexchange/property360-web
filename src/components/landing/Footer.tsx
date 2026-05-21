@@ -20,15 +20,18 @@ export function Footer() {
           </div>
 
           <FooterCol title="Product">
-            <FooterLink href="#why">Why Property360</FooterLink>
-            <FooterLink href="#how">How it works</FooterLink>
-            <FooterLink href="#features">Features</FooterLink>
-            <FooterLink href="#marketplace">Marketplace</FooterLink>
-            <FooterLink href="#download">Download</FooterLink>
+            <FooterLink href="/listings">Browse listings</FooterLink>
+            <FooterLink href="/landlord">For landlords</FooterLink>
+            <FooterLink href="/tenant">For tenants</FooterLink>
+            <FooterLink href="/agents">For agents</FooterLink>
+            <FooterLink href="/pricing">Pricing</FooterLink>
+            <FooterLink href="/onboarding">Get started</FooterLink>
+            <FooterLink href="/#download">Download the app</FooterLink>
           </FooterCol>
 
           <FooterCol title="Company">
-            <FooterLink href="mailto:hello@property360.africa">Contact</FooterLink>
+            <FooterLink href="/about">About</FooterLink>
+            <FooterLink href="/contact">Contact</FooterLink>
             <FooterLink href="/support">Support</FooterLink>
             <FooterLink href="mailto:partnerships@property360.africa">Partnerships</FooterLink>
           </FooterCol>

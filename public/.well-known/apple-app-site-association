@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.property360.africa",
+        "paths": [
+          "/listings/*",
+          "/landlord",
+          "/tenant",
+          "/agents",
+          "NOT /admin/*"
+        ]
+      },
+      {
+        "appID": "TEAMID.com.property360.africa.staging",
+        "paths": ["/listings/*"]
+      }
+    ]
+  }
+}
