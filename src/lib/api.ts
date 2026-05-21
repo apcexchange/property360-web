@@ -21,10 +21,18 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (error: AxiosError) => {
-    // Auth lapsed — drop the session so the AuthGate kicks the user back to login.
+    // Auth lapsed — drop the session and route the user to the appropriate
+    // login page based on what they were trying to do. Admin and landlord
+    // billing share the same JWT storage; only the login UX differs.
     if (error.response?.status === 401 && typeof window !== "undefined") {
       session.clear();
-      if (!window.location.pathname.startsWith("/admin/login")) {
+      const path = window.location.pathname;
+      if (path.startsWith("/billing")) {
+        if (!path.startsWith("/billing/login")) {
+          const next = encodeURIComponent(path + window.location.search);
+          window.location.href = `/billing/login?next=${next}`;
+        }
+      } else if (!path.startsWith("/admin/login")) {
         window.location.href = "/admin/login";
       }
     }
