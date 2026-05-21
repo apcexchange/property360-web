@@ -90,10 +90,10 @@ export default function RolePage() {
       <p className="mt-10 text-[13px] text-ink-muted">
         Already have an account?{" "}
         <Link
-          href="/billing/login"
+          href="/login"
           className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
         >
-          Sign in to manage your plan
+          Sign in
         </Link>
         .
       </p>

@@ -6,14 +6,9 @@ import { api } from "@/lib/api";
 import { session, AdminUser } from "@/lib/session";
 
 /**
- * Landlord-only auth gate for the /app/* section. Shares the same JWT
- * storage as /billing and /admin (session module) — the only thing
- * different is the role check and the login URL we bounce to.
- *
- * On unauthenticated or non-landlord users we route to /billing/login
- * (rather than a separate /app/login) because billing login already
- * enforces landlord role and the post-login destination supports a
- * `next=` redirect.
+ * Auth gate for /app/*. Allows landlords and property managers (role:
+ * agent); tenants and unauthenticated users are bounced to /login,
+ * which then routes them appropriately.
  */
 export function AppAuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -25,7 +20,7 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
     const token = session.getToken();
     const bounce = () => {
       const next = encodeURIComponent(pathname || "/app");
-      router.replace(`/billing/login?next=${next}`);
+      router.replace(`/login?next=${next}`);
     };
     if (!token) {
       bounce();
@@ -36,7 +31,7 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
       .then((res) => {
         if (cancelled) return;
         const user = (res.data?.data ?? res.data) as AdminUser;
-        if (!user || user.role !== "landlord") {
+        if (!user || (user.role !== "landlord" && user.role !== "agent")) {
           session.clear();
           bounce();
           return;

@@ -153,7 +153,18 @@ export default function AccountPage() {
         </div>
       </form>
 
-      <p className="mt-10 text-[12px] leading-[1.5] text-ink-muted">
+      <p className="mt-10 text-[13px] text-ink-muted">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+        >
+          Sign in
+        </Link>
+        .
+      </p>
+
+      <p className="mt-4 text-[12px] leading-[1.5] text-ink-muted">
         By creating an account you agree to our{" "}
         <Link href="/terms" className="underline decoration-cryola-400 underline-offset-4">
           terms

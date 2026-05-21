@@ -70,9 +70,9 @@ export const billingApi = {
     if (!data?.accessToken || !data?.user) {
       throw new Error("Invalid login response");
     }
-    if (data.user.role !== "landlord") {
+    if (data.user.role !== "landlord" && data.user.role !== "agent") {
       throw new Error(
-        "This account is not a landlord. Subscriptions are landlord-only."
+        "Subscriptions are for landlords and property managers. Tenants don't need a plan."
       );
     }
     session.set(data.accessToken, data.user);

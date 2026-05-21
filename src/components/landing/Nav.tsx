@@ -65,13 +65,21 @@ export function Nav() {
           ))}
         </nav>
 
-        <Link
-          href="/onboarding"
-          className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
-        >
-          Get started
-          <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/login"
+            className="hidden rounded-full px-3 py-2 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 sm:inline-flex"
+          >
+            Sign in
+          </Link>
+          <Link
+            href="/onboarding"
+            className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
+          >
+            Get started
+            <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+          </Link>
+        </div>
       </div>
     </motion.header>
   );

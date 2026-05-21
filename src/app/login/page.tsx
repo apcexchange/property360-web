@@ -1,35 +1,61 @@
 "use client";
 
-import { useState, FormEvent, Suspense } from "react";
+import { Suspense, useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Nav } from "@/components/landing/Nav";
-import { billingApi } from "@/lib/billing-api";
+import { authApi } from "@/lib/auth-api";
+import { AxiosError } from "axios";
 
+/**
+ * General-purpose web sign-in. Authenticates any role, then routes:
+ *   - landlord / agent (property manager) → /app/dashboard (or `next`)
+ *   - tenant → shows an "open the mobile app" message; no web home for tenants
+ *
+ * The `next` querystring param wins for landlord/PM destinations as long
+ * as it points back into the site (starts with /). Otherwise we fall back
+ * to /app/dashboard.
+ */
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params?.get("next") ?? "/billing";
-  const [email, setEmail] = useState("");
+  const nextParam = params?.get("next") ?? null;
+
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tenantNotice, setTenantNotice] = useState<string | null>(null);
+
+  function safeNext(): string {
+    if (nextParam && nextParam.startsWith("/")) return nextParam;
+    return "/app/dashboard";
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!identifier || !password) return;
     setSubmitting(true);
     setError(null);
+    setTenantNotice(null);
     try {
-      await billingApi.login(email.trim().toLowerCase(), password);
-      router.replace(next.startsWith("/billing") ? next : "/billing");
+      const res = await authApi.login(identifier.trim(), password);
+      if (res.user.role === "tenant") {
+        setTenantNotice(
+          "Tenant accounts use the Property360 mobile app. Open the app to sign in there."
+        );
+        setSubmitting(false);
+        return;
+      }
+      router.replace(safeNext());
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Sign-in failed. Check your email and password.";
-      setError(message);
-    } finally {
+      const axErr = err as AxiosError<{ message?: string }>;
+      setError(
+        axErr.response?.data?.message ??
+          (err instanceof Error
+            ? err.message
+            : "Sign-in failed. Check your email and password.")
+      );
       setSubmitting(false);
     }
   }
@@ -38,25 +64,25 @@ function LoginInner() {
     <div className="min-h-screen bg-paper text-foundation-700">
       <Nav />
 
-      <section className="mx-auto flex max-w-md flex-col px-6 pt-16 pb-24">
-        <p className="eyebrow">Billing</p>
+      <section className="mx-auto flex max-w-md flex-col px-6 pb-24 pt-16">
+        <p className="eyebrow">Welcome back</p>
         <h1 className="mt-3 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-          Sign in to manage your plan.
+          Sign in to Property360.
         </h1>
         <p className="mt-3 text-[15px] text-ink-muted">
-          Use the same email and password you use on the Property360 app.
-          Subscriptions are for landlords and property managers.
+          Use the same email (or phone) and password you set up with on the
+          mobile app or during web onboarding.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
           <label className="block">
-            <span className="eyebrow block text-[10px]">Email</span>
+            <span className="eyebrow block text-[10px]">Email or phone</span>
             <input
-              type="email"
-              autoComplete="email"
+              type="text"
+              autoComplete="username"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="mt-1 w-full rounded-full border border-foundation-700/15 bg-surface px-4 py-2.5 text-[14.5px] text-foundation-700 outline-none transition focus:border-foundation-700/40"
               placeholder="you@property360.africa"
             />
@@ -81,6 +107,19 @@ function LoginInner() {
             </p>
           )}
 
+          {tenantNotice && (
+            <div className="rounded-2xl border border-cryola-300 bg-cryola-100/50 px-4 py-3 text-[13.5px] text-foundation-700">
+              <p className="font-semibold">You&apos;re signed in as a tenant.</p>
+              <p className="mt-1 text-ink-muted">{tenantNotice}</p>
+              <Link
+                href="/#download"
+                className="mt-2 inline-block font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+              >
+                Get the mobile app →
+              </Link>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={submitting}
@@ -98,13 +137,6 @@ function LoginInner() {
           >
             Create one
           </Link>
-          {" "}or grab the{" "}
-          <Link
-            href="/#download"
-            className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
-          >
-            mobile app
-          </Link>
           .
         </p>
       </section>
@@ -112,7 +144,7 @@ function LoginInner() {
   );
 }
 
-export default function BillingLoginPage() {
+export default function LoginPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-paper" />}>
       <LoginInner />
