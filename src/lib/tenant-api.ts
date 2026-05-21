@@ -406,6 +406,17 @@ export const tenantApi = {
     await api.patch(`/tenant/requests/${id}/cancel`);
   },
 
+  // ----- Marketplace reservations -----
+  async createReservation(
+    unitId: string,
+    message?: string
+  ): Promise<{ id: string; _id?: string; status: string }> {
+    const res = await api.post(`/reservations/request/${unitId}`, {
+      message,
+    });
+    return unwrap(res.data) as { id: string; _id?: string; status: string };
+  },
+
   // ----- Notifications -----
   async listNotifications(params?: {
     page?: number;
