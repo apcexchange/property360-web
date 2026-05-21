@@ -93,7 +93,7 @@ export function SubscriptionLimitModal() {
               <span className="ml-2 text-[13px] font-normal text-ink-muted">
                 {detail.reason === "PROPERTY_LIMIT_REACHED"
                   ? "properties"
-                  : "agent seats"}
+                  : "manager seats"}
               </span>
             </p>
             {detail.tier && (
@@ -139,18 +139,18 @@ const META_FOR_REASON: Record<SubscriptionLimitReason, ReasonMeta> = {
     Icon: AlertTriangle,
     title: "Property limit reached",
     body: (d) =>
-      `Your current plan covers ${d.propertyLimit ?? "your"} properties. Upgrade to add more and unlock larger caps for tenants and agents.`,
+      `Your current plan covers ${d.propertyLimit ?? "your"} properties. Upgrade to add more and unlock larger caps for tenants and managers.`,
   },
   AGENT_SEAT_LIMIT_REACHED: {
     Icon: AlertTriangle,
-    title: "Agent seat limit reached",
+    title: "Manager seat limit reached",
     body: (d) =>
-      `Your current plan includes ${d.agentSeatLimit ?? "your"} agent seats. Upgrade to invite more team members.`,
+      `Your current plan includes ${d.agentSeatLimit ?? "your"} property manager seats. Upgrade to invite more team members.`,
   },
   SUBSCRIPTION_EXPIRED: {
     Icon: Clock,
     title: "Subscription ended",
     body: () =>
-      "Your trial or subscription has ended. Reactivate a plan to add new properties or invite agents. Your existing data is safe.",
+      "Your trial or subscription has ended. Reactivate a plan to add new properties or invite managers. Your existing data is safe.",
   },
 };

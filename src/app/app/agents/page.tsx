@@ -35,14 +35,14 @@ export default function AgentsPage() {
   return (
     <>
       <AppTopbar
-        title="Agents"
+        title="Property managers"
         subtitle="People who can act on your behalf"
         actions={
           <Link
             href="/app/agents/invite"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            <UserPlus className="h-4 w-4" /> Invite agent
+            <UserPlus className="h-4 w-4" /> Invite property manager
           </Link>
         }
       />
@@ -63,9 +63,9 @@ export default function AgentsPage() {
           />
         ) : (q.data ?? []).length === 0 ? (
           <EmptyState
-            title="No agents yet"
-            body="Invite an agent to help you manage tenants, record payments, and handle maintenance. You control their permissions per property."
-            cta={{ label: "Invite agent", href: "/app/agents/invite" }}
+            title="No property managers yet"
+            body="Invite a property manager to help you handle tenants, payments, and maintenance. You control their permissions per property."
+            cta={{ label: "Invite property manager", href: "/app/agents/invite" }}
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">

@@ -27,8 +27,8 @@ const ROLES: {
   },
   {
     id: "agent",
-    title: "I'm an agent",
-    body: "I work for landlords managing their properties — adding tenants, recording payments, handling maintenance.",
+    title: "I'm a property manager",
+    body: "I manage my own portfolio and/or accept invitations from landlords to manage theirs.",
     icon: Briefcase,
   },
 ];
@@ -45,7 +45,7 @@ export default function RolePage() {
   return (
     <OnboardingShell
       currentStep="role"
-      includesPlan={ready && state.role !== "tenant" && state.role !== "agent"}
+      includesPlan={ready && state.role !== "tenant"}
     >
       <p className="eyebrow">Get started</p>
       <h1 className="mt-2 font-display text-[clamp(1.75rem,4.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">

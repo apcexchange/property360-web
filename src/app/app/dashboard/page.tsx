@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, UserPlus, Receipt } from "lucide-react";
+import { Plus, UserPlus, Receipt, Layers, Mail } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -14,8 +14,10 @@ import {
   formatDate,
 } from "@/components/app/ui";
 import { landlordApi } from "@/lib/landlord-api";
+import { session } from "@/lib/session";
 
 export default function DashboardPage() {
+  const user = session.getUser();
   const stats = useQuery({
     queryKey: ["dashboard", "stats"],
     queryFn: () => landlordApi.dashboardStats(),
@@ -40,6 +42,42 @@ export default function DashboardPage() {
         }
       />
       <PageContainer>
+        {/* Property manager banner — visible to role=agent until they have
+           any properties (own or managed). Once stats.totalProperties > 0
+           the regular dashboard takes over. */}
+        {user?.role === "agent" &&
+          stats.data &&
+          stats.data.totalProperties === 0 && (
+            <Card className="mb-6 p-5">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cryola-200 text-foundation-700">
+                  <Layers className="h-5 w-5" />
+                </span>
+                <div className="flex-1">
+                  <p className="text-[14.5px] font-semibold text-foundation-700">
+                    You&apos;re a property manager
+                  </p>
+                  <p className="mt-1 text-[13px] text-ink-muted">
+                    Manage your own properties or accept invitations from
+                    landlords — both work side-by-side.
+                  </p>
+                  <div className="mt-4">
+                    <Link
+                      href="/app/properties/new"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                    >
+                      <Plus className="h-4 w-4" /> Add your first property
+                    </Link>
+                  </div>
+                  <p className="mt-3 inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted">
+                    <Mail className="h-3 w-3" />
+                    Landlord invitations are accepted in the Property360
+                    mobile app.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
         {stats.isError ? (
           <ErrorBox
             message={(stats.error as Error)?.message}

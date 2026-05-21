@@ -4,7 +4,7 @@ import { LegalLayout } from "@/components/legal/LegalLayout";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Privacy Policy for Property360, a property management platform for landlords, tenants, and agents in Nigeria.",
+    "Privacy Policy for Property360, a property management platform for landlords, tenants, and property managers in Nigeria.",
   alternates: { canonical: "https://property360.africa/privacy" },
 };
 
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         Data Protection Regulation (NDPR).
       </p>
       <p>
-        Property360 is intended for landlords, tenants, and letting agents operating in
+        Property360 is intended for landlords, tenants, and property managers operating in
         Nigeria. By using the Service you agree to this Policy.
       </p>
 
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
 
       <h3>1.1 Information you provide</h3>
       <ul>
-        <li><strong>Account details:</strong> full name, email address, Nigerian mobile number (+234 format), password, role (landlord, tenant, or agent), and profile photo.</li>
+        <li><strong>Account details:</strong> full name, email address, Nigerian mobile number (+234 format), password, role (landlord, tenant, or property manager), and profile photo.</li>
         <li><strong>Identity verification (KYC):</strong> one of National Identification Number (NIN), Driver&apos;s Licence, International Passport, or Voter&apos;s Card, plus a photo of the document. We use this to verify identity and reduce fraud on the platform.</li>
         <li><strong>Property &amp; lease data:</strong> property addresses, unit details, lease terms, fee structure (security deposit, caution fee, agent fee, agreement fee, legal fee, service charge), and tenancy agreements.</li>
         <li><strong>Payment &amp; payout details:</strong> bank account details for landlord payouts; payment instrument data is collected and stored by our payment processor (see §3) — we do not store full card numbers.</li>
@@ -82,8 +82,8 @@ export default function PrivacyPage() {
       <h2>4. Sharing Within the Platform</h2>
       <ul>
         <li>Landlords can see the tenants assigned to their properties (name, contact, lease, payment history).</li>
-        <li>Tenants can see the landlord (or assigned agent) for their unit and the property details.</li>
-        <li>Agents acting on a landlord&apos;s behalf can see the same data the landlord has authorised them to access via per-property permission flags.</li>
+        <li>Tenants can see the landlord (or assigned property manager) for their unit and the property details.</li>
+        <li>Property managers acting on a landlord&apos;s behalf can see the same data the landlord has authorised them to access via per-property permission flags.</li>
         <li>Marketplace listings show the property details you publish; your direct contact is shown only after a reservation request.</li>
       </ul>
 

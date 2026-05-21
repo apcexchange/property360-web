@@ -69,7 +69,7 @@ export default function InviteAgentPage() {
   return (
     <>
       <AppTopbar
-        title="Invite agent"
+        title="Invite property manager"
         subtitle="They'll get an email to accept the invite"
         actions={
           <Link
@@ -90,7 +90,7 @@ export default function InviteAgentPage() {
         >
           <Card className="space-y-5 p-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-              Agent
+              Property manager
             </h2>
             <div>
               <label className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
@@ -116,7 +116,7 @@ export default function InviteAgentPage() {
                 Permissions
               </h2>
               <p className="mt-1 text-[12px] text-ink-muted">
-                Pick what this agent can do. You can change this later.
+                Pick what this property manager can do. You can change this later.
               </p>
             </div>
             <div className="grid gap-2.5 sm:grid-cols-2">
@@ -169,7 +169,7 @@ export default function InviteAgentPage() {
               <p className="text-[13px] text-ink-muted">Loading properties…</p>
             ) : (properties.data ?? []).length === 0 ? (
               <p className="text-[13px] text-ink-muted">
-                Add a property first to scope the agent.
+                Add a property first to scope the property manager.
               </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">

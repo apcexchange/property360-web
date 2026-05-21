@@ -63,6 +63,14 @@ export interface Unit {
   createdAt: string;
 }
 
+export interface PropertyOwnership {
+  ownership: "self" | "managed";
+  managedFor?: {
+    landlordId: string;
+    landlordName: string;
+  };
+}
+
 export interface DashboardStats {
   totalProperties: number;
   totalUnits: number;
@@ -76,6 +84,9 @@ export interface DashboardStats {
   revenueChange: number;
   newPropertiesThisMonth: number;
   newTenantsThisMonth: number;
+  ownedPropertyCount?: number;
+  managedPropertyCount?: number;
+  propertyOwnership?: Record<string, PropertyOwnership>;
 }
 
 export interface RecentActivity {

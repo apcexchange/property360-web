@@ -165,15 +165,16 @@ export default function BillingPage() {
     );
   }
 
-  // Tenants/agents end up here if they somehow logged in — show a polite block.
+  // Tenants end up here if they somehow logged in — show a polite block.
+  // (Landlords and property managers both have plans; only tenants don't.)
   if (sub && !sub.applicable) {
     return (
       <div className="min-h-screen bg-paper text-foundation-700">
         <Nav />
         <PageHero
           eyebrow="Billing"
-          title="Subscriptions are for landlords."
-          subtitle={`You're signed in as a ${sub.role}. Tenants and agents don't have subscriptions on Property360.`}
+          title="Subscriptions are for property owners and managers."
+          subtitle={`You're signed in as a ${sub.role}. Tenants don't have subscriptions on Property360.`}
         >
           <Link
             href="/"
@@ -406,7 +407,7 @@ function CurrentPlanCard({
             limit={sub.usage.propertyLimit}
           />
           <UsageMeter
-            label="Agent seats"
+            label="Property manager seats"
             used={sub.usage.agentSeatCount}
             limit={sub.usage.agentSeatLimit}
           />
@@ -609,8 +610,8 @@ function CancelDialog({
         <p className="mt-2 text-[14px] leading-[1.55] text-ink-muted">
           Your subscription will stop renewing.{" "}
           {renewsAt
-            ? `You keep access until ${formatDate(renewsAt)}, after which property creation, agent invitations, and listings will be blocked until you resubscribe.`
-            : "Property creation, agent invitations, and listings will be blocked once your access ends."}
+            ? `You keep access until ${formatDate(renewsAt)}, after which property creation, property manager invitations, and listings will be blocked until you resubscribe.`
+            : "Property creation, property manager invitations, and listings will be blocked once your access ends."}
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

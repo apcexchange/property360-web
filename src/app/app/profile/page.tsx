@@ -222,7 +222,7 @@ function PlanCard({
           limit={sub.usage.propertyLimit}
         />
         <UsageRow
-          label="Agent seats"
+          label="Manager seats"
           used={sub.usage.agentSeatCount}
           limit={sub.usage.agentSeatLimit}
         />

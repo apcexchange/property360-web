@@ -26,7 +26,7 @@ export const APP_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/app/properties", label: "Properties" },
       { href: "/app/tenants", label: "Tenants" },
-      { href: "/app/agents", label: "Agents" },
+      { href: "/app/agents", label: "Property managers" },
       { href: "/app/community", label: "Community" },
     ],
   },
