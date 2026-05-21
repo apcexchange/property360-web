@@ -33,6 +33,13 @@ export default function PlanPage() {
     setError(null);
     try {
       const { authorizationUrl } = await billingApi.createCheckout(tier, interval);
+      // Tell the post-payment success page to send us on to /onboarding/done
+      // instead of stopping at the billing dashboard. Cleared by that page
+      // after it reads it.
+      window.sessionStorage.setItem(
+        "p360_post_checkout_redirect",
+        "/onboarding/done"
+      );
       window.location.href = authorizationUrl;
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;

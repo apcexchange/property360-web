@@ -92,6 +92,16 @@ export const billingApi = {
     return unwrap(res.data) as CheckoutResponse;
   },
 
+  /**
+   * Synchronously verify a Paystack transaction by reference and activate
+   * the subscription — used on the /billing/success page so we don't have
+   * to wait for the webhook to land. Returns the fresh subscription view.
+   */
+  async verify(reference: string): Promise<SubscriptionView> {
+    const res = await api.post("/subscriptions/verify", { reference });
+    return unwrap(res.data) as SubscriptionView;
+  },
+
   async cancel(): Promise<void> {
     await api.post("/subscriptions/cancel");
   },
