@@ -426,6 +426,73 @@ export interface Paginated<T> {
   pageSize: number;
 }
 
+// ----- Reports (mirror backend/src/services/ReportsService.ts shapes) -----
+
+export type ReportPeriod =
+  | "this_month"
+  | "last_month"
+  | "this_year"
+  | "last_year";
+
+export interface MonthlyBucket {
+  monthKey: string;
+  monthLabel: string;
+  income: number;
+  expense: number;
+  net: number;
+}
+
+export interface CategoryTotal {
+  key: string;
+  label: string;
+  amount: number;
+}
+
+export interface ReportSummary {
+  period: { from: string; to: string; label: string };
+  income: { total: number; byCategory: CategoryTotal[] };
+  expense: { total: number; byCategory: CategoryTotal[] };
+  netProfit: number;
+  monthly: MonthlyBucket[];
+  transactionCount: number;
+}
+
+export interface BalanceSheet {
+  asOf: string;
+  assets: {
+    walletBalance: number;
+    rentReceivable: number;
+    propertyValueTotal: number;
+    total: number;
+  };
+  liabilities: {
+    depositsHeld: number;
+    pendingPayouts: number;
+    total: number;
+  };
+  equity: number;
+  meta: {
+    propertyCount: number;
+    propertiesWithValue: number;
+    openInvoiceCount: number;
+  };
+}
+
+export interface CashFlowMonth {
+  monthKey: string;
+  monthLabel: string;
+  inflow: number;
+  outflow: number;
+  net: number;
+  runningBalance: number;
+}
+
+export interface CashFlow {
+  period: { from: string; to: string; label: string };
+  totals: { inflow: number; outflow: number; net: number };
+  monthly: CashFlowMonth[];
+}
+
 // ----- Endpoint helpers -----
 
 /** Backend returns either a bare array or { items, total } depending on route. */
@@ -827,6 +894,44 @@ export const landlordApi = {
     newPassword: string;
   }): Promise<void> {
     await api.post("/auth/change-password", body);
+  },
+
+  // Reports
+  async getReportSummary(params: {
+    period?: ReportPeriod;
+    from?: string;
+    to?: string;
+    propertyId?: string;
+  }): Promise<ReportSummary> {
+    const res = await api.get("/reports/summary", { params });
+    return unwrap(res.data) as ReportSummary;
+  },
+  async getBalanceSheet(): Promise<BalanceSheet> {
+    const res = await api.get("/reports/balance-sheet");
+    return unwrap(res.data) as BalanceSheet;
+  },
+  async getCashFlow(params: {
+    period?: ReportPeriod;
+    from?: string;
+    to?: string;
+  }): Promise<CashFlow> {
+    const res = await api.get("/reports/cash-flow", { params });
+    return unwrap(res.data) as CashFlow;
+  },
+  async downloadReportSummary(
+    format: "csv" | "pdf",
+    params: {
+      period?: ReportPeriod;
+      from?: string;
+      to?: string;
+      propertyId?: string;
+    }
+  ): Promise<Blob> {
+    const res = await api.get(`/reports/summary.${format}`, {
+      params,
+      responseType: "blob",
+    });
+    return res.data as Blob;
   },
 
   // KYC

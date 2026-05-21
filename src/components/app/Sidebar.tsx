@@ -35,6 +35,8 @@ export const APP_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/app/invoices", label: "Invoices" },
       { href: "/app/wallet", label: "Wallet" },
+      { href: "/app/transactions", label: "Transactions" },
+      { href: "/app/reports", label: "Reports" },
     ],
   },
   {
