@@ -15,9 +15,11 @@ import {
   formatDate,
 } from "@/components/app/ui";
 import { landlordApi, Listing } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 
 export default function MarketplacePage() {
   const qc = useQueryClient();
+  const toast = useToast();
   const listings = useQuery({
     queryKey: ["marketplace", "my-listings"],
     queryFn: () => landlordApi.myListings(),
@@ -29,7 +31,15 @@ export default function MarketplacePage() {
 
   const unlist = useMutation({
     mutationFn: (unitId: string) => landlordApi.unlistUnit(unitId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["marketplace", "my-listings"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["marketplace", "my-listings"] });
+      toast.success("Unit removed from the marketplace");
+    },
+    onError: (err) =>
+      toast.error({
+        title: "Couldn't remove the listing",
+        body: err instanceof Error ? err.message : undefined,
+      }),
   });
 
   return (

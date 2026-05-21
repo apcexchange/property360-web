@@ -15,6 +15,7 @@ import {
 } from "@/components/app/ui";
 import { session } from "@/lib/session";
 import { landlordApi } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 import {
   billingApi,
   SubscriptionResponse,
@@ -23,6 +24,7 @@ import {
 
 export default function ProfilePage() {
   const qc = useQueryClient();
+  const toast = useToast();
   const q = useQuery({
     queryKey: ["profile"],
     queryFn: () => landlordApi.profile(),
@@ -58,6 +60,7 @@ export default function ProfilePage() {
       const token = session.getToken();
       if (token) session.set(token, { ...u, role: u.role });
       qc.invalidateQueries({ queryKey: ["profile"] });
+      toast.success("Profile updated");
     },
   });
 
@@ -109,11 +112,6 @@ export default function ProfilePage() {
                   </Field>
                 </div>
                 {saveError && <ErrorBox message={saveError} />}
-                {save.isSuccess && (
-                  <p className="text-[12.5px] text-emerald-700">
-                    Profile updated.
-                  </p>
-                )}
                 <div className="flex items-center justify-end">
                   <button
                     type="submit"

@@ -15,6 +15,7 @@ import {
   formatDate,
 } from "@/components/app/ui";
 import { landlordApi, InvoiceStatus } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 
 const TONE_FOR_STATUS: Record<
   InvoiceStatus,
@@ -31,6 +32,7 @@ const TONE_FOR_STATUS: Record<
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
+  const toast = useToast();
 
   const q = useQuery({
     queryKey: ["invoices", id],
@@ -43,14 +45,18 @@ export default function InvoiceDetailPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["invoices", id] });
+      toast.success("Invoice marked as paid");
     },
+    onError: () => toast.error("Couldn't mark invoice as paid"),
   });
   const cancel = useMutation({
     mutationFn: () => landlordApi.cancelInvoice(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
       qc.invalidateQueries({ queryKey: ["invoices", id] });
+      toast.success("Invoice cancelled");
     },
+    onError: () => toast.error("Couldn't cancel invoice"),
   });
 
   const inv = q.data;

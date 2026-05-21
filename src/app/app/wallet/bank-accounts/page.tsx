@@ -15,9 +15,11 @@ import {
   StatusPill,
 } from "@/components/app/ui";
 import { landlordApi } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 
 export default function BankAccountsPage() {
   const qc = useQueryClient();
+  const toast = useToast();
 
   const accounts = useQuery({
     queryKey: ["bank-accounts"],
@@ -32,11 +34,19 @@ export default function BankAccountsPage() {
 
   const setPrimary = useMutation({
     mutationFn: (id: string) => landlordApi.setPrimaryBankAccount(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["bank-accounts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bank-accounts"] });
+      toast.success("Primary bank account updated");
+    },
+    onError: () => toast.error("Couldn't update primary account"),
   });
   const remove = useMutation({
     mutationFn: (id: string) => landlordApi.deleteBankAccount(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["bank-accounts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bank-accounts"] });
+      toast.success("Bank account removed");
+    },
+    onError: () => toast.error("Couldn't remove account"),
   });
 
   return (
