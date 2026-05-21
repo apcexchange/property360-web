@@ -47,18 +47,30 @@ api.interceptors.response.use(
     if (typeof window === "undefined") return Promise.reject(error);
 
     // Auth lapsed — drop the session and route the user to the appropriate
-    // login page based on what they were trying to do. /app and /billing
-    // both use the landlord login; /admin keeps its separate login.
+    // login page based on what they were trying to do. /admin keeps its
+    // separate login; everything else (including /app, /billing, /login,
+    // /onboarding, and the marketing site) uses /login.
+    //
+    // Skip the redirect when the failing request IS the sign-in call
+    // itself — a 401 there just means "wrong credentials", and the page
+    // already shows the error. Same for the password-change endpoint.
     if (error.response?.status === 401) {
-      session.clear();
-      const path = window.location.pathname;
-      if (path.startsWith("/billing") || path.startsWith("/app")) {
-        if (!path.startsWith("/billing/login")) {
+      const reqUrl = error.config?.url ?? "";
+      const isAuthAttempt =
+        reqUrl.includes("/auth/login") ||
+        reqUrl.includes("/auth/register") ||
+        reqUrl.includes("/auth/password");
+      if (!isAuthAttempt) {
+        session.clear();
+        const path = window.location.pathname;
+        if (path.startsWith("/admin")) {
+          if (!path.startsWith("/admin/login")) {
+            window.location.href = "/admin/login";
+          }
+        } else if (path !== "/login") {
           const next = encodeURIComponent(path + window.location.search);
-          window.location.href = `/billing/login?next=${next}`;
+          window.location.href = `/login?next=${next}`;
         }
-      } else if (!path.startsWith("/admin/login")) {
-        window.location.href = "/admin/login";
       }
       return Promise.reject(error);
     }
