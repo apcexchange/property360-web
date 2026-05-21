@@ -13,6 +13,10 @@ import {
   ErrorBox,
 } from "@/components/app/ui";
 import { landlordApi, PropertyType, RentPeriod } from "@/lib/landlord-api";
+import {
+  NIGERIA_STATE_NAMES,
+  citiesForState,
+} from "@/lib/nigeria-locations";
 
 interface UnitDraft {
   unitNumber: string;
@@ -187,11 +191,32 @@ export default function NewPropertyPage() {
               />
             </Field>
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="City">
-                <Input value={city} onChange={setCity} placeholder="Lagos" />
-              </Field>
               <Field label="State">
-                <Input value={state} onChange={setState} placeholder="Lagos" />
+                <Select
+                  value={state}
+                  onChange={(v) => {
+                    setState(v);
+                    // Reset city when state changes — city list depends on state.
+                    setCity("");
+                  }}
+                  placeholder="Select state"
+                  options={NIGERIA_STATE_NAMES.map((s) => ({
+                    value: s,
+                    label: s,
+                  }))}
+                />
+              </Field>
+              <Field label="City">
+                <Select
+                  value={city}
+                  onChange={setCity}
+                  placeholder={state ? "Select city" : "Pick a state first"}
+                  disabled={!state}
+                  options={citiesForState(state).map((c) => ({
+                    value: c,
+                    label: c,
+                  }))}
+                />
               </Field>
               <Field label="Postal code" optional>
                 <Input
@@ -455,17 +480,27 @@ function Select({
   value,
   onChange,
   options,
+  placeholder,
+  disabled,
 }: {
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  placeholder?: string;
+  disabled?: boolean;
 }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10"
+      disabled={disabled}
+      className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10 disabled:cursor-not-allowed disabled:opacity-60"
     >
+      {placeholder && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
       {options.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}
