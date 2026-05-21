@@ -3,6 +3,21 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download } from "lucide-react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Legend,
+  Line,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -24,6 +39,24 @@ import {
   CashFlowMonth,
   Property,
 } from "@/lib/landlord-api";
+
+const FOUNDATION = "#1F414A";
+const CRYOLA = "#22C55E";
+const EXPENSE_RED = "#DC2626";
+const INCOME_PALETTE = ["#16A34A", "#22C55E", "#65A30D", "#84CC16"];
+const EXPENSE_PALETTE = ["#DC2626", "#EF4444", "#F97316", "#B91C1C"];
+
+function compactNgn(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `₦${(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `₦${(n / 1_000).toFixed(0)}k`;
+  return `₦${n}`;
+}
+
+function tooltipFormatNgn(value: unknown): string {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? formatNgn(n) : String(value ?? "");
+}
 
 const PERIOD_OPTIONS: Array<{ label: string; value: ReportPeriod }> = [
   { label: "This month", value: "this_month" },
@@ -54,8 +87,9 @@ export default function ReportsPage() {
       period: useCustom ? undefined : period,
       from: useCustom ? from : undefined,
       to: useCustom ? to : undefined,
+      propertyId: propertyId || undefined,
     }),
-    [period, from, to, useCustom]
+    [period, from, to, propertyId, useCustom]
   );
 
   const properties = useQuery({
@@ -207,6 +241,7 @@ export default function ReportsPage() {
           isError={balanceSheet.isError}
           error={balanceSheet.error as Error | undefined}
           onRetry={() => balanceSheet.refetch()}
+          propertySelected={Boolean(propertyId)}
         />
 
         <CashFlowSection
@@ -325,17 +360,21 @@ function SummarySection({
             />
           </div>
 
+          <MonthlyChart monthly={summary.monthly} />
+
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
-            <CategoryList
+            <CategoryBlock
               title="Income by category"
               items={summary.income.byCategory}
               total={summary.income.total}
+              palette={INCOME_PALETTE}
               tone="good"
             />
-            <CategoryList
+            <CategoryBlock
               title="Expense by category"
               items={summary.expense.byCategory}
               total={summary.expense.total}
+              palette={EXPENSE_PALETTE}
               tone="bad"
             />
           </div>
@@ -347,49 +386,90 @@ function SummarySection({
   );
 }
 
-function CategoryList({
+function CategoryBlock({
   title,
   items,
   total,
+  palette,
   tone,
 }: {
   title: string;
   items: CategoryTotal[];
   total: number;
+  palette: string[];
   tone: "good" | "bad";
 }) {
   const accent = tone === "good" ? "text-emerald-700" : "text-red-700";
+  const hasData = items.length > 0 && total > 0;
   return (
     <Card className="p-5">
       <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
         {title}
       </h3>
-      {items.length === 0 ? (
+      {!hasData ? (
         <p className="mt-3 text-[13px] text-ink-muted">
           Nothing recorded for this period.
         </p>
       ) : (
-        <ul className="mt-3 divide-y divide-foundation-700/10">
-          {items.map((cat) => {
-            const pct = total > 0 ? Math.round((cat.amount / total) * 100) : 0;
-            return (
-              <li
-                key={cat.key}
-                className="flex items-center justify-between gap-3 py-2.5"
-              >
-                <div className="min-w-0">
-                  <p className="text-[13.5px] font-medium text-foundation-700">
-                    {cat.label}
+        <>
+          <div className="mt-3 h-[220px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={items}
+                  dataKey="amount"
+                  nameKey="label"
+                  innerRadius={50}
+                  outerRadius={85}
+                  paddingAngle={2}
+                  stroke="none"
+                >
+                  {items.map((cat, i) => (
+                    <Cell key={cat.key} fill={palette[i % palette.length]} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={tooltipFormatNgn}
+                  contentStyle={{
+                    border: "1px solid rgba(31,65,74,0.1)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <ul className="mt-2 divide-y divide-foundation-700/10">
+            {items.map((cat, i) => {
+              const pct = total > 0 ? Math.round((cat.amount / total) * 100) : 0;
+              return (
+                <li
+                  key={cat.key}
+                  className="flex items-center justify-between gap-3 py-2.5"
+                >
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span
+                      aria-hidden
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: palette[i % palette.length] }}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[13.5px] font-medium text-foundation-700">
+                        {cat.label}
+                      </p>
+                      <p className="text-[11.5px] text-ink-muted">
+                        {pct}% of total
+                      </p>
+                    </div>
+                  </div>
+                  <p className={`text-[14px] font-semibold ${accent}`}>
+                    {formatNgn(cat.amount)}
                   </p>
-                  <p className="text-[11.5px] text-ink-muted">{pct}% of total</p>
-                </div>
-                <p className={`text-[14px] font-semibold ${accent}`}>
-                  {formatNgn(cat.amount)}
-                </p>
-              </li>
-            );
-          })}
-        </ul>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
       <div className="mt-3 flex items-center justify-between border-t border-foundation-700/10 pt-3">
         <span className="text-[12px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
@@ -403,6 +483,69 @@ function CategoryList({
   );
 }
 
+function MonthlyChart({ monthly }: { monthly: MonthlyBucket[] }) {
+  if (monthly.length === 0) return null;
+  return (
+    <Card className="mt-6 overflow-hidden">
+      <div className="border-b border-foundation-700/10 px-5 py-4">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          Income vs expense
+        </h3>
+      </div>
+      <div className="px-3 pb-3 pt-4" style={{ height: 260 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={monthly}
+            margin={{ top: 4, right: 12, left: 4, bottom: 0 }}
+          >
+            <CartesianGrid stroke="rgba(31,65,74,0.08)" vertical={false} />
+            <XAxis
+              dataKey="monthLabel"
+              tick={{ fontSize: 11, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={{ stroke: "rgba(31,65,74,0.1)" }}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={compactNgn}
+              width={56}
+            />
+            <Tooltip
+              formatter={tooltipFormatNgn}
+              cursor={{ fill: "rgba(31,65,74,0.04)" }}
+              contentStyle={{
+                border: "1px solid rgba(31,65,74,0.1)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+            />
+            <Legend
+              wrapperStyle={{ fontSize: 12, paddingTop: 6 }}
+              iconType="circle"
+            />
+            <Bar
+              dataKey="income"
+              name="Income"
+              fill={CRYOLA}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={28}
+            />
+            <Bar
+              dataKey="expense"
+              name="Expense"
+              fill={EXPENSE_RED}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={28}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+
 function MonthlyBars({ monthly }: { monthly: MonthlyBucket[] }) {
   const max = Math.max(
     1,
@@ -410,9 +553,9 @@ function MonthlyBars({ monthly }: { monthly: MonthlyBucket[] }) {
   );
   return (
     <Card className="mt-6 overflow-hidden">
-      <div className="border-b border-foundation-700/10 px-5 py-4">
-        <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-          Monthly breakdown
+      <div className="border-b border-foundation-700/10 px-5 py-3">
+        <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          Monthly breakdown (table)
         </h3>
       </div>
       {monthly.length === 0 ? (
@@ -497,12 +640,14 @@ function BalanceSheetSection({
   isError,
   error,
   onRetry,
+  propertySelected,
 }: {
   balanceSheet?: BalanceSheet;
   isLoading: boolean;
   isError: boolean;
   error?: Error;
   onRetry: () => void;
+  propertySelected: boolean;
 }) {
   return (
     <section>
@@ -512,6 +657,12 @@ function BalanceSheetSection({
           balanceSheet ? `As of ${formatDate(balanceSheet.asOf)}` : undefined
         }
       />
+      {propertySelected && (
+        <p className="mb-3 rounded-lg border border-foundation-700/10 bg-foundation-700/5 px-3 py-2 text-[12px] text-foundation-700">
+          Balance sheet is portfolio-wide — property filter doesn&apos;t apply
+          here.
+        </p>
+      )}
       {isLoading ? (
         <div className="grid gap-4 lg:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -686,6 +837,7 @@ function CashFlowSection({
               }
             />
           </div>
+          <CashFlowChart monthly={cashFlow.monthly} />
           <CashFlowTable monthly={cashFlow.monthly} />
         </>
       )}
@@ -693,12 +845,84 @@ function CashFlowSection({
   );
 }
 
-function CashFlowTable({ monthly }: { monthly: CashFlowMonth[] }) {
+function CashFlowChart({ monthly }: { monthly: CashFlowMonth[] }) {
+  if (monthly.length === 0) return null;
   return (
     <Card className="mt-6 overflow-hidden">
       <div className="border-b border-foundation-700/10 px-5 py-4">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-          Monthly cash flow
+          Cash flow trend
+        </h3>
+      </div>
+      <div className="px-3 pb-3 pt-4" style={{ height: 260 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={monthly}
+            margin={{ top: 4, right: 12, left: 4, bottom: 0 }}
+          >
+            <CartesianGrid stroke="rgba(31,65,74,0.08)" vertical={false} />
+            <XAxis
+              dataKey="monthLabel"
+              tick={{ fontSize: 11, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={{ stroke: "rgba(31,65,74,0.1)" }}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={compactNgn}
+              width={56}
+            />
+            <Tooltip
+              formatter={tooltipFormatNgn}
+              cursor={{ fill: "rgba(31,65,74,0.04)" }}
+              contentStyle={{
+                border: "1px solid rgba(31,65,74,0.1)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+            />
+            <Legend
+              wrapperStyle={{ fontSize: 12, paddingTop: 6 }}
+              iconType="circle"
+            />
+            <Bar
+              dataKey="inflow"
+              name="Inflow"
+              fill={CRYOLA}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={24}
+            />
+            <Bar
+              dataKey="outflow"
+              name="Outflow"
+              fill={EXPENSE_RED}
+              radius={[3, 3, 0, 0]}
+              maxBarSize={24}
+            />
+            <Line
+              dataKey="runningBalance"
+              name="Running balance"
+              type="monotone"
+              stroke={FOUNDATION}
+              strokeWidth={2}
+              dot={{ r: 3, fill: FOUNDATION }}
+              activeDot={{ r: 4 }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+
+function CashFlowTable({ monthly }: { monthly: CashFlowMonth[] }) {
+  return (
+    <Card className="mt-6 overflow-hidden">
+      <div className="border-b border-foundation-700/10 px-5 py-3">
+        <h3 className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          Monthly cash flow (table)
         </h3>
       </div>
       {monthly.length === 0 ? (

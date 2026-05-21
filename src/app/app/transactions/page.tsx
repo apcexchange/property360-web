@@ -3,6 +3,14 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Search } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -14,7 +22,14 @@ import {
   formatNgn,
   formatDate,
 } from "@/components/app/ui";
-import { landlordApi, WalletTransaction } from "@/lib/landlord-api";
+import { landlordApi, Property, WalletTransaction } from "@/lib/landlord-api";
+
+const FOUNDATION = "#1F414A";
+
+function tooltipFormatNgn(value: unknown): string {
+  const n = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(n) ? formatNgn(n) : String(value ?? "");
+}
 
 type TypeFilter = "all" | "credit" | "debit";
 type StatusFilter = "all" | "completed" | "pending" | "failed";
@@ -53,16 +68,25 @@ function toCsv(rows: WalletTransaction[]): string {
 }
 
 export default function TransactionsPage() {
-  const q = useQuery({
-    queryKey: ["wallet", "transactions"],
-    queryFn: () => landlordApi.walletTransactions(),
-  });
-
   const [type, setType] = useState<TypeFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [search, setSearch] = useState("");
+  const [propertyId, setPropertyId] = useState<string>("");
+
+  const properties = useQuery({
+    queryKey: ["properties"],
+    queryFn: () => landlordApi.listProperties(),
+  });
+
+  const q = useQuery({
+    queryKey: ["wallet", "transactions", propertyId || "all"],
+    queryFn: () =>
+      landlordApi.walletTransactions(
+        propertyId ? { propertyId } : undefined
+      ),
+  });
 
   const filtered = useMemo(() => {
     const list = q.data ?? [];
@@ -92,6 +116,40 @@ export default function TransactionsPage() {
       else debits += t.amount;
     }
     return { credits, debits, net: credits - debits, count: filtered.length };
+  }, [filtered]);
+
+  // Day-bucketed net flow for the inline area chart. We bucket by local
+  // calendar day, keep the most recent ~30 buckets (chronological), and
+  // ignore non-completed rows so they don't skew the trend.
+  const netFlowSeries = useMemo(() => {
+    const buckets = new Map<string, { day: string; net: number; sortKey: number }>();
+    for (const t of filtered) {
+      if (t.status !== "completed") continue;
+      const d = new Date(t.createdAt);
+      if (Number.isNaN(d.getTime())) continue;
+      const key = d.toISOString().slice(0, 10);
+      const signed = t.type === "credit" ? t.amount : -t.amount;
+      const existing = buckets.get(key);
+      if (existing) existing.net += signed;
+      else
+        buckets.set(key, {
+          day: key,
+          net: signed,
+          sortKey: new Date(`${key}T00:00:00`).getTime(),
+        });
+    }
+    const ordered = Array.from(buckets.values()).sort(
+      (a, b) => a.sortKey - b.sortKey
+    );
+    const recent = ordered.slice(-30);
+    return recent.map((b) => ({
+      day: b.day,
+      label: new Date(`${b.day}T00:00:00`).toLocaleDateString("en-NG", {
+        month: "short",
+        day: "numeric",
+      }),
+      net: b.net,
+    }));
   }, [filtered]);
 
   function exportCsv() {
@@ -145,7 +203,7 @@ export default function TransactionsPage() {
         </div>
 
         <Card className="mt-6 p-4">
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-6">
             <PillGroup
               label="Type"
               value={type}
@@ -171,6 +229,23 @@ export default function TransactionsPage() {
             <DateField label="To" value={to} onChange={setTo} />
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                Property
+              </label>
+              <select
+                value={propertyId}
+                onChange={(e) => setPropertyId(e.target.value)}
+                className="rounded-lg border border-foundation-700/10 bg-paper px-2 py-1.5 text-[13px] text-foundation-700 focus:border-foundation-700/30 focus:outline-none"
+              >
+                <option value="">All properties</option>
+                {(properties.data ?? []).map((p: Property) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                 Search
               </label>
               <div className="relative">
@@ -186,6 +261,8 @@ export default function TransactionsPage() {
             </div>
           </div>
         </Card>
+
+        <NetFlowChart series={netFlowSeries} />
 
         <div className="mt-6">
           {q.isLoading ? (
@@ -339,5 +416,61 @@ function DateField({
         className="rounded-lg border border-foundation-700/10 bg-paper px-2 py-1.5 text-[13px] text-foundation-700 focus:border-foundation-700/30 focus:outline-none"
       />
     </div>
+  );
+}
+
+function NetFlowChart({
+  series,
+}: {
+  series: Array<{ day: string; label: string; net: number }>;
+}) {
+  if (series.length === 0) return null;
+  return (
+    <Card className="mt-6 overflow-hidden">
+      <div className="border-b border-foundation-700/10 px-5 py-3">
+        <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          Net flow (recent days)
+        </h3>
+      </div>
+      <div className="px-2 pb-2 pt-3" style={{ height: 120 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart
+            data={series}
+            margin={{ top: 4, right: 8, left: 4, bottom: 0 }}
+          >
+            <defs>
+              <linearGradient id="netFlowFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={FOUNDATION} stopOpacity={0.25} />
+                <stop offset="100%" stopColor={FOUNDATION} stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 10, fill: "#64748B" }}
+              tickLine={false}
+              axisLine={false}
+              interval="preserveStartEnd"
+              minTickGap={24}
+            />
+            <YAxis hide />
+            <Tooltip
+              formatter={tooltipFormatNgn}
+              contentStyle={{
+                border: "1px solid rgba(31,65,74,0.1)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="net"
+              stroke={FOUNDATION}
+              strokeWidth={2}
+              fill="url(#netFlowFill)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
   );
 }

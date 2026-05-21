@@ -652,8 +652,10 @@ export const landlordApi = {
     const res = await api.get("/wallet");
     return unwrap(res.data) as WalletSummary;
   },
-  async walletTransactions(): Promise<WalletTransaction[]> {
-    const res = await api.get("/wallet/transactions");
+  async walletTransactions(params?: {
+    propertyId?: string;
+  }): Promise<WalletTransaction[]> {
+    const res = await api.get("/wallet/transactions", { params });
     return asList<WalletTransaction>(unwrap(res.data));
   },
 
@@ -914,6 +916,7 @@ export const landlordApi = {
     period?: ReportPeriod;
     from?: string;
     to?: string;
+    propertyId?: string;
   }): Promise<CashFlow> {
     const res = await api.get("/reports/cash-flow", { params });
     return unwrap(res.data) as CashFlow;
