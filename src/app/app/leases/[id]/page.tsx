@@ -220,7 +220,8 @@ function PaymentHistorySection({
                   {formatNgn(p.amount)}
                 </p>
                 <p className="text-[11.5px] text-ink-muted">
-                  {formatDate(p.paymentDate)} · {p.method.replace("_", " ")}
+                  {formatDate(p.paymentDate)} ·{" "}
+                  {p.paymentMethod?.replace("_", " ") ?? "—"}
                   {p.reference && ` · ${p.reference}`}
                 </p>
               </div>

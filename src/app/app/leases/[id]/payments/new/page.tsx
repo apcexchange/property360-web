@@ -33,7 +33,7 @@ export default function RecordPaymentPage() {
       landlordApi.recordLeasePayment(id, {
         amount,
         paymentDate,
-        method,
+        paymentMethod: method,
         reference: reference.trim() || undefined,
         notes: notes.trim() || undefined,
       }),

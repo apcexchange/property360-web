@@ -223,12 +223,14 @@ export interface Payout {
 
 export type LeasePaymentMethod = "cash" | "bank_transfer" | "paystack" | "other";
 
+/** Mirrors the Transaction wire shape returned by /tenants/lease/:id/payments. */
 export interface LeasePayment {
   _id: string;
   lease: string;
   amount: number;
   paymentDate: string;
-  method: LeasePaymentMethod;
+  paymentMethod: LeasePaymentMethod;
+  status?: "pending" | "completed" | "failed" | "voided";
   reference?: string;
   notes?: string;
   createdAt: string;
@@ -607,7 +609,7 @@ export const landlordApi = {
     body: {
       amount: number;
       paymentDate: string;
-      method: "cash" | "bank_transfer" | "paystack" | "other";
+      paymentMethod: "cash" | "bank_transfer" | "paystack" | "other";
       reference?: string;
       notes?: string;
     }
