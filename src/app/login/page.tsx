@@ -10,11 +10,10 @@ import { AxiosError } from "axios";
 /**
  * General-purpose web sign-in. Authenticates any role, then routes:
  *   - landlord / agent (property manager) → /app/dashboard (or `next`)
- *   - tenant → shows an "open the mobile app" message; no web home for tenants
+ *   - tenant → /me (or `next` if it points into /me)
  *
- * The `next` querystring param wins for landlord/PM destinations as long
- * as it points back into the site (starts with /). Otherwise we fall back
- * to /app/dashboard.
+ * The `next` querystring param wins as long as it points back into the
+ * site (starts with /) and matches the user's role-appropriate area.
  */
 function LoginInner() {
   const router = useRouter();
@@ -25,11 +24,18 @@ function LoginInner() {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tenantNotice, setTenantNotice] = useState<string | null>(null);
 
-  function safeNext(): string {
-    if (nextParam && nextParam.startsWith("/")) return nextParam;
-    return "/app/dashboard";
+  function safeNext(role: string): string {
+    if (nextParam && nextParam.startsWith("/")) {
+      if (role === "tenant") {
+        if (nextParam.startsWith("/me") || nextParam.startsWith("/listings")) {
+          return nextParam;
+        }
+        return "/me";
+      }
+      return nextParam;
+    }
+    return role === "tenant" ? "/me" : "/app/dashboard";
   }
 
   async function onSubmit(e: FormEvent) {
@@ -37,17 +43,9 @@ function LoginInner() {
     if (!identifier || !password) return;
     setSubmitting(true);
     setError(null);
-    setTenantNotice(null);
     try {
       const res = await authApi.login(identifier.trim(), password);
-      if (res.user.role === "tenant") {
-        setTenantNotice(
-          "Tenant accounts use the Property360 mobile app. Open the app to sign in there."
-        );
-        setSubmitting(false);
-        return;
-      }
-      router.replace(safeNext());
+      router.replace(safeNext(res.user.role));
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       setError(
@@ -105,19 +103,6 @@ function LoginInner() {
             <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] text-red-700">
               {error}
             </p>
-          )}
-
-          {tenantNotice && (
-            <div className="rounded-2xl border border-cryola-300 bg-cryola-100/50 px-4 py-3 text-[13.5px] text-foundation-700">
-              <p className="font-semibold">You&apos;re signed in as a tenant.</p>
-              <p className="mt-1 text-ink-muted">{tenantNotice}</p>
-              <Link
-                href="/#download"
-                className="mt-2 inline-block font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
-              >
-                Get the mobile app →
-              </Link>
-            </div>
           )}
 
           <button
