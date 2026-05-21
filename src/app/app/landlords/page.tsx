@@ -13,47 +13,48 @@ import {
   StatusPill,
   formatDate,
 } from "@/components/app/ui";
-import { landlordApi, Agent } from "@/lib/landlord-api";
+import { landlordApi, Agent, PartySummary } from "@/lib/landlord-api";
 
-const PERMISSION_LABELS: Record<string, string> = {
-  canAddTenant: "Add tenants",
-  canRecordPayment: "Record payments",
-  canRenewLease: "Renew leases",
-  canUploadAgreements: "Upload agreements",
-  canManageMaintenance: "Maintenance",
-  canViewPayments: "View payments",
-  canViewReports: "View reports",
-  canRemoveTenant: "Remove tenants",
-};
+function isPopulated(p: PartySummary | string | null | undefined): p is PartySummary {
+  return !!p && typeof p === "object" && "_id" in p;
+}
 
 function displayName(a: Agent): string {
-  if (a.agent && (a.agent.firstName || a.agent.lastName)) {
-    return `${a.agent.firstName ?? ""} ${a.agent.lastName ?? ""}`.trim();
+  if (isPopulated(a.landlord)) {
+    return `${a.landlord.firstName ?? ""} ${a.landlord.lastName ?? ""}`.trim() ||
+      "Pending sign-up";
   }
   return "Pending sign-up";
 }
 
 function displayEmail(a: Agent): string {
-  return a.agent?.email ?? a.inviteEmail ?? "";
+  if (isPopulated(a.landlord) && a.landlord.email) return a.landlord.email;
+  return a.inviteEmail ?? "";
 }
 
-export default function AgentsPage() {
+export default function LandlordsPage() {
   const q = useQuery({
-    queryKey: ["agents"],
-    queryFn: () => landlordApi.listAgents(),
+    queryKey: ["my-landlords"],
+    queryFn: () => landlordApi.listMyLandlords(),
   });
+
+  const invites = useQuery({
+    queryKey: ["my-landlord-invitations-sent"],
+    queryFn: () => landlordApi.myLandlordInvitations().catch(() => []),
+  });
+  void invites;
 
   return (
     <>
       <AppTopbar
-        title="Property managers"
-        subtitle="People who can act on your behalf"
+        title="Landlords"
+        subtitle="Property owners you manage on Property360"
         actions={
           <Link
-            href="/app/agents/invite"
+            href="/app/landlords/invite"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            <UserPlus className="h-4 w-4" /> Invite property manager
+            <UserPlus className="h-4 w-4" /> Invite landlord
           </Link>
         }
       />
@@ -74,9 +75,9 @@ export default function AgentsPage() {
           />
         ) : (q.data ?? []).length === 0 ? (
           <EmptyState
-            title="No property managers yet"
-            body="Invite a property manager to help you handle tenants, payments, and maintenance. You control their permissions per property."
-            cta={{ label: "Invite property manager", href: "/app/agents/invite" }}
+            title="No landlords yet"
+            body="Invite a landlord and ask them to let you manage their properties on Property360. They control which properties you can access."
+            cta={{ label: "Invite landlord", href: "/app/landlords/invite" }}
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">
@@ -103,24 +104,9 @@ export default function AgentsPage() {
                       <Mail className="h-3 w-3" /> {displayEmail(a)}
                     </p>
                     <p className="mt-0.5 text-[11.5px] text-ink-muted">
-                      Invited {formatDate(a.createdAt)}
-                      {!a.agent && a.status === "pending"
-                        ? " — waiting for them to create an account"
-                        : ""}
+                      Linked {formatDate(a.createdAt)}
                     </p>
                   </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {Object.entries(a.permissions ?? {})
-                    .filter(([, v]) => v)
-                    .map(([k]) => (
-                      <span
-                        key={k}
-                        className="rounded-full border border-foundation-700/10 bg-surface px-2.5 py-1 text-[11px] font-medium text-foundation-700"
-                      >
-                        {PERMISSION_LABELS[k] ?? k}
-                      </span>
-                    ))}
                 </div>
               </div>
             ))}

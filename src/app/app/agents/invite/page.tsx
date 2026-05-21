@@ -12,10 +12,11 @@ import {
   Card,
   ErrorBox,
 } from "@/components/app/ui";
-import { landlordApi, Agent } from "@/lib/landlord-api";
+import { landlordApi, AgentPermissions } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 
 interface PermissionDef {
-  key: keyof Agent["permissions"];
+  key: keyof AgentPermissions;
   label: string;
   desc: string;
 }
@@ -33,6 +34,7 @@ const PERMISSIONS: PermissionDef[] = [
 
 export default function InviteAgentPage() {
   const router = useRouter();
+  const toast = useToast();
   const properties = useQuery({
     queryKey: ["properties"],
     queryFn: () => landlordApi.listProperties(),
@@ -40,7 +42,7 @@ export default function InviteAgentPage() {
 
   const [email, setEmail] = useState("");
   const [propertyIds, setPropertyIds] = useState<string[]>([]);
-  const [perms, setPerms] = useState<Agent["permissions"]>({
+  const [perms, setPerms] = useState<AgentPermissions>({
     canAddTenant: true,
     canRecordPayment: true,
     canViewPayments: true,
@@ -53,7 +55,19 @@ export default function InviteAgentPage() {
         permissions: perms,
         propertyIds: propertyIds.length > 0 ? propertyIds : undefined,
       }),
-    onSuccess: () => router.push("/app/agents"),
+    onSuccess: () => {
+      const sentTo = email.trim();
+      toast.success({
+        title: "Invitation sent",
+        body: `We emailed ${sentTo} a link to accept.`,
+      });
+      router.push("/app/agents");
+    },
+    onError: (err) => {
+      const e = err as AxiosError<{ message?: string }>;
+      const msg = e.response?.data?.message ?? (err as Error).message;
+      toast.error({ title: "Could not send invitation", body: msg });
+    },
   });
 
   const formError = (() => {

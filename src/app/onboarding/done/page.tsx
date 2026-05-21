@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, KeyRound } from "lucide-react";
+import { CheckCircle2, KeyRound, Mail } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 import { useOnboardingState, OnboardingState } from "@/lib/onboarding-state";
+import { landlordApi, InvitationDetail } from "@/lib/landlord-api";
+import { session } from "@/lib/session";
 
 export default function DonePage() {
   const { state, reset, ready } = useOnboardingState();
@@ -30,6 +32,26 @@ export default function DonePage() {
   const phone = snapshot?.phone;
   const role = snapshot?.role ?? "user";
 
+  // After signup, surface any pending invitations the backend already attached
+  // (via attachPendingInvitationsToUser). Best-effort; failures are silent.
+  const [pendingInvites, setPendingInvites] = useState<InvitationDetail[]>([]);
+  useEffect(() => {
+    const token = session.getToken();
+    if (!token) return;
+    const user = session.getUser();
+    if (!user) return;
+    const loader =
+      user.role === "agent"
+        ? landlordApi.myAgentInvitations
+        : user.role === "landlord"
+        ? landlordApi.myLandlordInvitations
+        : null;
+    if (!loader) return;
+    loader()
+      .then((items) => setPendingInvites(items ?? []))
+      .catch(() => {});
+  }, []);
+
   return (
     <OnboardingShell currentStep="done" includesPlan={role === "landlord"}>
       <div className="grid h-12 w-12 place-items-center rounded-full bg-cryola-200 text-foundation-700">
@@ -47,6 +69,33 @@ export default function DonePage() {
           ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord — all in one place."
           : "Download the Property360 app. Once a landlord invites you to manage their property, you'll see it under My properties."}
       </p>
+
+      {pendingInvites.length > 0 && (
+        <div className="mt-8 rounded-2xl border border-cryola-300/60 bg-cryola-100/40 p-5">
+          <div className="flex items-start gap-3">
+            <Mail className="mt-0.5 h-5 w-5 text-foundation-700" />
+            <div className="flex-1">
+              <p className="text-[14px] font-semibold text-foundation-700">
+                {pendingInvites.length === 1
+                  ? "You have an invitation waiting"
+                  : `You have ${pendingInvites.length} invitations waiting`}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {pendingInvites.map((inv) => (
+                  <li key={inv.id}>
+                    <Link
+                      href={`/invitations/${inv.id}?email=${encodeURIComponent(inv.inviteEmail)}`}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                    >
+                      View invitation
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       {(email || phone) && (
         <div className="mt-8 rounded-2xl border border-foundation-700/10 bg-surface p-5">

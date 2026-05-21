@@ -423,24 +423,58 @@ export interface UserProfile {
   avatar?: string;
 }
 
+export type AgentPermissions = {
+  canAddTenant?: boolean;
+  canRecordPayment?: boolean;
+  canRenewLease?: boolean;
+  canUploadAgreements?: boolean;
+  canManageMaintenance?: boolean;
+  canViewPayments?: boolean;
+  canViewReports?: boolean;
+  canRemoveTenant?: boolean;
+};
+
+export type InvitationDirection = "landlord_to_agent" | "agent_to_landlord";
+
+export interface PartySummary {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  avatar?: string;
+}
+
 export interface Agent {
   _id: string;
-  agent: Tenant; // shaped like a user; reused tenant type for firstName/etc.
-  landlord: string;
-  status: "pending" | "accepted" | "declined" | "revoked";
+  /** May be null when the invitee hasn't signed up yet. */
+  agent: PartySummary | null;
+  /** Landlord side of the relationship. Sometimes a string ObjectId, sometimes populated. */
+  landlord?: PartySummary | string | null;
+  /** Email the invitation was addressed to (lowercased). */
+  inviteEmail?: string;
+  status: "pending" | "accepted" | "rejected" | "declined" | "revoked";
+  direction?: InvitationDirection;
   isActive: boolean;
-  permissions: {
-    canAddTenant?: boolean;
-    canRecordPayment?: boolean;
-    canRenewLease?: boolean;
-    canUploadAgreements?: boolean;
-    canManageMaintenance?: boolean;
-    canViewPayments?: boolean;
-    canViewReports?: boolean;
-    canRemoveTenant?: boolean;
-  };
+  permissions: AgentPermissions;
   assignedProperties?: string[];
+  properties?: Array<{ _id: string; name?: string; address?: Address } | string>;
   createdAt: string;
+}
+
+export interface InvitationDetail {
+  id: string;
+  direction: InvitationDirection;
+  status: "pending" | "accepted" | "rejected";
+  inviteEmail: string;
+  invitedAt: string;
+  acceptedAt?: string;
+  isActive: boolean;
+  permissions: AgentPermissions;
+  properties: Array<{ _id: string; name?: string; address?: Address } | string>;
+  landlord: PartySummary | string | null;
+  agent: PartySummary | string | null;
+  invitedBy: PartySummary | string | null;
 }
 
 export interface Paginated<T> {
@@ -729,7 +763,7 @@ export const landlordApi = {
     return unwrap(res.data) as Payout;
   },
 
-  // Agents
+  // Agents (landlord -> PM)
   async listAgents(): Promise<Agent[]> {
     const res = await api.get("/agents");
     return asList<Agent>(unwrap(res.data));
@@ -740,15 +774,50 @@ export const landlordApi = {
   },
   async inviteAgent(body: {
     email: string;
-    permissions: Agent["permissions"];
+    permissions?: AgentPermissions;
     propertyIds?: string[];
-  }): Promise<Agent> {
+  }): Promise<InvitationDetail> {
     const res = await api.post("/agents/invite", body);
-    return unwrap(res.data) as Agent;
+    return unwrap(res.data) as InvitationDetail;
   },
   async updateAgentStatus(id: string, isActive: boolean): Promise<Agent> {
     const res = await api.patch(`/agents/${id}/status`, { isActive });
     return unwrap(res.data) as Agent;
+  },
+
+  // Landlords (PM -> landlord)
+  async listMyLandlords(): Promise<Agent[]> {
+    const res = await api.get("/agents/my/landlords");
+    return asList<Agent>(unwrap(res.data));
+  },
+  async inviteLandlord(body: { email: string }): Promise<InvitationDetail> {
+    const res = await api.post("/agents/invite", body);
+    return unwrap(res.data) as InvitationDetail;
+  },
+
+  // Invitations (bidirectional)
+  async getInvitation(id: string): Promise<InvitationDetail> {
+    const res = await api.get(`/agents/invitations/${id}`);
+    return unwrap(res.data) as InvitationDetail;
+  },
+  async acceptInvitation(
+    id: string,
+    body?: { propertyIds?: string[]; permissions?: AgentPermissions }
+  ): Promise<InvitationDetail> {
+    const res = await api.post(`/agents/invitations/${id}/accept`, body ?? {});
+    return unwrap(res.data) as InvitationDetail;
+  },
+  async declineInvitation(id: string): Promise<InvitationDetail> {
+    const res = await api.post(`/agents/invitations/${id}/reject`);
+    return unwrap(res.data) as InvitationDetail;
+  },
+  async myAgentInvitations(): Promise<InvitationDetail[]> {
+    const res = await api.get("/agents/my/invitations");
+    return asList<InvitationDetail>(unwrap(res.data));
+  },
+  async myLandlordInvitations(): Promise<InvitationDetail[]> {
+    const res = await api.get("/agents/my/landlord-invitations");
+    return asList<InvitationDetail>(unwrap(res.data));
   },
 
   // Guarantor + emergency contacts (per lease)
