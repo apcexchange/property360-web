@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
@@ -11,11 +11,17 @@ import { session } from "@/lib/session";
 
 /**
  * Paystack callback target. Paystack appends ?reference=… and ?trxref=… here.
- * We don't trust the URL — the webhook is the source of truth for activation —
- * but we poll the subscription endpoint for up to ~15s so a freshly-paid
- * landlord sees their tier update without a manual reload.
+ * We call /subscriptions/verify with that reference so the backend verifies
+ * the transaction directly with Paystack and activates the plan in one round
+ * trip — no waiting on the webhook. Verify is idempotent with the webhook,
+ * so they can race safely.
+ *
+ * If the user came from the onboarding wizard (sessionStorage flag set in
+ * /onboarding/plan), we redirect them on to /onboarding/done after activation
+ * so the flow continues without a manual "Back to billing" tap.
  */
 function SuccessInner() {
+  const router = useRouter();
   const params = useSearchParams();
   const reference = params?.get("ref") || params?.get("reference") || params?.get("trxref");
   const [sub, setSub] = useState<SubscriptionResponse | null>(null);
@@ -27,34 +33,68 @@ function SuccessInner() {
       return;
     }
     let cancelled = false;
-    let attempts = 0;
-    const tick = async () => {
-      attempts += 1;
-      try {
-        const fresh = await billingApi.getSubscription();
-        if (cancelled) return;
-        setSub(fresh);
-        if (
-          fresh.applicable &&
-          (fresh.status === "active" || attempts >= 5)
-        ) {
-          setWaiting(false);
-          return;
-        }
-      } catch {
-        // ignore; retry below
-      }
-      if (attempts < 5) {
-        setTimeout(tick, 3000);
-      } else if (!cancelled) {
-        setWaiting(false);
+
+    const onboardingNext =
+      typeof window !== "undefined"
+        ? window.sessionStorage.getItem("p360_post_checkout_redirect")
+        : null;
+
+    const finishedActive = (fresh: SubscriptionResponse) => {
+      if (cancelled) return;
+      setSub(fresh);
+      setWaiting(false);
+      if (fresh.applicable && fresh.status === "active" && onboardingNext) {
+        window.sessionStorage.removeItem("p360_post_checkout_redirect");
+        // Small delay so the user sees the "you're now on X" confirmation
+        // flash before we whisk them away to the next onboarding step.
+        setTimeout(() => router.push(onboardingNext), 900);
       }
     };
-    tick();
+
+    const run = async () => {
+      // 1) Fast path: ask the backend to verify directly with Paystack.
+      if (reference) {
+        try {
+          const verified = await billingApi.verify(reference);
+          finishedActive(verified);
+          return;
+        } catch {
+          // Verify can legitimately fail (e.g. user reloaded after a long
+          // delay and Paystack moved the tx to abandoned). Fall through to
+          // polling /me which the webhook also writes to.
+        }
+      }
+
+      // 2) Slow path: poll /subscriptions/me for the webhook to land.
+      let attempts = 0;
+      const tick = async () => {
+        if (cancelled) return;
+        attempts += 1;
+        try {
+          const fresh = await billingApi.getSubscription();
+          if (cancelled) return;
+          setSub(fresh);
+          if (fresh.applicable && fresh.status === "active") {
+            finishedActive(fresh);
+            return;
+          }
+        } catch {
+          // swallow; retry
+        }
+        if (attempts < 5) {
+          setTimeout(tick, 3000);
+        } else if (!cancelled) {
+          setWaiting(false);
+        }
+      };
+      tick();
+    };
+
+    run();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reference, router]);
 
   return (
     <div className="min-h-screen bg-paper text-foundation-700">

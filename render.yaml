@@ -28,7 +28,11 @@ services:
       - key: RATE_LIMIT_MAX_REQUESTS
         value: "100"
       - key: CORS_ORIGIN
-        value: "*"             # Tighten to specific origins once the web app is deployed.
+        # Comma-separated list. Browser preflight requires the response's
+        # Access-Control-Allow-Origin to echo the *requesting* origin when
+        # credentials: true — a literal "*" is rejected. List every origin
+        # that should be allowed to call the API, with no trailing slashes.
+        value: "https://property360.africa,https://www.property360.africa"
       # ↓ Secrets — set in dashboard, do NOT commit values.
       - key: MONGODB_URI
         sync: false
@@ -66,6 +70,26 @@ services:
         sync: false
       - key: PAYSTACK_WEBHOOK_SECRET
         sync: false
+      # Landlord subscription plan codes (PLN_xxxxxxxxxxxxxx). Create one
+      # plan per tier × interval on the Paystack dashboard (live mode), then
+      # paste the code here. Without these, `/subscriptions/checkout` returns
+      # a 400 "not available for self-service checkout" for the matching tier.
+      - key: PAYSTACK_PLAN_SOLO_MONTHLY
+        sync: false
+      - key: PAYSTACK_PLAN_SOLO_ANNUAL
+        sync: false
+      - key: PAYSTACK_PLAN_PRO_MONTHLY
+        sync: false
+      - key: PAYSTACK_PLAN_PRO_ANNUAL
+        sync: false
+      - key: PAYSTACK_PLAN_AGENCY_MONTHLY
+        sync: false
+      - key: PAYSTACK_PLAN_AGENCY_ANNUAL
+        sync: false
+      # Where the web frontend is hosted — used for Paystack success/cancel
+      # callbacks and the manage-billing URL surfaced in the mobile app.
+      - key: WEB_BASE_URL
+        value: "https://property360.africa"
       - key: GOOGLE_CLOUD_PROJECT_ID
         sync: false
       - key: GOOGLE_DOCUMENT_AI_PROCESSOR_ID
