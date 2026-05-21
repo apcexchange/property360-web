@@ -5,11 +5,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const links = [
-  { href: "#why", label: "Why" },
-  { href: "#how", label: "How it works" },
-  { href: "#features", label: "Features" },
-  { href: "#marketplace", label: "Marketplace" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/listings", label: "Browse" },
+  { href: "/landlord", label: "Landlords" },
+  { href: "/tenant", label: "Tenants" },
+  { href: "/agents", label: "Agents" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 export function Nav() {
@@ -55,23 +55,23 @@ export function Nav() {
 
         <nav className="hidden items-center gap-1 text-sm md:flex">
           {links.map((l) => (
-            <a
+            <Link
               key={l.href}
               href={l.href}
               className="rounded-full px-3 py-1.5 text-[13.5px] text-ink-muted transition hover:bg-foundation-700/5 hover:text-foundation-700"
             >
               {l.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
-        <a
-          href="#download"
+        <Link
+          href="/onboarding"
           className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
         >
-          Get the app
+          Get started
           <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
-        </a>
+        </Link>
       </div>
     </motion.header>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin, BedDouble, Bath, Search, Sparkles, ArrowUpRight } from "lucide-react";
 import { Reveal } from "./Reveal";
@@ -74,13 +75,13 @@ export function Marketplace() {
             />
           </ul>
 
-          <a
-            href="#download"
+          <Link
+            href="/listings"
             className="group mt-10 inline-flex items-center gap-1.5 text-sm font-semibold text-foundation-700 transition hover:text-foundation-900"
           >
-            Browse the marketplace in the app
+            Browse the marketplace
             <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
+          </Link>
         </Reveal>
 
         {/* Visual: stacked listing cards with sequential side-in reveal */}
