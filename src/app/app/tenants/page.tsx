@@ -59,8 +59,17 @@ export default function TenantsPage() {
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">
-            {q.data!.map((row) => (
-              <div key={row.tenant._id + row.unit._id} className="p-4">
+            {q.data!.map((row) => {
+              const RowEl: React.ElementType = row.lease ? Link : "div";
+              const rowProps = row.lease
+                ? { href: `/app/leases/${row.lease._id}` }
+                : {};
+              return (
+              <RowEl
+                key={row.tenant._id + row.unit._id}
+                {...rowProps}
+                className={`block p-4 ${row.lease ? "transition hover:bg-foundation-700/5" : ""}`}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-[14.5px] font-semibold text-foundation-700">
@@ -111,8 +120,9 @@ export default function TenantsPage() {
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              </RowEl>
+              );
+            })}
           </Card>
         )}
       </PageContainer>

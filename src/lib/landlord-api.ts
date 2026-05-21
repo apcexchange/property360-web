@@ -195,6 +195,151 @@ export interface Payout {
   completedAt?: string;
 }
 
+export type LeasePaymentMethod = "cash" | "bank_transfer" | "paystack" | "other";
+
+export interface LeasePayment {
+  _id: string;
+  lease: string;
+  amount: number;
+  paymentDate: string;
+  method: LeasePaymentMethod;
+  reference?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Guarantor {
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone: string;
+  relationship: string;
+  address?: string;
+}
+
+export interface EmergencyContact {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  relationship: string;
+}
+
+export interface TenancyAgreement {
+  _id: string;
+  lease: string;
+  property: string | Property;
+  unit: string | Unit;
+  tenant: string | Tenant;
+  fileUrl: string;
+  fileName?: string;
+  status: "draft" | "sent_for_signing" | "signed" | "cancelled";
+  signingProvider?: "docuseal";
+  signingId?: string;
+  signedAt?: string;
+  createdAt: string;
+}
+
+export interface Listing {
+  _id: string;
+  unit: Unit | string;
+  property: Property | string;
+  isListed: boolean;
+  listedAt?: string;
+  reservationCount?: number;
+}
+
+export type ReservationStatus =
+  | "pending"
+  | "approved"
+  | "declined"
+  | "paid"
+  | "cancelled";
+
+export interface ReservationRequest {
+  _id: string;
+  unit: Unit | string;
+  property: Property | string;
+  prospect: Tenant;
+  message?: string;
+  status: ReservationStatus;
+  reservationFee?: number;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export interface Notification {
+  _id: string;
+  type: string;
+  title: string;
+  body: string;
+  read: boolean;
+  createdAt: string;
+  data?: Record<string, unknown>;
+}
+
+export interface ChatConversation {
+  _id: string;
+  participants: Tenant[];
+  lastMessage?: {
+    text: string;
+    createdAt: string;
+    senderId: string;
+  };
+  unreadCount: number;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  _id: string;
+  conversation: string;
+  sender: string;
+  text: string;
+  attachments?: Array<{ url: string; type: string; name?: string }>;
+  readBy?: string[];
+  createdAt: string;
+}
+
+export type SharedBillStatus = "open" | "closed" | "settled";
+
+export interface SharedBill {
+  _id: string;
+  property: string | Property;
+  title: string;
+  description?: string;
+  totalAmount: number;
+  status: SharedBillStatus;
+  createdBy: Tenant | string;
+  shares?: Array<{
+    user: Tenant | string;
+    amount: number;
+    paid: boolean;
+    paidAt?: string;
+  }>;
+  createdAt: string;
+}
+
+export type KycStatus =
+  | "not_started"
+  | "pending"
+  | "approved"
+  | "rejected";
+
+export interface KycSummary {
+  selfieStatus: KycStatus;
+  documentStatus: KycStatus;
+  overallStatus: KycStatus;
+}
+
+export interface UserProfile {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  role: "landlord" | "tenant" | "agent";
+  avatar?: string;
+}
+
 export interface Agent {
   _id: string;
   agent: Tenant; // shaped like a user; reused tenant type for firstName/etc.
@@ -437,6 +582,10 @@ export const landlordApi = {
     const res = await api.get("/agents");
     return asList<Agent>(unwrap(res.data));
   },
+  async getAgent(id: string): Promise<Agent> {
+    const res = await api.get(`/agents/${id}`);
+    return unwrap(res.data) as Agent;
+  },
   async inviteAgent(body: {
     email: string;
     permissions: Agent["permissions"];
@@ -444,5 +593,208 @@ export const landlordApi = {
   }): Promise<Agent> {
     const res = await api.post("/agents/invite", body);
     return unwrap(res.data) as Agent;
+  },
+  async updateAgentStatus(id: string, isActive: boolean): Promise<Agent> {
+    const res = await api.patch(`/agents/${id}/status`, { isActive });
+    return unwrap(res.data) as Agent;
+  },
+
+  // Guarantor + emergency contacts (per lease)
+  async getGuarantor(leaseId: string): Promise<Guarantor | null> {
+    try {
+      const res = await api.get(`/tenants/lease/${leaseId}/guarantor`);
+      return unwrap(res.data) as Guarantor;
+    } catch {
+      return null;
+    }
+  },
+  async setGuarantor(leaseId: string, body: Guarantor): Promise<Guarantor> {
+    const res = await api.put(`/tenants/lease/${leaseId}/guarantor`, body);
+    return unwrap(res.data) as Guarantor;
+  },
+  async getEmergencyContacts(leaseId: string): Promise<EmergencyContact[]> {
+    try {
+      const res = await api.get(`/tenants/lease/${leaseId}/emergency-contacts`);
+      return asList<EmergencyContact>(unwrap(res.data));
+    } catch {
+      return [];
+    }
+  },
+  async addEmergencyContact(
+    leaseId: string,
+    body: EmergencyContact
+  ): Promise<EmergencyContact[]> {
+    const res = await api.post(`/tenants/lease/${leaseId}/emergency-contacts`, body);
+    return asList<EmergencyContact>(unwrap(res.data));
+  },
+
+  // Tenancy agreements
+  async agreementsByLease(leaseId: string): Promise<TenancyAgreement[]> {
+    const res = await api.get(`/tenancy-agreements/lease/${leaseId}`);
+    return asList<TenancyAgreement>(unwrap(res.data));
+  },
+  async agreementsByProperty(propertyId: string): Promise<TenancyAgreement[]> {
+    const res = await api.get(`/tenancy-agreements/property/${propertyId}`);
+    return asList<TenancyAgreement>(unwrap(res.data));
+  },
+  async getAgreement(id: string): Promise<TenancyAgreement> {
+    const res = await api.get(`/tenancy-agreements/${id}`);
+    return unwrap(res.data) as TenancyAgreement;
+  },
+  async uploadAgreement(
+    leaseId: string,
+    file: File
+  ): Promise<TenancyAgreement> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("leaseId", leaseId);
+    const res = await api.post("/tenancy-agreements", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return unwrap(res.data) as TenancyAgreement;
+  },
+  async sendAgreementForSigning(id: string): Promise<TenancyAgreement> {
+    const res = await api.post(`/tenancy-agreements/${id}/send-for-signing`);
+    return unwrap(res.data) as TenancyAgreement;
+  },
+  async getAgreementSigningLink(
+    id: string
+  ): Promise<{ url: string }> {
+    const res = await api.get(`/tenancy-agreements/${id}/signing-link`);
+    return unwrap(res.data) as { url: string };
+  },
+
+  // Marketplace seller
+  async myListings(): Promise<Listing[]> {
+    const res = await api.get("/listings/my-listings");
+    return asList<Listing>(unwrap(res.data));
+  },
+  async listUnit(
+    unitId: string,
+    body?: { description?: string; visibility?: "public" | "unlisted" }
+  ): Promise<Listing> {
+    const res = await api.post(`/listings/${unitId}/list`, body ?? {});
+    return unwrap(res.data) as Listing;
+  },
+  async unlistUnit(unitId: string): Promise<Listing> {
+    const res = await api.delete(`/listings/${unitId}/list`);
+    return unwrap(res.data) as Listing;
+  },
+  async landlordReservationRequests(): Promise<ReservationRequest[]> {
+    const res = await api.get("/reservations/landlord-requests");
+    return asList<ReservationRequest>(unwrap(res.data));
+  },
+  async approveReservation(id: string): Promise<ReservationRequest> {
+    const res = await api.post(`/reservations/${id}/approve`);
+    return unwrap(res.data) as ReservationRequest;
+  },
+  async declineReservation(
+    id: string,
+    reason?: string
+  ): Promise<ReservationRequest> {
+    const res = await api.post(`/reservations/${id}/decline`, { reason });
+    return unwrap(res.data) as ReservationRequest;
+  },
+
+  // Notifications
+  async notifications(): Promise<Notification[]> {
+    const res = await api.get("/notifications");
+    return asList<Notification>(unwrap(res.data));
+  },
+  async unreadNotificationCount(): Promise<number> {
+    const res = await api.get("/notifications/unread-count");
+    const data = unwrap(res.data) as { count?: number } | number;
+    return typeof data === "number" ? data : data?.count ?? 0;
+  },
+  async markNotificationRead(id: string): Promise<void> {
+    await api.patch(`/notifications/${id}/read`);
+  },
+  async markAllNotificationsRead(): Promise<void> {
+    await api.patch("/notifications/read-all");
+  },
+
+  // Chat
+  async chatConversations(): Promise<ChatConversation[]> {
+    const res = await api.get("/chat/conversations");
+    return asList<ChatConversation>(unwrap(res.data));
+  },
+  async chatMessages(conversationId: string): Promise<ChatMessage[]> {
+    const res = await api.get(`/chat/conversations/${conversationId}/messages`);
+    return asList<ChatMessage>(unwrap(res.data));
+  },
+  async sendMessage(conversationId: string, text: string): Promise<ChatMessage> {
+    const res = await api.post(
+      `/chat/conversations/${conversationId}/messages`,
+      { text }
+    );
+    return unwrap(res.data) as ChatMessage;
+  },
+  async markConversationRead(conversationId: string): Promise<void> {
+    await api.patch(`/chat/conversations/${conversationId}/read`);
+  },
+  async unreadChatCount(): Promise<number> {
+    const res = await api.get("/chat/unread-count");
+    const data = unwrap(res.data) as { count?: number } | number;
+    return typeof data === "number" ? data : data?.count ?? 0;
+  },
+
+  // Building community (landlord can view but not create bills)
+  async sharedBillsForProperty(propertyId: string): Promise<SharedBill[]> {
+    const res = await api.get(`/shared-bills/property/${propertyId}`);
+    return asList<SharedBill>(unwrap(res.data));
+  },
+  async getSharedBill(id: string): Promise<SharedBill> {
+    const res = await api.get(`/shared-bills/${id}`);
+    return unwrap(res.data) as SharedBill;
+  },
+
+  // Profile + auth
+  async profile(): Promise<UserProfile> {
+    const res = await api.get("/auth/profile");
+    return unwrap(res.data) as UserProfile;
+  },
+  async updateProfile(body: Partial<{
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    avatar: string;
+  }>): Promise<UserProfile> {
+    const res = await api.put("/auth/profile", body);
+    return unwrap(res.data) as UserProfile;
+  },
+  async changePassword(body: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> {
+    await api.post("/auth/change-password", body);
+  },
+
+  // KYC
+  async kycStatus(): Promise<KycSummary> {
+    const res = await api.get("/kyc/status");
+    return unwrap(res.data) as KycSummary;
+  },
+  async uploadKycSelfie(file: File): Promise<KycSummary> {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await api.post("/kyc/selfie", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return unwrap(res.data) as KycSummary;
+  },
+  async uploadKycDocument(
+    file: File,
+    type: string,
+    documentNumber: string
+  ): Promise<KycSummary> {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("type", type);
+    form.append("documentNumber", documentNumber);
+    const res = await api.post("/kyc/document", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return unwrap(res.data) as KycSummary;
   },
 };
