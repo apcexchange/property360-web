@@ -307,6 +307,63 @@ export interface TenancyAgreement {
   createdAt: string;
 }
 
+// ----- Quit notice -----
+export type QuitNoticeStatus =
+  | "draft"
+  | "served"
+  | "acknowledged"
+  | "expired"
+  | "withdrawn";
+
+export type QuitNoticeSource = "template" | "uploaded";
+
+export type QuitNoticeReason =
+  | "non_payment"
+  | "breach_of_terms"
+  | "end_of_term"
+  | "owner_use"
+  | "other";
+
+export const QUIT_NOTICE_REASON_LABELS: Record<QuitNoticeReason, string> = {
+  non_payment: "Non-payment of rent",
+  breach_of_terms: "Breach of tenancy terms",
+  end_of_term: "End of tenancy term",
+  owner_use: "Landlord requires the premises for own use",
+  other: "Other",
+};
+
+export interface QuitNotice {
+  _id: string;
+  id?: string;
+  lease: string;
+  property: string | { _id: string; name: string };
+  unit: string | { _id: string; unitNumber: string };
+  tenant:
+    | string
+    | { _id: string; firstName: string; lastName: string; email?: string };
+  landlord:
+    | string
+    | { _id: string; firstName: string; lastName: string; email?: string };
+  issuedBy: string | { _id: string; firstName: string; lastName: string };
+  source: QuitNoticeSource;
+  status: QuitNoticeStatus;
+  reason: QuitNoticeReason;
+  reasonDetail?: string;
+  noticePeriodDays: number;
+  issuedAt: string;
+  servedAt?: string;
+  expiresAt: string;
+  templateBody?: string;
+  documentUrl: string;
+  documentFileName?: string;
+  documentSize?: number;
+  acknowledgedAt?: string;
+  withdrawnAt?: string;
+  withdrawReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Listing {
   _id: string;
   unit: Unit | string;
@@ -902,6 +959,56 @@ export const landlordApi = {
   ): Promise<{ url: string }> {
     const res = await api.get(`/tenancy-agreements/${id}/signing-link`);
     return unwrap(res.data) as { url: string };
+  },
+
+  // Quit notices
+  async listQuitNotices(leaseId?: string): Promise<QuitNotice[]> {
+    const res = await api.get("/quit-notices", {
+      params: leaseId ? { leaseId } : undefined,
+    });
+    return asList<QuitNotice>(unwrap(res.data));
+  },
+  async getQuitNotice(id: string): Promise<QuitNotice> {
+    const res = await api.get(`/quit-notices/${id}`);
+    return unwrap(res.data) as QuitNotice;
+  },
+  async issueQuitNoticeFromTemplate(body: {
+    leaseId: string;
+    reason: QuitNoticeReason;
+    reasonDetail?: string;
+    noticePeriodDays?: number;
+    body: string;
+  }): Promise<QuitNotice> {
+    const res = await api.post("/quit-notices", body);
+    return unwrap(res.data) as QuitNotice;
+  },
+  async issueQuitNoticeFromUpload(
+    leaseId: string,
+    file: File,
+    meta: {
+      reason: QuitNoticeReason;
+      reasonDetail?: string;
+      noticePeriodDays?: number;
+    }
+  ): Promise<QuitNotice> {
+    const form = new FormData();
+    form.append("document", file);
+    form.append("leaseId", leaseId);
+    form.append("reason", meta.reason);
+    if (meta.reasonDetail) form.append("reasonDetail", meta.reasonDetail);
+    if (meta.noticePeriodDays != null)
+      form.append("noticePeriodDays", String(meta.noticePeriodDays));
+    const res = await api.post("/quit-notices/upload", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return unwrap(res.data) as QuitNotice;
+  },
+  async withdrawQuitNotice(
+    id: string,
+    reason?: string
+  ): Promise<QuitNotice> {
+    const res = await api.post(`/quit-notices/${id}/withdraw`, { reason });
+    return unwrap(res.data) as QuitNotice;
   },
 
   // Marketplace seller

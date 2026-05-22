@@ -26,6 +26,7 @@ export const ME_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/me/lease", label: "Lease summary" },
       { href: "/me/agreement", label: "Tenancy agreement" },
+      { href: "/me/notices", label: "Notices" },
     ],
   },
   {

@@ -11,6 +11,8 @@ import {
   ShieldCheck,
   PhoneCall,
   Plus,
+  ScrollText,
+  ExternalLink,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -28,6 +30,8 @@ import {
   EmergencyContact,
   Guarantor,
   LeasePayment,
+  QuitNotice,
+  QUIT_NOTICE_REASON_LABELS,
 } from "@/lib/landlord-api";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 import { NIGERIA_STATES } from "@/lib/nigeria-locations";
@@ -65,6 +69,11 @@ function LeaseDetailInner() {
   const emergency = useQuery({
     queryKey: ["emergency-contacts", id],
     queryFn: () => landlordApi.getEmergencyContacts(id),
+    enabled: !!id,
+  });
+  const quitNotices = useQuery({
+    queryKey: ["quit-notices", id],
+    queryFn: () => landlordApi.listQuitNotices(id),
     enabled: !!id,
   });
 
@@ -179,6 +188,20 @@ function LeaseDetailInner() {
                     </p>
                   </div>
                 </Link>
+                <Link
+                  href={`/app/leases/${id}/quit-notice/new`}
+                  className="flex items-start gap-3 rounded-2xl border border-foundation-700/10 bg-paper p-4 transition hover:border-foundation-700/20"
+                >
+                  <ScrollText className="mt-0.5 h-4 w-4 text-foundation-700" />
+                  <div>
+                    <p className="text-[13px] font-semibold text-foundation-700">
+                      Serve quit notice
+                    </p>
+                    <p className="text-[11.5px] text-ink-muted">
+                      Issue a notice to vacate the premises
+                    </p>
+                  </div>
+                </Link>
               </div>
             </div>
 
@@ -195,6 +218,14 @@ function LeaseDetailInner() {
               <ContactsSection
                 guarantor={guarantor.data ?? null}
                 emergency={emergency.data ?? []}
+                leaseId={id}
+              />
+            </div>
+
+            <div className="mt-8">
+              <QuitNoticesSection
+                notices={quitNotices.data ?? []}
+                loading={quitNotices.isLoading}
                 leaseId={id}
               />
             </div>
@@ -692,6 +723,88 @@ function SmallSelect({
         </option>
       ))}
     </select>
+  );
+}
+
+function QuitNoticesSection({
+  notices,
+  loading,
+  leaseId,
+}: {
+  notices: QuitNotice[];
+  loading: boolean;
+  leaseId: string;
+}) {
+  if (!loading && notices.length === 0) return null;
+  return (
+    <Card>
+      <div className="flex items-center justify-between border-b border-foundation-700/10 px-5 py-4">
+        <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+          Quit notices
+        </h2>
+        <Link
+          href={`/app/leases/${leaseId}/quit-notice/new`}
+          className="text-[12px] font-semibold text-foundation-700 hover:underline"
+        >
+          + Serve another
+        </Link>
+      </div>
+      {loading ? (
+        <div className="space-y-2 p-5">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      ) : (
+        <ul className="divide-y divide-foundation-700/10">
+          {notices.map((n) => {
+            const tone: "good" | "warn" | "bad" | "neutral" | "info" =
+              n.status === "withdrawn"
+                ? "neutral"
+                : n.status === "acknowledged"
+                ? "good"
+                : n.status === "expired"
+                ? "bad"
+                : "warn";
+            return (
+              <li
+                key={n._id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-4"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[13.5px] font-semibold text-foundation-700">
+                      {QUIT_NOTICE_REASON_LABELS[n.reason]}
+                    </p>
+                    <StatusPill label={n.status} tone={tone} />
+                    <span className="rounded-full bg-foundation-700/5 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+                      {n.source === "template" ? "Generated" : "Uploaded"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11.5px] text-ink-muted">
+                    Served {formatDate(n.servedAt ?? n.issuedAt)} ·{" "}
+                    {n.noticePeriodDays} day{n.noticePeriodDays === 1 ? "" : "s"} ·
+                    Expires {formatDate(n.expiresAt)}
+                  </p>
+                  {n.reasonDetail && (
+                    <p className="mt-1 text-[11.5px] text-ink-muted">
+                      {n.reasonDetail}
+                    </p>
+                  )}
+                </div>
+                <a
+                  href={n.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+                >
+                  <ExternalLink className="h-3 w-3" /> Open
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
   );
 }
 

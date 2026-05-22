@@ -241,6 +241,56 @@ export interface TenancyAgreement {
   createdAt: string;
 }
 
+// ----- Quit notice -----
+export type QuitNoticeStatus =
+  | "draft"
+  | "served"
+  | "acknowledged"
+  | "expired"
+  | "withdrawn";
+
+export type QuitNoticeReason =
+  | "non_payment"
+  | "breach_of_terms"
+  | "end_of_term"
+  | "owner_use"
+  | "other";
+
+export const QUIT_NOTICE_REASON_LABELS: Record<QuitNoticeReason, string> = {
+  non_payment: "Non-payment of rent",
+  breach_of_terms: "Breach of tenancy terms",
+  end_of_term: "End of tenancy term",
+  owner_use: "Landlord requires the premises for own use",
+  other: "Other",
+};
+
+export interface QuitNotice {
+  _id: string;
+  id?: string;
+  lease: string;
+  property?: { _id?: string; name?: string };
+  unit?: { _id?: string; unitNumber?: string };
+  landlord?: {
+    _id?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  };
+  source: "template" | "uploaded";
+  status: QuitNoticeStatus;
+  reason: QuitNoticeReason;
+  reasonDetail?: string;
+  noticePeriodDays: number;
+  issuedAt: string;
+  servedAt?: string;
+  expiresAt: string;
+  templateBody?: string;
+  documentUrl: string;
+  documentFileName?: string;
+  acknowledgedAt?: string;
+  createdAt: string;
+}
+
 export interface PayInitResponse {
   authorizationUrl?: string;
   authorization_url?: string;
@@ -491,6 +541,20 @@ export const tenantApi = {
   ): Promise<TenancyAgreement> {
     const res = await api.post(`/tenancy-agreements/${id}/acknowledge`, body);
     return unwrap(res.data) as TenancyAgreement;
+  },
+
+  // ----- Quit notice -----
+  async listQuitNotices(): Promise<QuitNotice[]> {
+    const res = await api.get("/quit-notices");
+    return asList<QuitNotice>(unwrap(res.data));
+  },
+  async getQuitNotice(id: string): Promise<QuitNotice> {
+    const res = await api.get(`/quit-notices/${id}`);
+    return unwrap(res.data) as QuitNotice;
+  },
+  async acknowledgeQuitNotice(id: string): Promise<QuitNotice> {
+    const res = await api.post(`/quit-notices/${id}/acknowledge`);
+    return unwrap(res.data) as QuitNotice;
   },
 
   // ----- Profile + auth -----
