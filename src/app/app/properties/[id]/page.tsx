@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, UserPlus, Receipt } from "lucide-react";
+import { ArrowLeft, MapPin, UserPlus, Receipt, FileText } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -40,12 +40,22 @@ export default function PropertyDetailPage() {
             : undefined
         }
         actions={
-          <Link
-            href="/app/properties"
-            className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/app/properties"
+              className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Link>
+            {id && (
+              <Link
+                href={`/app/properties/${id}/agreement-templates`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+              >
+                <FileText className="h-4 w-4" /> Templates
+              </Link>
+            )}
+          </div>
         }
       />
       <PageContainer>

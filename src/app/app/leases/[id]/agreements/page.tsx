@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Upload, FileText, ExternalLink } from "lucide-react";
+import {
+  ArrowLeft,
+  Upload,
+  FileText,
+  ExternalLink,
+  Send,
+} from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -51,6 +57,22 @@ export default function AgreementsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
   });
 
+  // Templates the landlord has saved for this property (or any of their
+  // properties — the picker shows them all so they can grab a sister
+  // property's template if needed).
+  const propertyId = row?.property?.id;
+  const templates = useQuery({
+    queryKey: ["agreement-templates", "for-lease", propertyId ?? "all"],
+    queryFn: () => landlordApi.listAgreementTemplates(propertyId),
+    enabled: !!row,
+  });
+  const sendTemplate = useMutation({
+    mutationFn: (templateId: string) =>
+      landlordApi.sendAgreementTemplateToTenant(templateId, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
+  });
+  const [picking, setPicking] = useState(false);
+
   function pickFile() {
     fileRef.current?.click();
   }
@@ -87,6 +109,19 @@ export default function AgreementsPage() {
             >
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
+            <button
+              type="button"
+              onClick={() => setPicking(true)}
+              disabled={!templates.data || templates.data.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-40"
+              title={
+                templates.data && templates.data.length > 0
+                  ? "Send a saved template"
+                  : "Create a template under the property to enable this"
+              }
+            >
+              <Send className="h-4 w-4" /> Send template
+            </button>
             <button
               type="button"
               onClick={pickFile}
@@ -171,7 +206,86 @@ export default function AgreementsPage() {
             })}
           </Card>
         )}
+
+        {picking && (
+          <TemplatePickerModal
+            templates={templates.data ?? []}
+            sending={sendTemplate.isPending}
+            onPick={(tId) => sendTemplate.mutate(tId)}
+            onClose={() => setPicking(false)}
+          />
+        )}
       </PageContainer>
     </>
+  );
+}
+
+function TemplatePickerModal({
+  templates,
+  sending,
+  onPick,
+  onClose,
+}: {
+  templates: import("@/lib/landlord-api").AgreementTemplate[];
+  sending: boolean;
+  onPick: (templateId: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foundation-900/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-3xl bg-paper p-6 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+            Send template to tenant
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[12px] font-semibold text-foundation-700 hover:underline"
+          >
+            Close
+          </button>
+        </div>
+        <p className="mt-2 text-[13px] text-ink-muted">
+          A copy of the template will be created on this lease with the
+          tenant's details substituted. Their name will be attached to the
+          PDF.
+        </p>
+        <div className="mt-4 max-h-[60vh] divide-y divide-foundation-700/10 overflow-y-auto">
+          {templates.length === 0 ? (
+            <p className="py-8 text-center text-[13px] text-ink-muted">
+              No templates saved yet for this property.
+            </p>
+          ) : (
+            templates.map((t) => (
+              <button
+                key={t._id}
+                type="button"
+                disabled={sending}
+                onClick={() => onPick(t._id)}
+                className="flex w-full items-center justify-between gap-3 px-1 py-3 text-left transition hover:bg-foundation-700/5 disabled:opacity-50"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-[14px] font-semibold text-foundation-700">
+                    {t.name}
+                  </p>
+                  <p className="text-[11.5px] text-ink-muted">
+                    {t.source === "text" ? "Editable text" : "Uploaded file"}
+                    {t.notes ? ` · ${t.notes}` : ""}
+                  </p>
+                </div>
+                <Send className="h-4 w-4 text-foundation-700" />
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -307,6 +307,29 @@ export interface TenancyAgreement {
   createdAt: string;
 }
 
+// ----- Agreement templates -----
+export type AgreementTemplateSource = "text" | "uploaded";
+
+export interface AgreementTemplate {
+  _id: string;
+  id?: string;
+  property:
+    | string
+    | { _id: string; name: string };
+  landlord: string;
+  createdBy: string;
+  name: string;
+  source: AgreementTemplateSource;
+  body?: string;
+  documentUrl?: string;
+  documentFileName?: string;
+  documentSize?: number;
+  notes?: string;
+  revision: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ----- Guarantor invitation request -----
 export type GuarantorRequestAddressee = "tenant" | "guarantor";
 export type GuarantorRequestStatus =
@@ -1057,6 +1080,79 @@ export const landlordApi = {
   async cancelGuarantorRequest(id: string): Promise<GuarantorRequest> {
     const res = await api.post(`/guarantor-requests/${id}/cancel`);
     return unwrap(res.data) as GuarantorRequest;
+  },
+
+  // Agreement templates
+  async listAgreementTemplates(
+    propertyId?: string
+  ): Promise<AgreementTemplate[]> {
+    const res = await api.get("/agreement-templates", {
+      params: propertyId ? { propertyId } : undefined,
+    });
+    return asList<AgreementTemplate>(unwrap(res.data));
+  },
+  async getAgreementTemplate(id: string): Promise<AgreementTemplate> {
+    const res = await api.get(`/agreement-templates/${id}`);
+    return unwrap(res.data) as AgreementTemplate;
+  },
+  async createTextAgreementTemplate(body: {
+    propertyId: string;
+    name: string;
+    body: string;
+    notes?: string;
+  }): Promise<AgreementTemplate> {
+    const res = await api.post("/agreement-templates", body);
+    return unwrap(res.data) as AgreementTemplate;
+  },
+  async uploadAgreementTemplate(
+    propertyId: string,
+    name: string,
+    file: File,
+    notes?: string
+  ): Promise<AgreementTemplate> {
+    const form = new FormData();
+    form.append("document", file);
+    form.append("propertyId", propertyId);
+    form.append("name", name);
+    if (notes) form.append("notes", notes);
+    const res = await api.post("/agreement-templates/upload", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return unwrap(res.data) as AgreementTemplate;
+  },
+  async updateTextAgreementTemplate(
+    id: string,
+    body: { name?: string; body?: string; notes?: string }
+  ): Promise<AgreementTemplate> {
+    const res = await api.put(`/agreement-templates/${id}`, body);
+    return unwrap(res.data) as AgreementTemplate;
+  },
+  async deleteAgreementTemplate(id: string): Promise<void> {
+    await api.delete(`/agreement-templates/${id}`);
+  },
+  async sendAgreementTemplateToTenant(
+    id: string,
+    leaseId: string
+  ): Promise<TenancyAgreement> {
+    const res = await api.post(`/agreement-templates/${id}/send`, { leaseId });
+    return unwrap(res.data) as TenancyAgreement;
+  },
+  async aiGenerateAgreement(body: {
+    propertyType?: string;
+    rentNgn?: number;
+    paymentFrequency?: "monthly" | "quarterly" | "annually";
+    jurisdiction?: string;
+    specialClauses?: string;
+  }): Promise<{ body: string }> {
+    const res = await api.post("/agreement-templates/ai/generate", body);
+    return unwrap(res.data) as { body: string };
+  },
+  async aiRefineAgreement(body: {
+    body: string;
+    instructions?: string;
+  }): Promise<{ body: string }> {
+    const res = await api.post("/agreement-templates/ai/refine", body);
+    return unwrap(res.data) as { body: string };
   },
 
   // Marketplace seller
