@@ -29,8 +29,17 @@ import {
   Guarantor,
   LeasePayment,
 } from "@/lib/landlord-api";
+import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 
 export default function LeaseDetailPage() {
+  return (
+    <PageErrorBoundary name="Lease detail">
+      <LeaseDetailInner />
+    </PageErrorBoundary>
+  );
+}
+
+function LeaseDetailInner() {
   const { id } = useParams<{ id: string }>();
 
   // Lease detail isn't a standalone endpoint — we surface lease info from the
@@ -58,19 +67,23 @@ export default function LeaseDetailPage() {
     enabled: !!id,
   });
 
+  // Defensive: a populated ref can be null when the underlying doc was
+  // soft-deleted. Fall back to safe placeholders instead of throwing.
+  const tenantName = row?.tenant
+    ? `${row.tenant.firstName ?? ""} ${row.tenant.lastName ?? ""}`.trim() ||
+      "Tenant"
+    : "Lease";
+  const propertyLabel = row
+    ? [row.property?.name, row.unit?.unitNumber && `Unit ${row.unit.unitNumber}`]
+        .filter(Boolean)
+        .join(" · ") || undefined
+    : undefined;
+
   return (
     <>
       <AppTopbar
-        title={
-          row
-            ? `${row.tenant.firstName} ${row.tenant.lastName}`
-            : "Lease"
-        }
-        subtitle={
-          row
-            ? `${row.property.name} · Unit ${row.unit.unitNumber}`
-            : undefined
-        }
+        title={tenantName}
+        subtitle={propertyLabel}
         actions={
           <Link
             href="/app/tenants"
