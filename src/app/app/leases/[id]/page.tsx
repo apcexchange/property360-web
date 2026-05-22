@@ -185,6 +185,11 @@ function LeaseDetailInner() {
               <PaymentHistorySection
                 payments={payments.data}
                 loading={payments.isLoading}
+                errorMessage={
+                  payments.isError
+                    ? (payments.error as Error)?.message ?? "Couldn't load payments"
+                    : null
+                }
               />
               <ContactsSection
                 guarantor={guarantor.data ?? null}
@@ -202,10 +207,18 @@ function LeaseDetailInner() {
 function PaymentHistorySection({
   payments,
   loading,
+  errorMessage,
 }: {
   payments?: LeasePayment[];
   loading: boolean;
+  errorMessage?: string | null;
 }) {
+  // Defensive: backend usually returns an array, but if the response
+  // shape ever drifts we never want this to throw during render.
+  const list: LeasePayment[] = Array.isArray(payments)
+    ? payments.filter(Boolean)
+    : [];
+
   return (
     <Card className="overflow-hidden">
       <div className="border-b border-foundation-700/10 px-5 py-4">
@@ -213,38 +226,45 @@ function PaymentHistorySection({
           Payment history
         </h2>
       </div>
-      {loading ? (
+      {errorMessage ? (
+        <p className="p-5 text-[13px] text-red-700">{errorMessage}</p>
+      ) : loading ? (
         <div className="space-y-2 p-5">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
-      ) : (payments ?? []).length === 0 ? (
+      ) : list.length === 0 ? (
         <p className="p-5 text-[13px] text-ink-muted">No payments recorded yet.</p>
       ) : (
         <ul className="divide-y divide-foundation-700/10">
-          {payments!.map((p) => (
-            <li
-              key={p._id}
-              className="flex items-center justify-between gap-3 px-5 py-3"
-            >
-              <div>
-                <p className="text-[13.5px] font-semibold text-foundation-700">
-                  {formatNgn(p.amount)}
-                </p>
-                <p className="text-[11.5px] text-ink-muted">
-                  {formatDate(p.paymentDate)} ·{" "}
-                  {p.paymentMethod?.replace("_", " ") ?? "—"}
-                  {p.reference && ` · ${p.reference}`}
-                </p>
-              </div>
-              {p.notes && (
-                <p className="max-w-[40%] truncate text-[11.5px] text-ink-muted">
-                  {p.notes}
-                </p>
-              )}
-            </li>
-          ))}
+          {list.map((p, i) => {
+            const methodText =
+              typeof p.paymentMethod === "string"
+                ? p.paymentMethod.replace(/_/g, " ")
+                : "—";
+            return (
+              <li
+                key={p._id ?? i}
+                className="flex items-center justify-between gap-3 px-5 py-3"
+              >
+                <div>
+                  <p className="text-[13.5px] font-semibold text-foundation-700">
+                    {formatNgn(p.amount ?? 0)}
+                  </p>
+                  <p className="text-[11.5px] text-ink-muted">
+                    {formatDate(p.paymentDate)} · {methodText}
+                    {p.reference && ` · ${p.reference}`}
+                  </p>
+                </div>
+                {p.notes && (
+                  <p className="max-w-[40%] truncate text-[11.5px] text-ink-muted">
+                    {p.notes}
+                  </p>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </Card>
