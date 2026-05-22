@@ -4,13 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  Upload,
-  FileText,
-  Send,
-  ExternalLink,
-} from "lucide-react";
+import { ArrowLeft, Upload, FileText, ExternalLink } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -54,11 +48,6 @@ export default function AgreementsPage() {
 
   const upload = useMutation({
     mutationFn: (file: File) => landlordApi.uploadAgreement(id, file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
-  });
-  const sendForSigning = useMutation({
-    mutationFn: (agreementId: string) =>
-      landlordApi.sendAgreementForSigning(agreementId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
   });
 
@@ -139,29 +128,36 @@ export default function AgreementsPage() {
         ) : (list.data ?? []).length === 0 ? (
           <EmptyState
             title="No agreements"
-            body="Upload a PDF tenancy agreement and send it to the tenant for signing via DocuSeal."
+            body="Upload a tenancy agreement PDF. The tenant will see it on their Property360 dashboard and sign it in-app (checkbox + typed name)."
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">
-            {list.data!.map((a) => (
-              <div key={a._id} className="flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-foundation-700" />
-                    <p className="truncate text-[14px] font-semibold text-foundation-700">
-                      {a.fileName ?? "Tenancy agreement"}
+            {list.data!.map((a) => {
+              const signed = a.tenantAcknowledged || a.status === "signed";
+              const displayStatus = signed ? "signed" : "awaiting tenant";
+              const tone: "good" | "warn" | "neutral" | "info" = signed
+                ? "good"
+                : STATUS_TONE[a.status] ?? "warn";
+              const signedDate = a.tenantAcknowledgedAt ?? a.signedAt;
+              return (
+                <div
+                  key={a._id}
+                  className="flex items-center justify-between gap-3 p-4"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-foundation-700" />
+                      <p className="truncate text-[14px] font-semibold text-foundation-700">
+                        {a.fileName ?? "Tenancy agreement"}
+                      </p>
+                      <StatusPill label={displayStatus} tone={tone} />
+                    </div>
+                    <p className="mt-1 text-[11.5px] text-ink-muted">
+                      Uploaded {formatDate(a.createdAt)}
+                      {signedDate && ` · Signed ${formatDate(signedDate)}`}
+                      {signed && a.signedTypedName && ` by ${a.signedTypedName}`}
                     </p>
-                    <StatusPill
-                      label={a.status.replace(/_/g, " ")}
-                      tone={STATUS_TONE[a.status]}
-                    />
                   </div>
-                  <p className="mt-1 text-[11.5px] text-ink-muted">
-                    Uploaded {formatDate(a.createdAt)}
-                    {a.signedAt && ` · Signed ${formatDate(a.signedAt)}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
                   <a
                     href={a.fileUrl}
                     target="_blank"
@@ -170,19 +166,9 @@ export default function AgreementsPage() {
                   >
                     <ExternalLink className="h-3 w-3" /> Open
                   </a>
-                  {a.status === "draft" && (
-                    <button
-                      type="button"
-                      onClick={() => sendForSigning.mutate(a._id)}
-                      disabled={sendForSigning.isPending}
-                      className="inline-flex items-center gap-1 rounded-full bg-foundation-700 px-3 py-1.5 text-[11.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
-                    >
-                      <Send className="h-3 w-3" /> Send for signing
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </Card>
         )}
       </PageContainer>

@@ -295,10 +295,15 @@ export interface TenancyAgreement {
   tenant: string | Tenant;
   fileUrl: string;
   fileName?: string;
+  fileSize?: number;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled";
   signingProvider?: "docuseal";
   signingId?: string;
   signedAt?: string;
+  /** Clickwrap signing — set when the tenant typed-name signs in-app. */
+  tenantAcknowledged?: boolean;
+  tenantAcknowledgedAt?: string;
+  signedTypedName?: string;
   createdAt: string;
 }
 
@@ -880,11 +885,12 @@ export const landlordApi = {
     file: File
   ): Promise<TenancyAgreement> {
     const form = new FormData();
-    form.append("file", file);
-    form.append("leaseId", leaseId);
-    const res = await api.post("/tenancy-agreements", form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    form.append("document", file);
+    const res = await api.post(
+      `/tenancy-agreements/lease/${leaseId}`,
+      form,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
     return unwrap(res.data) as TenancyAgreement;
   },
   async sendAgreementForSigning(id: string): Promise<TenancyAgreement> {

@@ -228,12 +228,16 @@ export interface TenancyAgreement {
   unit?: { _id?: string; unitNumber?: string };
   fileUrl?: string;
   documentUrl?: string;
+  documentPublicId?: string;
+  fileSize?: number;
   signedDocumentUrl?: string;
   fileName?: string;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled" | string;
+  signingStatus?: "not_sent" | "pending" | "sent" | "opened" | "signed" | "declined";
   signingProvider?: string;
   signedAt?: string;
   acknowledgedAt?: string;
+  tenantAcknowledged?: boolean;
   createdAt: string;
 }
 
@@ -476,9 +480,14 @@ export const tenantApi = {
     const res = await api.get(`/tenancy-agreements/${id}/signing-link`);
     return unwrap(res.data) as { url: string };
   },
+  /**
+   * Clickwrap sign. The backend requires a `documentHash` fingerprint of
+   * the file the tenant just reviewed so a signed record is verifiable.
+   * We use the same shape mobile uses: `${_id}|${documentPublicId}|${fileSize}`.
+   */
   async acknowledgeAgreement(
     id: string,
-    body: { typedName: string; acknowledged: boolean }
+    body: { typedName: string; documentHash: string }
   ): Promise<TenancyAgreement> {
     const res = await api.post(`/tenancy-agreements/${id}/acknowledge`, body);
     return unwrap(res.data) as TenancyAgreement;

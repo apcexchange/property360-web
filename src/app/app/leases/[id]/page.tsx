@@ -30,6 +30,7 @@ import {
   LeasePayment,
 } from "@/lib/landlord-api";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
+import { NIGERIA_STATES } from "@/lib/nigeria-locations";
 
 export default function LeaseDetailPage() {
   return (
@@ -328,6 +329,18 @@ function ContactsSection({
             ]
               .filter(Boolean)
               .join(", ");
+            const idTypeLabel: Record<string, string> = {
+              nin: "NIN",
+              drivers: "Driver's licence",
+              passport: "International passport",
+              voters: "Voter's card",
+            };
+            const idLine =
+              guarantor.idType && guarantor.idNumber
+                ? `${idTypeLabel[guarantor.idType] ?? guarantor.idType}: ${
+                    guarantor.idNumber
+                  }`
+                : null;
             return (
               <div className="space-y-1 p-5 text-[13px] text-foundation-700">
                 <p className="font-semibold">
@@ -339,9 +352,13 @@ function ContactsSection({
                 {guarantor.email && (
                   <p className="text-ink-muted">{guarantor.email}</p>
                 )}
+                {guarantor.occupation && (
+                  <p className="text-ink-muted">{guarantor.occupation}</p>
+                )}
                 {addressLine && (
                   <p className="text-ink-muted">{addressLine}</p>
                 )}
+                {idLine && <p className="text-ink-muted">{idLine}</p>}
               </div>
             );
           })()
@@ -404,7 +421,10 @@ function GuarantorForm({
       phone: "",
       relationship: "",
       email: "",
+      occupation: "",
       address: { street: "", city: "", state: "" },
+      idType: undefined,
+      idNumber: "",
     }
   );
   const canSubmit =
@@ -413,6 +433,8 @@ function GuarantorForm({
     g.phone.trim() &&
     g.relationship.trim();
   const addr = g.address ?? {};
+  const stateCities =
+    NIGERIA_STATES.find((s) => s.name === addr.state)?.cities ?? [];
 
   return (
     <form
@@ -441,6 +463,36 @@ function GuarantorForm({
         <SmallField label="Email">
           <SmallInput value={g.email ?? ""} onChange={(v) => setG({ ...g, email: v })} />
         </SmallField>
+        <SmallField label="Occupation">
+          <SmallInput
+            value={g.occupation ?? ""}
+            onChange={(v) => setG({ ...g, occupation: v })}
+          />
+        </SmallField>
+        <SmallField label="ID type">
+          <SmallSelect
+            value={g.idType ?? ""}
+            onChange={(v) =>
+              setG({
+                ...g,
+                idType: (v || undefined) as Guarantor["idType"],
+              })
+            }
+            options={[
+              { value: "", label: "—" },
+              { value: "nin", label: "NIN" },
+              { value: "drivers", label: "Driver's licence" },
+              { value: "passport", label: "International passport" },
+              { value: "voters", label: "Voter's card" },
+            ]}
+          />
+        </SmallField>
+        <SmallField label="ID number">
+          <SmallInput
+            value={g.idNumber ?? ""}
+            onChange={(v) => setG({ ...g, idNumber: v })}
+          />
+        </SmallField>
         <SmallField label="Street">
           <SmallInput
             value={addr.street ?? ""}
@@ -449,20 +501,34 @@ function GuarantorForm({
             }
           />
         </SmallField>
+        <SmallField label="State">
+          <SmallSelect
+            value={addr.state ?? ""}
+            onChange={(v) =>
+              // Clear the city when the state changes so a stale value
+              // from the previous state can't slip through.
+              setG({
+                ...g,
+                address: { ...addr, state: v, city: "" },
+              })
+            }
+            options={[
+              { value: "", label: "—" },
+              ...NIGERIA_STATES.map((s) => ({ value: s.name, label: s.name })),
+            ]}
+          />
+        </SmallField>
         <SmallField label="City">
-          <SmallInput
+          <SmallSelect
             value={addr.city ?? ""}
             onChange={(v) =>
               setG({ ...g, address: { ...addr, city: v } })
             }
-          />
-        </SmallField>
-        <SmallField label="State">
-          <SmallInput
-            value={addr.state ?? ""}
-            onChange={(v) =>
-              setG({ ...g, address: { ...addr, state: v } })
-            }
+            disabled={!addr.state}
+            options={[
+              { value: "", label: addr.state ? "—" : "Pick a state first" },
+              ...stateCities.map((c) => ({ value: c, label: c })),
+            ]}
           />
         </SmallField>
       </div>
@@ -599,6 +665,33 @@ function SmallInput({
       onChange={(e) => onChange(e.target.value)}
       className="w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[13px] text-foundation-700"
     />
+  );
+}
+
+function SmallSelect({
+  value,
+  onChange,
+  options,
+  disabled,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  disabled?: boolean;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+      className="w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[13px] text-foundation-700 disabled:bg-foundation-700/5 disabled:text-ink-muted"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
