@@ -320,20 +320,31 @@ function ContactsSection({
             saving={setG.isPending}
           />
         ) : guarantor ? (
-          <div className="space-y-1 p-5 text-[13px] text-foundation-700">
-            <p className="font-semibold">
-              {guarantor.firstName} {guarantor.lastName}
-            </p>
-            <p className="text-ink-muted">
-              {guarantor.relationship} · {guarantor.phone}
-            </p>
-            {guarantor.email && (
-              <p className="text-ink-muted">{guarantor.email}</p>
-            )}
-            {guarantor.address && (
-              <p className="text-ink-muted">{guarantor.address}</p>
-            )}
-          </div>
+          (() => {
+            const addressLine = [
+              guarantor.address?.street,
+              guarantor.address?.city,
+              guarantor.address?.state,
+            ]
+              .filter(Boolean)
+              .join(", ");
+            return (
+              <div className="space-y-1 p-5 text-[13px] text-foundation-700">
+                <p className="font-semibold">
+                  {guarantor.firstName} {guarantor.lastName}
+                </p>
+                <p className="text-ink-muted">
+                  {guarantor.relationship} · {guarantor.phone}
+                </p>
+                {guarantor.email && (
+                  <p className="text-ink-muted">{guarantor.email}</p>
+                )}
+                {addressLine && (
+                  <p className="text-ink-muted">{addressLine}</p>
+                )}
+              </div>
+            );
+          })()
         ) : (
           <p className="p-5 text-[13px] text-ink-muted">No guarantor on file.</p>
         )}
@@ -393,7 +404,7 @@ function GuarantorForm({
       phone: "",
       relationship: "",
       email: "",
-      address: "",
+      address: { street: "", city: "", state: "" },
     }
   );
   const canSubmit =
@@ -401,6 +412,7 @@ function GuarantorForm({
     g.lastName.trim() &&
     g.phone.trim() &&
     g.relationship.trim();
+  const addr = g.address ?? {};
 
   return (
     <form
@@ -429,8 +441,29 @@ function GuarantorForm({
         <SmallField label="Email">
           <SmallInput value={g.email ?? ""} onChange={(v) => setG({ ...g, email: v })} />
         </SmallField>
-        <SmallField label="Address">
-          <SmallInput value={g.address ?? ""} onChange={(v) => setG({ ...g, address: v })} />
+        <SmallField label="Street">
+          <SmallInput
+            value={addr.street ?? ""}
+            onChange={(v) =>
+              setG({ ...g, address: { ...addr, street: v } })
+            }
+          />
+        </SmallField>
+        <SmallField label="City">
+          <SmallInput
+            value={addr.city ?? ""}
+            onChange={(v) =>
+              setG({ ...g, address: { ...addr, city: v } })
+            }
+          />
+        </SmallField>
+        <SmallField label="State">
+          <SmallInput
+            value={addr.state ?? ""}
+            onChange={(v) =>
+              setG({ ...g, address: { ...addr, state: v } })
+            }
+          />
         </SmallField>
       </div>
       <div className="flex items-center justify-end gap-2 pt-1">

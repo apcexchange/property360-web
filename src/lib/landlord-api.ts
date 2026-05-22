@@ -258,13 +258,26 @@ export interface LeasePayment {
   createdAt: string;
 }
 
+/**
+ * Mirrors the nested guarantor sub-document on the Lease model. `address`
+ * is an OBJECT, not a string — backend stores street/city/state separately.
+ * Rendering it directly as a React child crashes ("object with keys {}")
+ * when the subdoc exists but its inner fields are undefined.
+ */
 export interface Guarantor {
   firstName: string;
   lastName: string;
   email?: string;
   phone: string;
   relationship: string;
-  address?: string;
+  occupation?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+  };
+  idType?: "nin" | "drivers" | "passport" | "voters";
+  idNumber?: string;
 }
 
 export interface EmergencyContact {
