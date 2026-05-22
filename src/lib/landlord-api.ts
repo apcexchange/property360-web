@@ -307,6 +307,34 @@ export interface TenancyAgreement {
   createdAt: string;
 }
 
+// ----- Guarantor invitation request -----
+export type GuarantorRequestAddressee = "tenant" | "guarantor";
+export type GuarantorRequestStatus =
+  | "pending"
+  | "submitted"
+  | "expired"
+  | "cancelled";
+
+export interface GuarantorRequest {
+  _id: string;
+  id?: string;
+  lease: string;
+  property: string;
+  unit: string;
+  tenant: string;
+  landlord: string;
+  requestedBy: string;
+  addressee: GuarantorRequestAddressee;
+  inviteEmail: string;
+  inviteName?: string;
+  requirePassport: boolean;
+  status: GuarantorRequestStatus;
+  submittedAt?: string;
+  passportUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ----- Quit notice -----
 export type QuitNoticeStatus =
   | "draft"
@@ -1009,6 +1037,26 @@ export const landlordApi = {
   ): Promise<QuitNotice> {
     const res = await api.post(`/quit-notices/${id}/withdraw`, { reason });
     return unwrap(res.data) as QuitNotice;
+  },
+
+  // Guarantor requests (invite a tenant or guarantor to fill the form)
+  async createGuarantorRequest(body: {
+    leaseId: string;
+    addressee: GuarantorRequestAddressee;
+    inviteEmail: string;
+    inviteName?: string;
+    requirePassport?: boolean;
+  }): Promise<GuarantorRequest> {
+    const res = await api.post("/guarantor-requests", body);
+    return unwrap(res.data) as GuarantorRequest;
+  },
+  async listGuarantorRequests(leaseId: string): Promise<GuarantorRequest[]> {
+    const res = await api.get(`/guarantor-requests/by-lease/${leaseId}`);
+    return asList<GuarantorRequest>(unwrap(res.data));
+  },
+  async cancelGuarantorRequest(id: string): Promise<GuarantorRequest> {
+    const res = await api.post(`/guarantor-requests/${id}/cancel`);
+    return unwrap(res.data) as GuarantorRequest;
   },
 
   // Marketplace seller

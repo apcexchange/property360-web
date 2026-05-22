@@ -32,7 +32,10 @@ import {
   LeasePayment,
   QuitNotice,
   QUIT_NOTICE_REASON_LABELS,
+  GuarantorRequest,
+  GuarantorRequestAddressee,
 } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 import { NIGERIA_STATES } from "@/lib/nigeria-locations";
 
@@ -313,6 +316,7 @@ function ContactsSection({
   leaseId: string;
 }) {
   const [editing, setEditing] = useState(false);
+  const [inviting, setInviting] = useState(false);
   const qc = useQueryClient();
   const setG = useMutation({
     mutationFn: (g: Guarantor) => landlordApi.setGuarantor(leaseId, g),
@@ -335,13 +339,22 @@ function ContactsSection({
             Guarantor
           </h2>
           {!editing && (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="text-[12px] font-semibold text-foundation-700 hover:underline"
-            >
-              {guarantor ? "Edit" : "Add"}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setInviting(true)}
+                className="text-[12px] font-semibold text-foundation-700 hover:underline"
+              >
+                Invite to fill
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="text-[12px] font-semibold text-foundation-700 hover:underline"
+              >
+                {guarantor ? "Edit" : "Add"}
+              </button>
+            </div>
           )}
         </div>
         {editing ? (
@@ -396,6 +409,13 @@ function ContactsSection({
         ) : (
           <p className="p-5 text-[13px] text-ink-muted">No guarantor on file.</p>
         )}
+        {inviting && (
+          <GuarantorInviteForm
+            leaseId={leaseId}
+            onClose={() => setInviting(false)}
+          />
+        )}
+        <GuarantorRequestsList leaseId={leaseId} />
       </Card>
 
       <Card>
@@ -805,6 +825,201 @@ function QuitNoticesSection({
         </ul>
       )}
     </Card>
+  );
+}
+
+function GuarantorInviteForm({
+  leaseId,
+  onClose,
+}: {
+  leaseId: string;
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const [addressee, setAddressee] = useState<GuarantorRequestAddressee>(
+    "tenant"
+  );
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [requirePassport, setRequirePassport] = useState(false);
+
+  const send = useMutation({
+    mutationFn: () =>
+      landlordApi.createGuarantorRequest({
+        leaseId,
+        addressee,
+        inviteEmail: email,
+        inviteName: name.trim() || undefined,
+        requirePassport,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["guarantor-requests", leaseId] });
+      toast.success("Invitation sent");
+      onClose();
+    },
+    onError: (err) => {
+      const ax = err as AxiosError<{ message?: string }>;
+      toast.error(
+        ax.response?.data?.message ??
+          (err as Error).message ??
+          "Couldn't send invitation"
+      );
+    },
+  });
+
+  const canSend = /.+@.+\..+/.test(email);
+
+  return (
+    <div className="border-t border-foundation-700/10 bg-foundation-700/5 px-5 py-4">
+      <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+        Send invitation
+      </p>
+      <div className="mb-3 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setAddressee("tenant")}
+          className={`flex-1 rounded-full border px-3 py-1.5 text-[12px] font-semibold ${
+            addressee === "tenant"
+              ? "border-foundation-700 bg-foundation-700 text-paper"
+              : "border-foundation-700/15 bg-paper text-foundation-700"
+          }`}
+        >
+          Ask the tenant
+        </button>
+        <button
+          type="button"
+          onClick={() => setAddressee("guarantor")}
+          className={`flex-1 rounded-full border px-3 py-1.5 text-[12px] font-semibold ${
+            addressee === "guarantor"
+              ? "border-foundation-700 bg-foundation-700 text-paper"
+              : "border-foundation-700/15 bg-paper text-foundation-700"
+          }`}
+        >
+          Email the guarantor
+        </button>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            Recipient email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="guarantor@example.com"
+            className="w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[13px] text-foundation-700"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+            Recipient name (optional)
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={
+              addressee === "guarantor" ? "Their full name" : "The tenant's name"
+            }
+            className="w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[13px] text-foundation-700"
+          />
+        </div>
+      </div>
+      <label className="mt-3 flex items-center gap-2 text-[12.5px] text-foundation-700">
+        <input
+          type="checkbox"
+          checked={requirePassport}
+          onChange={(e) => setRequirePassport(e.target.checked)}
+          className="h-4 w-4 accent-foundation-700"
+        />
+        Also request a passport photo of the guarantor
+      </label>
+      <div className="mt-4 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-full border border-foundation-700/15 px-3 py-1.5 text-[12px] font-semibold text-foundation-700 hover:bg-foundation-700/5"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={!canSend || send.isPending}
+          onClick={() => send.mutate()}
+          className="rounded-full bg-foundation-700 px-4 py-1.5 text-[12px] font-semibold text-paper hover:bg-foundation-800 disabled:opacity-50"
+        >
+          {send.isPending ? "Sending…" : "Send invitation"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function GuarantorRequestsList({ leaseId }: { leaseId: string }) {
+  const qc = useQueryClient();
+  const toast = useToast();
+  const list = useQuery({
+    queryKey: ["guarantor-requests", leaseId],
+    queryFn: () => landlordApi.listGuarantorRequests(leaseId),
+    enabled: !!leaseId,
+  });
+  const cancel = useMutation({
+    mutationFn: (id: string) => landlordApi.cancelGuarantorRequest(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["guarantor-requests", leaseId] });
+      toast.success("Invitation cancelled");
+    },
+  });
+
+  if (list.isLoading || (list.data ?? []).length === 0) return null;
+
+  return (
+    <div className="border-t border-foundation-700/10">
+      <p className="px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+        Pending invitations
+      </p>
+      <ul className="divide-y divide-foundation-700/10">
+        {list.data!.map((r: GuarantorRequest) => {
+          const tone: "good" | "warn" | "bad" | "neutral" =
+            r.status === "submitted"
+              ? "good"
+              : r.status === "expired" || r.status === "cancelled"
+              ? "neutral"
+              : "warn";
+          return (
+            <li
+              key={r._id}
+              className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-foundation-700">
+                  {r.inviteName ? `${r.inviteName} · ` : ""}{r.inviteEmail}
+                </p>
+                <p className="mt-0.5 text-[11.5px] text-ink-muted">
+                  Sent to {r.addressee === "tenant" ? "the tenant" : "the guarantor"} ·{" "}
+                  {r.requirePassport && "Passport requested · "}
+                  {formatDate(r.createdAt)}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <StatusPill label={r.status} tone={tone} />
+                {r.status === "pending" && (
+                  <button
+                    type="button"
+                    onClick={() => cancel.mutate(r._id)}
+                    disabled={cancel.isPending}
+                    className="text-[12px] font-semibold text-foundation-700 hover:underline disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
