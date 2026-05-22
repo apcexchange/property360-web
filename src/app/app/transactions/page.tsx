@@ -22,7 +22,12 @@ import {
   formatNgn,
   formatDate,
 } from "@/components/app/ui";
-import { landlordApi, Property, WalletTransaction } from "@/lib/landlord-api";
+import {
+  landlordApi,
+  LandlordTransaction,
+  Property,
+  WalletTransaction,
+} from "@/lib/landlord-api";
 
 const FOUNDATION = "#1F414A";
 
@@ -31,19 +36,127 @@ function tooltipFormatNgn(value: unknown): string {
   return Number.isFinite(n) ? formatNgn(n) : String(value ?? "");
 }
 
-type TypeFilter = "all" | "credit" | "debit";
-type StatusFilter = "all" | "completed" | "pending" | "failed";
+type SourceFilter = "all" | "rent" | "wallet";
+type DirectionFilter = "all" | "in" | "out";
+type UnifiedStatus = "completed" | "pending" | "failed" | "voided";
+type StatusFilter = "all" | UnifiedStatus;
 
-const STATUS_TONE: Record<
-  WalletTransaction["status"],
-  "good" | "warn" | "bad"
-> = {
+/**
+ * Unified shape we render in the list and use to drive filters /
+ * chart / CSV. Wallet credits and every rent row count as "in";
+ * wallet debits / withdrawals are "out".
+ */
+type Row = {
+  id: string;
+  source: "rent" | "wallet";
+  direction: "in" | "out";
+  amount: number;
+  status: UnifiedStatus;
+  date: string;
+  /** Sortable timestamp (ms). */
+  ts: number;
+  /** Single-line description used in the row's primary slot. */
+  primaryLabel: string;
+  /** Secondary line — tenant + property/unit for rent, reference for wallet. */
+  secondaryLabel?: string;
+  reference?: string;
+  // Rent-specific extras kept so CSV export can write them.
+  tenantName?: string;
+  propertyName?: string;
+  unitNumber?: string;
+  paymentMethod?: string;
+  type?: string;
+};
+
+const SOURCE_TONE: Record<Row["source"], "info" | "neutral"> = {
+  rent: "info",
+  wallet: "neutral",
+};
+
+const STATUS_TONE: Record<UnifiedStatus, "good" | "warn" | "bad"> = {
   completed: "good",
   pending: "warn",
   failed: "bad",
+  voided: "bad",
 };
 
-function toCsv(rows: WalletTransaction[]): string {
+const SOURCE_LABEL: Record<Row["source"], string> = {
+  rent: "Rent",
+  wallet: "Wallet",
+};
+
+function prettyMethod(m?: string): string {
+  if (!m) return "";
+  return m
+    .split("_")
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join(" ");
+}
+
+function tenantName(t: LandlordTransaction["tenant"]): string | undefined {
+  if (!t) return undefined;
+  const full = `${t.firstName ?? ""} ${t.lastName ?? ""}`.trim();
+  return full || undefined;
+}
+
+function rentDescription(t: LandlordTransaction): string {
+  const verb =
+    t.type === "deposit"
+      ? "Deposit"
+      : t.type === "maintenance"
+      ? "Maintenance"
+      : t.type === "other"
+      ? "Other payment"
+      : "Rent";
+  const tn = tenantName(t.tenant);
+  return tn ? `${verb} from ${tn}` : verb;
+}
+
+function rentToRow(t: LandlordTransaction): Row {
+  const propertyName = t.lease?.property?.name;
+  const unitNumber = t.lease?.unit?.unitNumber;
+  const secondaryParts: string[] = [];
+  if (propertyName) secondaryParts.push(propertyName);
+  if (unitNumber) secondaryParts.push(`Unit ${unitNumber}`);
+  if (t.paymentMethod) secondaryParts.push(prettyMethod(t.paymentMethod));
+  const date = t.paymentDate ?? t.createdAt;
+  return {
+    id: `rent:${t._id}`,
+    source: "rent",
+    direction: "in",
+    amount: t.amount,
+    status: t.status as UnifiedStatus,
+    date,
+    ts: new Date(date).getTime(),
+    primaryLabel: rentDescription(t),
+    secondaryLabel: secondaryParts.join(" · "),
+    reference: t.reference,
+    tenantName: tenantName(t.tenant),
+    propertyName,
+    unitNumber,
+    paymentMethod: t.paymentMethod,
+    type: t.type,
+  };
+}
+
+function walletToRow(w: WalletTransaction): Row {
+  return {
+    id: `wallet:${w._id}`,
+    source: "wallet",
+    direction: w.type === "credit" ? "in" : "out",
+    amount: w.amount,
+    // WalletTransaction.status is the same string union as
+    // UnifiedStatus minus 'voided'; treat it as the same type.
+    status: w.status as UnifiedStatus,
+    date: w.createdAt,
+    ts: new Date(w.createdAt).getTime(),
+    primaryLabel: w.description ?? (w.type === "credit" ? "Wallet credit" : "Wallet debit"),
+    secondaryLabel: w.reference,
+    reference: w.reference,
+  };
+}
+
+function toCsv(rows: Row[]): string {
   const escape = (v: unknown): string => {
     const s = v === undefined || v === null ? "" : String(v);
     if (s.includes(",") || s.includes('"') || s.includes("\n")) {
@@ -51,15 +164,32 @@ function toCsv(rows: WalletTransaction[]): string {
     }
     return s;
   };
-  const header = ["Date", "Type", "Status", "Amount (NGN)", "Reference", "Description"];
-  const lines = rows.map((t) =>
+  const header = [
+    "Date",
+    "Source",
+    "Direction",
+    "Status",
+    "Amount (NGN)",
+    "Tenant",
+    "Property",
+    "Unit",
+    "Payment method",
+    "Reference",
+    "Description",
+  ];
+  const lines = rows.map((r) =>
     [
-      new Date(t.createdAt).toISOString().slice(0, 10),
-      t.type,
-      t.status,
-      t.amount,
-      t.reference ?? "",
-      t.description ?? "",
+      new Date(r.date).toISOString().slice(0, 10),
+      SOURCE_LABEL[r.source],
+      r.direction === "in" ? "In" : "Out",
+      r.status,
+      r.amount,
+      r.tenantName ?? "",
+      r.propertyName ?? "",
+      r.unitNumber ?? "",
+      r.paymentMethod ? prettyMethod(r.paymentMethod) : "",
+      r.reference ?? "",
+      r.primaryLabel,
     ]
       .map(escape)
       .join(",")
@@ -68,7 +198,8 @@ function toCsv(rows: WalletTransaction[]): string {
 }
 
 export default function TransactionsPage() {
-  const [type, setType] = useState<TypeFilter>("all");
+  const [source, setSource] = useState<SourceFilter>("all");
+  const [direction, setDirection] = useState<DirectionFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -80,55 +211,76 @@ export default function TransactionsPage() {
     queryFn: () => landlordApi.listProperties(),
   });
 
-  const q = useQuery({
+  const rentQ = useQuery({
+    queryKey: ["transactions", "rent", propertyId || "all"],
+    queryFn: () =>
+      landlordApi.transactions(propertyId ? { propertyId } : undefined),
+  });
+  const walletQ = useQuery({
     queryKey: ["wallet", "transactions", propertyId || "all"],
     queryFn: () =>
-      landlordApi.walletTransactions(
-        propertyId ? { propertyId } : undefined
-      ),
+      landlordApi.walletTransactions(propertyId ? { propertyId } : undefined),
   });
 
+  const merged = useMemo<Row[]>(() => {
+    const r = (rentQ.data ?? []).map(rentToRow);
+    const w = (walletQ.data ?? []).map(walletToRow);
+    return [...r, ...w].sort((a, b) => b.ts - a.ts);
+  }, [rentQ.data, walletQ.data]);
+
   const filtered = useMemo(() => {
-    const list = q.data ?? [];
     const term = search.trim().toLowerCase();
     const fromTs = from ? new Date(from).getTime() : null;
     const toTs = to ? new Date(`${to}T23:59:59.999`).getTime() : null;
-    return list.filter((t) => {
-      if (type !== "all" && t.type !== type) return false;
-      if (status !== "all" && t.status !== status) return false;
-      const ts = new Date(t.createdAt).getTime();
-      if (fromTs !== null && ts < fromTs) return false;
-      if (toTs !== null && ts > toTs) return false;
+    return merged.filter((r) => {
+      if (source !== "all" && r.source !== source) return false;
+      if (direction !== "all" && r.direction !== direction) return false;
+      if (status !== "all" && r.status !== status) return false;
+      if (fromTs !== null && r.ts < fromTs) return false;
+      if (toTs !== null && r.ts > toTs) return false;
       if (term) {
-        const haystack = `${t.description ?? ""} ${t.reference ?? ""}`.toLowerCase();
+        const haystack = [
+          r.primaryLabel,
+          r.secondaryLabel ?? "",
+          r.reference ?? "",
+          r.tenantName ?? "",
+          r.propertyName ?? "",
+        ]
+          .join(" ")
+          .toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
     });
-  }, [q.data, type, status, from, to, search]);
+  }, [merged, source, direction, status, from, to, search]);
 
   const totals = useMemo(() => {
-    let credits = 0;
-    let debits = 0;
-    for (const t of filtered) {
-      if (t.status !== "completed") continue;
-      if (t.type === "credit") credits += t.amount;
-      else debits += t.amount;
+    let inflow = 0;
+    let outflow = 0;
+    for (const r of filtered) {
+      if (r.status !== "completed") continue;
+      if (r.direction === "in") inflow += r.amount;
+      else outflow += r.amount;
     }
-    return { credits, debits, net: credits - debits, count: filtered.length };
+    return {
+      inflow,
+      outflow,
+      net: inflow - outflow,
+      count: filtered.length,
+    };
   }, [filtered]);
 
-  // Day-bucketed net flow for the inline area chart. We bucket by local
-  // calendar day, keep the most recent ~30 buckets (chronological), and
-  // ignore non-completed rows so they don't skew the trend.
+  // Day-bucketed net flow for the inline area chart. Buckets are local
+  // calendar days; only completed rows contribute so pending entries
+  // don't skew the trend.
   const netFlowSeries = useMemo(() => {
     const buckets = new Map<string, { day: string; net: number; sortKey: number }>();
-    for (const t of filtered) {
-      if (t.status !== "completed") continue;
-      const d = new Date(t.createdAt);
+    for (const r of filtered) {
+      if (r.status !== "completed") continue;
+      const d = new Date(r.date);
       if (Number.isNaN(d.getTime())) continue;
       const key = d.toISOString().slice(0, 10);
-      const signed = t.type === "credit" ? t.amount : -t.amount;
+      const signed = r.direction === "in" ? r.amount : -r.amount;
       const existing = buckets.get(key);
       if (existing) existing.net += signed;
       else
@@ -166,11 +318,16 @@ export default function TransactionsPage() {
     URL.revokeObjectURL(url);
   }
 
+  const loading = rentQ.isLoading || walletQ.isLoading;
+  const error = rentQ.error ?? walletQ.error;
+  const isError = rentQ.isError || walletQ.isError;
+  const isEmpty = merged.length === 0;
+
   return (
     <>
       <AppTopbar
         title="Transactions"
-        subtitle="Wallet credits and debits"
+        subtitle="Rent payments and wallet activity"
         actions={
           <button
             type="button"
@@ -186,13 +343,13 @@ export default function TransactionsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryStat label="Showing" value={`${totals.count}`} />
           <SummaryStat
-            label="Credits"
-            value={formatNgn(totals.credits)}
+            label="Inflow"
+            value={formatNgn(totals.inflow)}
             tone="good"
           />
           <SummaryStat
-            label="Debits"
-            value={formatNgn(totals.debits)}
+            label="Outflow"
+            value={formatNgn(totals.outflow)}
             tone="neutral"
           />
           <SummaryStat
@@ -205,13 +362,23 @@ export default function TransactionsPage() {
         <Card className="mt-6 p-4">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-6">
             <PillGroup
-              label="Type"
-              value={type}
-              onChange={(v) => setType(v as TypeFilter)}
+              label="Source"
+              value={source}
+              onChange={(v) => setSource(v as SourceFilter)}
               options={[
                 { label: "All", value: "all" },
-                { label: "Credit", value: "credit" },
-                { label: "Debit", value: "debit" },
+                { label: "Rent", value: "rent" },
+                { label: "Wallet", value: "wallet" },
+              ]}
+            />
+            <PillGroup
+              label="Direction"
+              value={direction}
+              onChange={(v) => setDirection(v as DirectionFilter)}
+              options={[
+                { label: "All", value: "all" },
+                { label: "In", value: "in" },
+                { label: "Out", value: "out" },
               ]}
             />
             <PillGroup
@@ -223,6 +390,7 @@ export default function TransactionsPage() {
                 { label: "Completed", value: "completed" },
                 { label: "Pending", value: "pending" },
                 { label: "Failed", value: "failed" },
+                { label: "Voided", value: "voided" },
               ]}
             />
             <DateField label="From" value={from} onChange={setFrom} />
@@ -244,7 +412,7 @@ export default function TransactionsPage() {
                 ))}
               </select>
             </div>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 md:col-span-2 lg:col-span-1">
               <label className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
                 Search
               </label>
@@ -254,7 +422,7 @@ export default function TransactionsPage() {
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Description or reference"
+                  placeholder="Tenant, property, reference"
                   className="w-full rounded-lg border border-foundation-700/10 bg-paper py-1.5 pl-7 pr-2 text-[13px] text-foundation-700 placeholder:text-ink-muted focus:border-foundation-700/30 focus:outline-none"
                 />
               </div>
@@ -265,7 +433,7 @@ export default function TransactionsPage() {
         <NetFlowChart series={netFlowSeries} />
 
         <div className="mt-6">
-          {q.isLoading ? (
+          {loading ? (
             <Card className="divide-y divide-foundation-700/10">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="p-4">
@@ -274,15 +442,18 @@ export default function TransactionsPage() {
                 </div>
               ))}
             </Card>
-          ) : q.isError ? (
+          ) : isError ? (
             <ErrorBox
-              message={(q.error as Error)?.message}
-              onRetry={() => q.refetch()}
+              message={(error as Error)?.message}
+              onRetry={() => {
+                rentQ.refetch();
+                walletQ.refetch();
+              }}
             />
-          ) : (q.data ?? []).length === 0 ? (
+          ) : isEmpty ? (
             <EmptyState
               title="No transactions yet"
-              body="Once tenants pay rent or you make a withdrawal, the entries land here."
+              body="Once you record a payment or a tenant pays via Paystack, the entries land here."
             />
           ) : filtered.length === 0 ? (
             <Card className="p-6 text-center text-[13px] text-ink-muted">
@@ -290,32 +461,39 @@ export default function TransactionsPage() {
             </Card>
           ) : (
             <Card className="divide-y divide-foundation-700/10">
-              {filtered.map((t) => (
+              {filtered.map((r) => (
                 <div
-                  key={t._id}
+                  key={r.id}
                   className="flex items-center justify-between gap-3 p-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-[13.5px] font-medium text-foundation-700">
-                      {t.description}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-[13.5px] font-medium text-foundation-700">
+                        {r.primaryLabel}
+                      </p>
+                      <StatusPill
+                        label={SOURCE_LABEL[r.source]}
+                        tone={SOURCE_TONE[r.source]}
+                      />
+                    </div>
                     <p className="mt-0.5 text-[11.5px] text-ink-muted">
-                      {formatDate(t.createdAt)}
-                      {t.reference && ` · ${t.reference}`}
+                      {formatDate(r.date)}
+                      {r.secondaryLabel && ` · ${r.secondaryLabel}`}
+                      {r.reference && ` · ${r.reference}`}
                     </p>
                   </div>
                   <div className="text-right">
                     <p
                       className={`text-[14px] font-semibold ${
-                        t.type === "credit"
+                        r.direction === "in"
                           ? "text-emerald-700"
                           : "text-foundation-700"
                       }`}
                     >
-                      {t.type === "credit" ? "+" : "−"}
-                      {formatNgn(t.amount)}
+                      {r.direction === "in" ? "+" : "−"}
+                      {formatNgn(r.amount)}
                     </p>
-                    <StatusPill label={t.status} tone={STATUS_TONE[t.status]} />
+                    <StatusPill label={r.status} tone={STATUS_TONE[r.status]} />
                   </div>
                 </div>
               ))}

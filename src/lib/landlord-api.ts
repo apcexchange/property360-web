@@ -259,6 +259,50 @@ export interface LeasePayment {
 }
 
 /**
+ * Cross-lease Transaction shape returned by GET /tenants/transactions.
+ * Populated with tenant + lease.property + lease.unit so the combined
+ * transactions page can render each row without further lookups.
+ */
+export type LandlordTransactionPaymentMethod =
+  | "cash"
+  | "bank_transfer"
+  | "cheque"
+  | "mobile_money"
+  | "card"
+  | "other";
+
+export type LandlordTransactionType =
+  | "rent"
+  | "deposit"
+  | "maintenance"
+  | "other";
+
+export type LandlordTransactionStatus =
+  | "pending"
+  | "completed"
+  | "failed"
+  | "voided";
+
+export interface LandlordTransaction {
+  _id: string;
+  amount: number;
+  type: LandlordTransactionType;
+  status: LandlordTransactionStatus;
+  paymentMethod: LandlordTransactionPaymentMethod;
+  paymentDate: string;
+  createdAt: string;
+  reference?: string;
+  description?: string;
+  notes?: string;
+  tenant?: { _id: string; firstName: string; lastName: string };
+  lease?: {
+    _id: string;
+    property?: { _id: string; name: string };
+    unit?: { _id: string; unitNumber: string };
+  };
+}
+
+/**
  * Mirrors the nested guarantor sub-document on the Lease model. `address`
  * is an OBJECT, not a string — backend stores street/city/state separately.
  * Rendering it directly as a React child crashes ("object with keys {}")
@@ -841,6 +885,23 @@ export const landlordApi = {
   }): Promise<WalletTransaction[]> {
     const res = await api.get("/wallet/transactions", { params });
     return asList<WalletTransaction>(unwrap(res.data));
+  },
+  /**
+   * Cross-lease rent / deposit / maintenance payments — what landlords
+   * intuitively mean by "transactions". Wallet ledger entries
+   * (settlements, payouts) live on walletTransactions() above; the
+   * /app/transactions page fetches both and merges them client-side.
+   */
+  async transactions(params?: {
+    from?: string;
+    to?: string;
+    propertyId?: string;
+    status?: LandlordTransactionStatus;
+    type?: LandlordTransactionType;
+    limit?: number;
+  }): Promise<LandlordTransaction[]> {
+    const res = await api.get("/tenants/transactions", { params });
+    return asList<LandlordTransaction>(unwrap(res.data));
   },
 
   // Bank accounts
