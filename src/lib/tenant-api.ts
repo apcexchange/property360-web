@@ -231,6 +231,7 @@ export interface TenancyAgreement {
   documentPublicId?: string;
   fileSize?: number;
   signedDocumentUrl?: string;
+  signedDocumentPublicId?: string;
   fileName?: string;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled" | string;
   signingStatus?: "not_sent" | "pending" | "sent" | "opened" | "signed" | "declined";
@@ -238,6 +239,12 @@ export interface TenancyAgreement {
   signedAt?: string;
   acknowledgedAt?: string;
   tenantAcknowledged?: boolean;
+  signatureImageUrl?: string;
+  signatureMethod?: "uploaded" | "drawn";
+  landlordSignedAt?: string;
+  landlordSignedName?: string;
+  landlordSignatureImageUrl?: string;
+  landlordSignatureMethod?: "uploaded" | "drawn";
   createdAt: string;
 }
 
@@ -534,12 +541,43 @@ export const tenantApi = {
    * Clickwrap sign. The backend requires a `documentHash` fingerprint of
    * the file the tenant just reviewed so a signed record is verifiable.
    * We use the same shape mobile uses: `${_id}|${documentPublicId}|${fileSize}`.
+   *
+   * Optionally accepts a signature image (PNG/JPEG Blob) — when present
+   * we post multipart so the backend can stash the image alongside the
+   * typed-name evidence.
    */
   async acknowledgeAgreement(
     id: string,
-    body: { typedName: string; documentHash: string }
+    body: {
+      typedName: string;
+      documentHash: string;
+      signatureImage?: Blob | null;
+      signatureMethod?: "uploaded" | "drawn";
+    }
   ): Promise<TenancyAgreement> {
-    const res = await api.post(`/tenancy-agreements/${id}/acknowledge`, body);
+    if (body.signatureImage) {
+      const form = new FormData();
+      form.append("typedName", body.typedName);
+      form.append("documentHash", body.documentHash);
+      if (body.signatureMethod) {
+        form.append("signatureMethod", body.signatureMethod);
+      }
+      form.append(
+        "signatureImage",
+        body.signatureImage,
+        body.signatureMethod === "drawn" ? "signature.png" : "signature"
+      );
+      const res = await api.post(
+        `/tenancy-agreements/${id}/acknowledge`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return unwrap(res.data) as TenancyAgreement;
+    }
+    const res = await api.post(`/tenancy-agreements/${id}/acknowledge`, {
+      typedName: body.typedName,
+      documentHash: body.documentHash,
+    });
     return unwrap(res.data) as TenancyAgreement;
   },
 

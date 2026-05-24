@@ -340,6 +340,10 @@ export interface TenancyAgreement {
   fileUrl: string;
   fileName?: string;
   fileSize?: number;
+  documentUrl?: string;
+  documentPublicId?: string;
+  signedDocumentUrl?: string;
+  signedDocumentPublicId?: string;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled";
   signingProvider?: "docuseal";
   signingId?: string;
@@ -348,6 +352,13 @@ export interface TenancyAgreement {
   tenantAcknowledged?: boolean;
   tenantAcknowledgedAt?: string;
   signedTypedName?: string;
+  signatureImageUrl?: string;
+  signatureMethod?: "uploaded" | "drawn";
+  /** Landlord signature block (clickwrap, parallel to tenant). */
+  landlordSignedAt?: string;
+  landlordSignedName?: string;
+  landlordSignatureImageUrl?: string;
+  landlordSignatureMethod?: "uploaded" | "drawn";
   createdAt: string;
 }
 
@@ -1049,6 +1060,44 @@ export const landlordApi = {
     const res = await api.get(`/tenancy-agreements/${id}`);
     return unwrap(res.data) as TenancyAgreement;
   },
+  /**
+   * Landlord signs an agreement (clickwrap, mirror of the tenant flow).
+   * Optional signature image attaches via multipart.
+   */
+  async landlordSignAgreement(
+    id: string,
+    body: {
+      typedName: string;
+      documentHash: string;
+      signatureImage?: Blob | null;
+      signatureMethod?: "uploaded" | "drawn";
+    }
+  ): Promise<TenancyAgreement> {
+    if (body.signatureImage) {
+      const form = new FormData();
+      form.append("typedName", body.typedName);
+      form.append("documentHash", body.documentHash);
+      if (body.signatureMethod) {
+        form.append("signatureMethod", body.signatureMethod);
+      }
+      form.append(
+        "signatureImage",
+        body.signatureImage,
+        body.signatureMethod === "drawn" ? "signature.png" : "signature"
+      );
+      const res = await api.post(
+        `/tenancy-agreements/${id}/landlord-sign`,
+        form,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      return unwrap(res.data) as TenancyAgreement;
+    }
+    const res = await api.post(`/tenancy-agreements/${id}/landlord-sign`, {
+      typedName: body.typedName,
+      documentHash: body.documentHash,
+    });
+    return unwrap(res.data) as TenancyAgreement;
+  },
   async uploadAgreement(
     leaseId: string,
     file: File
@@ -1205,14 +1254,20 @@ export const landlordApi = {
     jurisdiction?: string;
     specialClauses?: string;
   }): Promise<{ body: string }> {
-    const res = await api.post("/agreement-templates/ai/generate", body);
+    // Claude can take 15–30s to draft a 4k-token agreement; default
+    // 20s axios timeout would silently kill the request.
+    const res = await api.post("/agreement-templates/ai/generate", body, {
+      timeout: 120_000,
+    });
     return unwrap(res.data) as { body: string };
   },
   async aiRefineAgreement(body: {
     body: string;
     instructions?: string;
   }): Promise<{ body: string }> {
-    const res = await api.post("/agreement-templates/ai/refine", body);
+    const res = await api.post("/agreement-templates/ai/refine", body, {
+      timeout: 120_000,
+    });
     return unwrap(res.data) as { body: string };
   },
 

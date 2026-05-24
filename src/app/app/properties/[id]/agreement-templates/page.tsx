@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertCircle,
   ArrowLeft,
   FileText,
   Plus,
@@ -236,6 +237,10 @@ function TemplateEditor({
   const [aiSpecialClauses, setAiSpecialClauses] = useState("");
   const [aiInstructions, setAiInstructions] = useState("");
 
+  // Inline error state — toast is easy to miss, especially on long pages.
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const create = useMutation({
     mutationFn: () =>
       landlordApi.createTextAgreementTemplate({
@@ -245,11 +250,16 @@ function TemplateEditor({
         notes: notes.trim() || undefined,
       }),
     onSuccess: () => {
+      setSaveError(null);
       qc.invalidateQueries({ queryKey: ["agreement-templates"] });
       toast.success("Template created");
       onClose();
     },
-    onError: (err) => toastErr(err, toast),
+    onError: (err) => {
+      const msg = errMsg(err);
+      setSaveError(msg);
+      toast.error(msg);
+    },
   });
 
   const upload = useMutation({
@@ -263,11 +273,16 @@ function TemplateEditor({
       );
     },
     onSuccess: () => {
+      setSaveError(null);
       qc.invalidateQueries({ queryKey: ["agreement-templates"] });
       toast.success("Template uploaded");
       onClose();
     },
-    onError: (err) => toastErr(err, toast),
+    onError: (err) => {
+      const msg = errMsg(err);
+      setSaveError(msg);
+      toast.error(msg);
+    },
   });
 
   const update = useMutation({
@@ -278,11 +293,16 @@ function TemplateEditor({
         notes,
       }),
     onSuccess: () => {
+      setSaveError(null);
       qc.invalidateQueries({ queryKey: ["agreement-templates"] });
       toast.success("Template updated");
       onClose();
     },
-    onError: (err) => toastErr(err, toast),
+    onError: (err) => {
+      const msg = errMsg(err);
+      setSaveError(msg);
+      toast.error(msg);
+    },
   });
 
   const aiGen = useMutation({
@@ -295,10 +315,15 @@ function TemplateEditor({
         specialClauses: aiSpecialClauses || undefined,
       }),
     onSuccess: (res) => {
+      setAiError(null);
       setBodyText(res.body);
       toast.success("Draft generated. Review and edit before saving.");
     },
-    onError: (err) => toastErr(err, toast),
+    onError: (err) => {
+      const msg = errMsg(err);
+      setAiError(msg);
+      toast.error(msg);
+    },
   });
 
   const aiRefine = useMutation({
@@ -308,10 +333,15 @@ function TemplateEditor({
         instructions: aiInstructions || undefined,
       }),
     onSuccess: (res) => {
+      setAiError(null);
       setBodyText(res.body);
       toast.success("Refined. Review the changes before saving.");
     },
-    onError: (err) => toastErr(err, toast),
+    onError: (err) => {
+      const msg = errMsg(err);
+      setAiError(msg);
+      toast.error(msg);
+    },
   });
 
   const saveDisabled =
@@ -467,7 +497,10 @@ function TemplateEditor({
                 <button
                   type="button"
                   disabled={aiBusy}
-                  onClick={() => aiGen.mutate()}
+                  onClick={() => {
+                    setAiError(null);
+                    aiGen.mutate();
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12px] font-semibold text-paper hover:bg-foundation-800 disabled:opacity-50"
                 >
                   <Wand2 className="h-3.5 w-3.5" />
@@ -476,17 +509,27 @@ function TemplateEditor({
                 <button
                   type="button"
                   disabled={aiBusy || bodyText.trim().length < 50}
-                  onClick={() => aiRefine.mutate()}
+                  onClick={() => {
+                    setAiError(null);
+                    aiRefine.mutate();
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12px] font-semibold text-foundation-700 hover:bg-foundation-700/5 disabled:opacity-50"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   {aiRefine.isPending ? "Refining…" : "Refine current body"}
                 </button>
                 <p className="ml-1 self-center text-[11px] text-ink-muted">
-                  Uses Claude. Review the output before saving — it's a
-                  starting point, not legal advice.
+                  Uses Claude. Drafts can take 20–60 seconds. Review the
+                  output before saving — it's a starting point, not legal
+                  advice.
                 </p>
               </div>
+              {aiError && (
+                <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{aiError}</span>
+                </div>
+              )}
             </div>
           )}
 
@@ -546,6 +589,25 @@ function TemplateEditor({
         </div>
       )}
 
+      {saveError && (
+        <div className="mt-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{saveError}</span>
+        </div>
+      )}
+
+      {saveDisabled && (
+        <p className="mt-3 text-right text-[11.5px] text-ink-muted">
+          {!name.trim()
+            ? "Add a template name to enable save."
+            : mode === "text"
+            ? "Body must be at least 30 characters."
+            : !isEdit && !file
+            ? "Choose a PDF or DOCX file to upload."
+            : null}
+        </p>
+      )}
+
       <div className="mt-5 flex items-center justify-end gap-2">
         <button
           type="button"
@@ -558,6 +620,7 @@ function TemplateEditor({
           type="button"
           disabled={saveDisabled || create.isPending || upload.isPending || update.isPending}
           onClick={() => {
+            setSaveError(null);
             if (isTextEdit) update.mutate();
             else if (mode === "text") create.mutate();
             else upload.mutate();
@@ -594,9 +657,12 @@ function Field({
   );
 }
 
-function toastErr(err: unknown, toast: ReturnType<typeof useToast>) {
+function errMsg(err: unknown): string {
   const ax = err as AxiosError<{ message?: string }>;
-  toast.error(
+  if (ax?.code === "ECONNABORTED") {
+    return "The request timed out. Claude can take 30+ seconds for a full draft — please try again.";
+  }
+  return (
     ax.response?.data?.message ?? (err as Error).message ?? "Something went wrong"
   );
 }

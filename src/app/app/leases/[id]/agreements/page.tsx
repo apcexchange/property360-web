@@ -10,6 +10,9 @@ import {
   FileText,
   ExternalLink,
   Send,
+  FileSignature,
+  Download,
+  X,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -23,6 +26,9 @@ import {
   formatDate,
 } from "@/components/app/ui";
 import { landlordApi, TenancyAgreement } from "@/lib/landlord-api";
+import { session } from "@/lib/session";
+import { SignatureCapture } from "@/components/SignatureCapture";
+import { useToast } from "@/components/ui/Toast";
 
 const STATUS_TONE: Record<
   TenancyAgreement["status"],
@@ -72,6 +78,8 @@ export default function AgreementsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
   });
   const [picking, setPicking] = useState(false);
+  const [signingAgreement, setSigningAgreement] =
+    useState<TenancyAgreement | null>(null);
 
   function pickFile() {
     fileRef.current?.click();
@@ -168,16 +176,26 @@ export default function AgreementsPage() {
         ) : (
           <Card className="divide-y divide-foundation-700/10">
             {list.data!.map((a) => {
-              const signed = a.tenantAcknowledged || a.status === "signed";
-              const displayStatus = signed ? "signed" : "awaiting tenant";
-              const tone: "good" | "warn" | "neutral" | "info" = signed
+              const tenantSigned = a.tenantAcknowledged || a.status === "signed";
+              const landlordSigned = !!a.landlordSignedAt;
+              const fullySigned = tenantSigned && landlordSigned;
+              const displayStatus = fullySigned
+                ? "signed by both"
+                : tenantSigned
+                ? "awaiting landlord"
+                : landlordSigned
+                ? "awaiting tenant"
+                : "awaiting tenant";
+              const tone: "good" | "warn" | "neutral" | "info" = fullySigned
                 ? "good"
+                : tenantSigned || landlordSigned
+                ? "info"
                 : STATUS_TONE[a.status] ?? "warn";
               const signedDate = a.tenantAcknowledgedAt ?? a.signedAt;
               return (
                 <div
                   key={a._id}
-                  className="flex items-center justify-between gap-3 p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 p-4"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
@@ -189,18 +207,49 @@ export default function AgreementsPage() {
                     </div>
                     <p className="mt-1 text-[11.5px] text-ink-muted">
                       Uploaded {formatDate(a.createdAt)}
-                      {signedDate && ` · Signed ${formatDate(signedDate)}`}
-                      {signed && a.signedTypedName && ` by ${a.signedTypedName}`}
+                      {signedDate &&
+                        ` · Tenant signed ${formatDate(signedDate)}${
+                          a.signedTypedName ? ` (${a.signedTypedName})` : ""
+                        }`}
+                      {landlordSigned &&
+                        ` · Landlord signed ${formatDate(
+                          a.landlordSignedAt as string
+                        )}${
+                          a.landlordSignedName
+                            ? ` (${a.landlordSignedName})`
+                            : ""
+                        }`}
                     </p>
                   </div>
-                  <a
-                    href={a.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-                  >
-                    <ExternalLink className="h-3 w-3" /> Open
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {a.signedDocumentUrl && (
+                      <a
+                        href={a.signedDocumentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11.5px] font-semibold text-emerald-700 transition hover:bg-emerald-100"
+                      >
+                        <Download className="h-3 w-3" /> Signed copy
+                      </a>
+                    )}
+                    {!landlordSigned && (
+                      <button
+                        type="button"
+                        onClick={() => setSigningAgreement(a)}
+                        className="inline-flex items-center gap-1 rounded-full bg-foundation-700 px-3 py-1.5 text-[11.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                      >
+                        <FileSignature className="h-3 w-3" /> Sign as landlord
+                      </button>
+                    )}
+                    <a
+                      href={a.fileUrl ?? a.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+                    >
+                      <ExternalLink className="h-3 w-3" /> Open
+                    </a>
+                  </div>
                 </div>
               );
             })}
@@ -215,8 +264,196 @@ export default function AgreementsPage() {
             onClose={() => setPicking(false)}
           />
         )}
+
+        {signingAgreement && (
+          <LandlordSignModal
+            agreement={signingAgreement}
+            onClose={() => setSigningAgreement(null)}
+            onSigned={() => {
+              setSigningAgreement(null);
+              qc.invalidateQueries({ queryKey: ["agreements", id] });
+            }}
+          />
+        )}
       </PageContainer>
     </>
+  );
+}
+
+function LandlordSignModal({
+  agreement,
+  onClose,
+  onSigned,
+}: {
+  agreement: TenancyAgreement;
+  onClose: () => void;
+  onSigned: () => void;
+}) {
+  const toast = useToast();
+  const [hasReviewed, setHasReviewed] = useState(false);
+  const [typedName, setTypedName] = useState("");
+  const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null);
+  const [signatureMethod, setSignatureMethod] = useState<
+    "uploaded" | "drawn" | null
+  >(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const user = session.getUser();
+  const expectedName = user
+    ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim().toLowerCase()
+    : "";
+  const trimmedTyped = typedName.trim();
+  const namesMatch =
+    !expectedName || trimmedTyped.toLowerCase() === expectedName;
+
+  const documentHash = [
+    agreement._id,
+    agreement.documentPublicId ?? "",
+    agreement.fileSize ?? "",
+  ].join("|");
+
+  const sign = useMutation({
+    mutationFn: () =>
+      landlordApi.landlordSignAgreement(agreement._id, {
+        typedName: trimmedTyped,
+        documentHash,
+        signatureImage: signatureBlob,
+        signatureMethod: signatureMethod ?? undefined,
+      }),
+    onSuccess: () => {
+      toast.success("Agreement signed");
+      onSigned();
+    },
+    onError: (err) => {
+      const ax = err as AxiosError<{ message?: string }>;
+      setError(
+        ax.response?.data?.message ??
+          (err as Error).message ??
+          "Couldn't sign agreement"
+      );
+    },
+  });
+
+  const canSign =
+    hasReviewed &&
+    trimmedTyped.length >= 2 &&
+    namesMatch &&
+    documentHash.length >= 8;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foundation-900/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-paper shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-foundation-700/10 p-5">
+          <div>
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+              Sign as landlord
+            </p>
+            <p className="mt-1 font-display text-[18px] font-extrabold text-foundation-700">
+              {agreement.fileName ?? "Tenancy agreement"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-9 w-9 place-items-center rounded-full text-ink-muted hover:bg-foundation-700/5 hover:text-foundation-700"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          <a
+            href={agreement.signedDocumentUrl ?? agreement.documentUrl ?? agreement.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[12px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Open the document
+          </a>
+
+          <label className="flex items-start gap-2.5 text-[13px] text-foundation-700">
+            <input
+              type="checkbox"
+              checked={hasReviewed}
+              onChange={(e) => setHasReviewed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-foundation-700"
+            />
+            <span>
+              I have read this tenancy agreement and I agree to its terms as
+              the landlord.
+            </span>
+          </label>
+
+          <div>
+            <label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+              Type your full legal name to sign
+            </label>
+            <input
+              type="text"
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              placeholder={
+                user ? `${user.firstName} ${user.lastName}` : "Your full name"
+              }
+              className="w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[14px] text-foundation-700"
+            />
+            {trimmedTyped.length > 0 && !namesMatch && (
+              <p className="mt-1 text-[11.5px] text-red-700">
+                The name must match your registered name on Property360.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+              Signature (optional)
+            </label>
+            <SignatureCapture
+              onChange={(blob, method) => {
+                setSignatureBlob(blob);
+                setSignatureMethod(method);
+              }}
+            />
+            <p className="mt-1 text-[11.5px] text-ink-muted">
+              Drawn or uploaded signature appears on the signed copy.
+            </p>
+          </div>
+
+          {error && (
+            <p className="text-[12.5px] text-red-700">{error}</p>
+          )}
+
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-foundation-700/15 px-4 py-2 text-[12.5px] font-semibold text-foundation-700 hover:bg-foundation-700/5"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                sign.mutate();
+              }}
+              disabled={!canSign || sign.isPending}
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2 text-[12.5px] font-semibold text-paper hover:bg-foundation-800 disabled:opacity-50"
+            >
+              <FileSignature className="h-4 w-4" />
+              {sign.isPending ? "Signing…" : "Sign agreement"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

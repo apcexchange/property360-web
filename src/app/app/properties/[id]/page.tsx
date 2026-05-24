@@ -155,6 +155,22 @@ export default function PropertyDetailPage() {
                   </div>
                   <UserPlus className="h-4 w-4 text-foundation-700" />
                 </Link>
+                {id && (
+                  <Link
+                    href={`/app/properties/${id}/agreement-templates`}
+                    className="flex items-center justify-between rounded-2xl border border-foundation-700/10 bg-paper p-4 transition hover:border-foundation-700/20"
+                  >
+                    <div>
+                      <p className="text-[13px] font-semibold text-foundation-700">
+                        Tenancy agreements
+                      </p>
+                      <p className="text-[12px] text-ink-muted">
+                        Upload, type, or AI-generate a template
+                      </p>
+                    </div>
+                    <FileText className="h-4 w-4 text-foundation-700" />
+                  </Link>
+                )}
               </div>
             </div>
 

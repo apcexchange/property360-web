@@ -17,6 +17,7 @@ import {
 import { tenantApi, TenancyAgreement } from "@/lib/tenant-api";
 import { session } from "@/lib/session";
 import { useToast } from "@/components/ui/Toast";
+import { SignatureCapture } from "@/components/SignatureCapture";
 
 export default function AgreementPage() {
   const dash = useQuery({
@@ -76,6 +77,10 @@ function AgreementCard({ agreement }: { agreement: TenancyAgreement }) {
   const [hasReviewed, setHasReviewed] = useState(false);
   const [typedName, setTypedName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [signatureBlob, setSignatureBlob] = useState<Blob | null>(null);
+  const [signatureMethod, setSignatureMethod] = useState<
+    "uploaded" | "drawn" | null
+  >(null);
 
   const user = session.getUser();
   const expectedName = user
@@ -101,6 +106,8 @@ function AgreementCard({ agreement }: { agreement: TenancyAgreement }) {
       tenantApi.acknowledgeAgreement(agreement._id, {
         typedName: trimmedTyped,
         documentHash,
+        signatureImage: signatureBlob,
+        signatureMethod: signatureMethod ?? undefined,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["me", "agreements"] });
@@ -218,6 +225,23 @@ function AgreementCard({ agreement }: { agreement: TenancyAgreement }) {
                 The name must match your registered name on Property360.
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
+              Signature (optional)
+            </label>
+            <SignatureCapture
+              onChange={(blob, method) => {
+                setSignatureBlob(blob);
+                setSignatureMethod(method);
+              }}
+            />
+            <p className="mt-1 text-[11.5px] text-ink-muted">
+              Adding a drawn or uploaded signature makes the signed copy look
+              like a traditional signed document. Typed name alone still
+              counts as a valid signature.
+            </p>
           </div>
 
           {error && (
