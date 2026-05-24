@@ -44,7 +44,7 @@ export const TIERS: Tier[] = [
     features: [
       "Up to 30 properties",
       "Everything in Solo",
-      "Up to 5 agent seats with role permissions",
+      "Up to 5 property manager seats with role permissions",
       "Per-property financial reports",
       "Quit notice + receipt templates",
       "Priority email support",
@@ -60,7 +60,7 @@ export const TIERS: Tier[] = [
     features: [
       "Up to 100 properties",
       "Everything in Pro",
-      "Unlimited agent seats",
+      "Unlimited property manager seats",
       "Bulk lease + invoice operations",
       "Dedicated onboarding session",
       "Phone + WhatsApp support",

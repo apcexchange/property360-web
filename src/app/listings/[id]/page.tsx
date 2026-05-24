@@ -6,6 +6,7 @@ import { BedDouble, Bath, Square, MapPin, Calendar, Check } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
+import { ReserveListingCTA } from "@/components/marketing/ReserveListingCTA";
 import {
   getListing,
   formatNaira,
@@ -231,21 +232,15 @@ export default async function ListingDetailPage({
               )}
 
               <div className="mt-5 space-y-3">
-                <Link
-                  href={`/listings/${listing.id}?action=reserve`}
-                  className="flex w-full items-center justify-center rounded-full bg-foundation-700 px-5 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
-                >
-                  {reserved ? "Reserved — get the app" : "Reserve in the app"}
-                </Link>
-                <Link
-                  href={`/listings/${listing.id}?action=contact`}
-                  className="flex w-full items-center justify-center rounded-full border border-foundation-700/15 bg-paper px-5 py-3 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-                >
-                  Contact landlord
-                </Link>
+                <ReserveListingCTA
+                  unitId={listing.id}
+                  reserved={reserved}
+                  listingHref={`/listings/${listing.id}`}
+                />
               </div>
               <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
-                Both actions open Property360 on your phone. New here? Get the app:
+                Prefer the mobile app? You can also reserve and chat from
+                Property360 on iOS or Android:
               </p>
               <AppStoreButtons className="mt-3" />
             </div>

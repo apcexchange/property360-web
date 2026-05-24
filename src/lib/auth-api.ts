@@ -31,6 +31,21 @@ export const authApi = {
     return data;
   },
 
+  /**
+   * Generic sign-in. Accepts email or phone as identifier. Does NOT
+   * enforce any role gate — the caller decides what to do with the
+   * user after authenticating.
+   */
+  async login(identifier: string, password: string): Promise<AuthResponse> {
+    const res = await api.post("/auth/login", { identifier, password });
+    const data = unwrap(res.data) as AuthResponse;
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Invalid login response");
+    }
+    session.set(data.accessToken, data.user);
+    return data;
+  },
+
   /** Send an OTP to the user's phone or email. */
   async sendOtp(type: "phone" | "email", value: string): Promise<void> {
     await api.post("/auth/otp/send", { type, value });

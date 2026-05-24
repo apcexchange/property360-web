@@ -71,10 +71,6 @@ export default function VerifyPage() {
     else router.push("/onboarding/done");
   }
 
-  function skip() {
-    next();
-  }
-
   return (
     <OnboardingShell
       currentStep="verify"
@@ -148,20 +144,13 @@ export default function VerifyPage() {
         )}
       </div>
 
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-10">
         <Link
           href="/onboarding/account"
           className="text-[13px] font-semibold text-ink-muted transition hover:text-foundation-700"
         >
           ← Back
         </Link>
-        <button
-          type="button"
-          onClick={skip}
-          className="text-[13px] font-semibold text-foundation-700 transition hover:text-foundation-900"
-        >
-          Skip for now →
-        </button>
       </div>
     </OnboardingShell>
   );
