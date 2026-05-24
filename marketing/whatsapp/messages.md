@@ -46,11 +46,12 @@ Rules of thumb:
 >
 > Your landlords keep ownership; you keep the day-to-day. Free 14-day trial.
 >
-> https://property360.africa
+> One-pager you can forward to your team:
+> https://property360.africa/for-agencies
 >
 > If it looks interesting I'll do a 10-min walkthrough on a call — much faster than reading.
 
-**Why this works:** Agencies care about *control* and *credit*. The "landlords keep ownership" line addresses their fear that the platform might take their clients. Offering a call signals serious commitment.
+**Why this works:** Agencies care about *control* and *credit*. The "landlords keep ownership" line addresses their fear that the platform might take their clients. The `/for-agencies` link is the one-pager designed specifically to be forwarded inside an agency — managers can read it in 60 seconds without you on the call. Offering a call still signals serious commitment.
 
 ---
 

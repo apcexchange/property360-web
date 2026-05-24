@@ -11,9 +11,12 @@ The WhatsApp share kit you use to reach out to hostel owners, small landlords, a
 - [`screenshots.md`](whatsapp/screenshots.md) — brief for the 6 screenshots you should capture from the live app, with WhatsApp-friendly captions for each.
 - [`video-script.md`](whatsapp/video-script.md) — a 60-second screen-recording script you can record on your phone in one take.
 
+## Live URLs to share
+
+- **Agency one-pager** — [`/for-agencies`](https://property360.africa/for-agencies). Single-page, prints cleanly to A4 via the "Save as PDF" button at the top. Source lives in `web/src/app/for-agencies/page.tsx`. Use this URL in WhatsApp template #3 (the agency message) — recipients can either scan the URL on their phone or download it as a PDF and forward inside their agency.
+
 ## What's NOT in here yet
 
-- One-pager PDF for property management agencies (planned item 4).
 - Cold email + LinkedIn outreach scripts (planned item 5).
 - Referral mechanic in the app — that's a code change, lives in the product, not here (planned item 6).
 
