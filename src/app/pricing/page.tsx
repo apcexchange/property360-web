@@ -102,13 +102,14 @@ export default function PricingPage() {
               "Unlimited tenants",
               "Unlimited maintenance requests",
               "Real-time chat",
-              "Tenancy agreement generation",
+              "Manual tenancy agreement templates",
               "Recurring rent invoices",
               "Paystack rent collection",
               "Wallet + bank payouts",
+              "Quit notice + receipt templates",
               "Marketplace listings",
               "In-app notifications",
-              "iOS + Android apps",
+              "iOS + Android apps (coming)",
             ].map((f) => (
               <li
                 key={f}

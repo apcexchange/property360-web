@@ -19,6 +19,11 @@ export interface SubscriptionUsage {
   agentSeatLimit: number;
 }
 
+export interface SubscriptionFeatures {
+  /** AI-drafted tenancy agreement templates (Pro and above; trial users get a taste). */
+  canUseAiTemplates: boolean;
+}
+
 export interface SubscriptionView {
   applicable: true;
   tier: SubscriptionTier;
@@ -33,6 +38,8 @@ export interface SubscriptionView {
   hasCapacityForProperty: boolean;
   hasCapacityForAgentSeat: boolean;
   isEntitled: boolean;
+  /** Per-tier feature flags. Optional on the wire so an older deploy doesn't break. */
+  features?: SubscriptionFeatures;
   manageUrl: string;
 }
 

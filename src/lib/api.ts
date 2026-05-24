@@ -25,7 +25,8 @@ api.interceptors.request.use((config) => {
 export type SubscriptionLimitReason =
   | "PROPERTY_LIMIT_REACHED"
   | "AGENT_SEAT_LIMIT_REACHED"
-  | "SUBSCRIPTION_EXPIRED";
+  | "SUBSCRIPTION_EXPIRED"
+  | "AI_FEATURE_NOT_IN_PLAN";
 
 export interface SubscriptionLimitDetail {
   reason: SubscriptionLimitReason;

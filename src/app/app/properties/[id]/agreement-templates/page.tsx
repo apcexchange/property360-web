@@ -8,6 +8,7 @@ import {
   AlertCircle,
   ArrowLeft,
   FileText,
+  Lock,
   Plus,
   Sparkles,
   Trash2,
@@ -29,6 +30,7 @@ import {
   landlordApi,
   AgreementTemplate,
 } from "@/lib/landlord-api";
+import { billingApi } from "@/lib/billing-api";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 import { useToast } from "@/components/ui/Toast";
 
@@ -217,6 +219,22 @@ function TemplateEditor({
   const toast = useToast();
   const isEdit = !!initial;
   const isTextEdit = isEdit && initial!.source === "text";
+
+  // Subscription gates AI features. Shares cache with SubscriptionGate so
+  // there's only one /subscriptions/me request per session.
+  const subQuery = useQuery({
+    queryKey: ["subscription", "me"],
+    queryFn: () => billingApi.getSubscription(),
+    staleTime: 60_000,
+  });
+  const sub = subQuery.data;
+  // Default to allowed when we don't yet know — the server will 402 if we're wrong.
+  const aiAllowed =
+    !sub || !sub.applicable
+      ? true
+      : sub.features?.canUseAiTemplates ?? true;
+  const currentTierLabel =
+    sub && sub.applicable ? sub.tierDisplayName : "your current plan";
 
   const [mode, setMode] = useState<"text" | "upload">(
     isEdit ? (initial!.source === "text" ? "text" : "upload") : "text"
@@ -418,17 +436,52 @@ function TemplateEditor({
             <label className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-ink-muted">
               Body
             </label>
-            <button
-              type="button"
-              onClick={() => setShowAi((v) => !v)}
-              className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-foundation-700 hover:underline"
-            >
-              <Sparkles className="h-3 w-3" />
-              {showAi ? "Hide AI" : "Use AI"}
-            </button>
+            {aiAllowed ? (
+              <button
+                type="button"
+                onClick={() => setShowAi((v) => !v)}
+                className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-foundation-700 hover:underline"
+              >
+                <Sparkles className="h-3 w-3" />
+                {showAi ? "Hide AI" : "Use AI"}
+              </button>
+            ) : (
+              <Link
+                href="/billing"
+                className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-2.5 py-1 text-[11px] font-semibold text-foundation-700 hover:bg-foundation-700/5"
+                title="AI drafting is available on Pro and above"
+              >
+                <Lock className="h-3 w-3" />
+                Use AI · upgrade
+              </Link>
+            )}
           </div>
 
-          {showAi && (
+          {!aiAllowed && (
+            <div className="mt-2 flex items-start gap-3 rounded-2xl border border-foundation-700/10 bg-foundation-700/5 p-4">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-foundation-700 text-cryola-300">
+                <Wand2 className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold text-foundation-700">
+                  AI drafting is on Pro and above
+                </p>
+                <p className="mt-1 text-[12px] leading-[1.5] text-ink-muted">
+                  You&apos;re on {currentTierLabel}. The manual editor below
+                  still works the same way. Upgrade to draft a full template
+                  in seconds with Claude/Gemini and refine it with one click.
+                </p>
+                <Link
+                  href="/billing"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-3.5 py-1.5 text-[11.5px] font-semibold text-paper hover:bg-foundation-800"
+                >
+                  <Sparkles className="h-3 w-3" /> See plans
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {aiAllowed && showAi && (
             <div className="mt-2 rounded-2xl border border-foundation-700/10 bg-foundation-700/5 p-4">
               <div className="grid gap-2 sm:grid-cols-2">
                 <Field label="Property type">

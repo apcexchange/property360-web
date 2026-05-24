@@ -27,7 +27,7 @@ export const TIERS: Tier[] = [
     features: [
       "Up to 2 properties (a 40-room hostel = 1 property)",
       "Unlimited tenants",
-      "Lease + tenancy agreement generation",
+      "Manual tenancy agreement templates",
       "Rent collection via Paystack",
       "Maintenance requests",
       "Real-time chat with tenants",
@@ -45,9 +45,9 @@ export const TIERS: Tier[] = [
     features: [
       "Up to 30 properties (buildings)",
       "Everything in Solo",
+      "AI-drafted tenancy agreements (Claude / Gemini)",
       "Up to 5 property manager seats with role permissions",
       "Per-property financial reports",
-      "Quit notice + receipt templates",
       "Priority email support",
     ],
   },
