@@ -87,8 +87,8 @@ export default function DashboardPage() {
           >
             <p className="text-[13px] text-foundation-700">
               <span className="font-semibold">Refer a landlord →</span>{" "}
-              Both of you get 30 days free when they add their first
-              property.
+              Both of you get 30 days free when they pay for their first
+              plan.
             </p>
             <span className="text-[12px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4">
               Get your link

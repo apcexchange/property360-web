@@ -748,7 +748,8 @@ export interface ReferralStats {
   shareUrl: string;
   bonusDaysPerSide: number;
   totalReferred: number;
-  totalConverted: number;
+  totalPaid: number;
+  totalPending: number;
   totalBonusDaysEarned: number;
 }
 

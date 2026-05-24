@@ -7,9 +7,9 @@ import {
   Check,
   Share2,
   Sparkles,
-  Users,
   Calendar,
   MessageCircle,
+  Clock,
 } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -46,8 +46,8 @@ export default function ReferPage() {
     if (!q.data) return;
     const text = encodeURIComponent(
       `Hey 👋 I've been using Property360 to manage rent and tenants. ` +
-        `Sign up with my link and we both get 1 month free when you ` +
-        `add your first property:\n\n${q.data.shareUrl}`
+        `Sign up with my link and we both get 1 month free once you pay ` +
+        `for your first plan:\n\n${q.data.shareUrl}`
     );
     window.open(`https://wa.me/?text=${text}`, "_blank");
   }
@@ -56,7 +56,7 @@ export default function ReferPage() {
     <>
       <AppTopbar
         title="Refer a landlord"
-        subtitle="Both of you get 1 month free when they add their first property."
+        subtitle="Both of you get 1 month free when they pay for their first plan."
       />
       <PageContainer>
         {q.isLoading ? (
@@ -83,9 +83,9 @@ export default function ReferPage() {
                 </h2>
                 <p className="mt-2 max-w-xl text-[13.5px] leading-[1.55] text-paper/80">
                   Share your link with another landlord, hostel owner, or
-                  property manager. When they sign up and add their first
-                  property, you both get a free month credited to your plan
-                  automatically.
+                  property manager. When they sign up and pay for their
+                  first plan, you both get a free month credited to your
+                  plan automatically.
                 </p>
               </div>
 
@@ -156,24 +156,25 @@ export default function ReferPage() {
               </div>
             </Card>
 
-            {/* Stats */}
+            {/* Stats — paid invitees count toward the reward; pending = signed up but haven't paid yet */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <StatCard
-                icon={Users}
-                label="Signed up with your link"
-                value={q.data.totalReferred}
+                icon={Sparkles}
+                label="Paid invitees"
+                value={q.data.totalPaid}
+                hint="Picked a plan — bonus credited"
               />
               <StatCard
-                icon={Sparkles}
-                label="Earned the bonus"
-                value={q.data.totalConverted}
-                hint="Added their first property"
+                icon={Clock}
+                label="Pending"
+                value={q.data.totalPending}
+                hint="Signed up, not on a paid plan yet"
               />
               <StatCard
                 icon={Calendar}
                 label="Free days earned"
                 value={q.data.totalBonusDaysEarned}
-                hint={`${q.data.bonusDaysPerSide} days per converted referral`}
+                hint={`${q.data.bonusDaysPerSide} days per paid referral`}
               />
             </div>
 
@@ -190,8 +191,8 @@ export default function ReferPage() {
                 />
                 <Step
                   n={2}
-                  title="They sign up and add a property"
-                  body="The credit only fires once they've actually onboarded their first building."
+                  title="They sign up and pay for a plan"
+                  body="Free-trial signups show as pending. The bonus fires only when they actually pay for a paid plan."
                 />
                 <Step
                   n={3}

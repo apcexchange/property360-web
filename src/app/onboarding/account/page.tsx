@@ -16,6 +16,8 @@ export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+  const [referralOpen, setReferralOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +31,10 @@ export default function AccountPage() {
     if (state.lastName) setLastName(state.lastName);
     if (state.email) setEmail(state.email);
     if (state.phone) setPhone(state.phone);
+    if (state.referralCode) {
+      setReferralCode(state.referralCode);
+      setReferralOpen(true);
+    }
   }, [ready, state, router]);
 
   async function onSubmit(e: FormEvent) {
@@ -43,6 +49,8 @@ export default function AccountPage() {
         ? `+234${phone.trim().slice(1)}`
         : `+234${phone.trim()}`;
 
+      const trimmedRef = referralCode.trim().toUpperCase();
+
       await authApi.register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -50,13 +58,14 @@ export default function AccountPage() {
         phone: normalizedPhone,
         password,
         role: state.role,
-        ...(state.referralCode ? { referralCode: state.referralCode } : {}),
+        ...(trimmedRef ? { referralCode: trimmedRef } : {}),
       });
       update({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim().toLowerCase(),
         phone: normalizedPhone,
+        referralCode: trimmedRef || undefined,
         registered: true,
       });
       router.push("/onboarding/verify");
@@ -130,6 +139,25 @@ export default function AccountPage() {
           autoComplete="new-password"
           help="At least 6 characters."
         />
+
+        {referralOpen ? (
+          <Field
+            label="Referral code (optional)"
+            value={referralCode}
+            onChange={(v) => setReferralCode(v.toUpperCase())}
+            autoComplete="off"
+            placeholder="e.g. ABC23K7P"
+            help="Both of you get 30 days free when you add your first property."
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setReferralOpen(true)}
+            className="text-[12.5px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+          >
+            Have a referral code?
+          </button>
+        )}
 
         {error && (
           <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] text-red-700">
