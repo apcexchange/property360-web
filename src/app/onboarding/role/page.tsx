@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Home, Key, Briefcase } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
@@ -36,21 +36,19 @@ const ROLES: {
 
 export default function RolePage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { state, update, ready } = useOnboardingState();
 
-  // Stash any ?ref= code into onboarding state once, on first mount.
-  // Forwarded to /auth/register at the account step. Backend silently
-  // drops invalid or self-referral codes so a typo here can't break
-  // signup.
   useEffect(() => {
     if (!ready) return;
-    const ref = searchParams?.get("ref")?.trim().toUpperCase();
+    const ref = new URLSearchParams(window.location.search)
+      .get("ref")
+      ?.trim()
+      .toUpperCase();
     if (ref && ref !== state.referralCode) {
       update({ referralCode: ref });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, searchParams]);
+  }, [ready]);
 
   function pick(role: UserRole) {
     update({ role });
