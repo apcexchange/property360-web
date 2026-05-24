@@ -18,14 +18,15 @@ export type Tier = {
 export const TIERS: Tier[] = [
   {
     name: "Solo",
-    tagline: "For a landlord with one or two properties.",
+    tagline: "For a landlord or hostel owner with up to 2 buildings.",
     monthlyNgn: 2250,
     annualNgn: 21600,
-    trial: "14-day free trial",
+    trial: "Start with 14 days FREE · no card required",
     ctaLabel: "Start free trial",
     ctaHref: "/onboarding",
     features: [
-      "Up to 2 properties",
+      "Up to 2 properties (a 40-room hostel = 1 property)",
+      "Unlimited tenants",
       "Lease + tenancy agreement generation",
       "Rent collection via Paystack",
       "Maintenance requests",
@@ -35,14 +36,14 @@ export const TIERS: Tier[] = [
   },
   {
     name: "Pro",
-    tagline: "For growing landlords and small agencies.",
+    tagline: "For growing landlords with multiple buildings or small agencies.",
     monthlyNgn: 8500,
     annualNgn: 81600,
     highlight: true,
     ctaLabel: "Choose Pro",
     ctaHref: "/onboarding",
     features: [
-      "Up to 30 properties",
+      "Up to 30 properties (buildings)",
       "Everything in Solo",
       "Up to 5 property manager seats with role permissions",
       "Per-property financial reports",
@@ -52,13 +53,13 @@ export const TIERS: Tier[] = [
   },
   {
     name: "Agency",
-    tagline: "For property managers operating at scale.",
+    tagline: "For property managers operating across many landlords.",
     monthlyNgn: 22500,
     annualNgn: 216000,
     ctaLabel: "Choose Agency",
     ctaHref: "/onboarding",
     features: [
-      "Up to 100 properties",
+      "Up to 100 properties (buildings)",
       "Everything in Pro",
       "Unlimited property manager seats",
       "Bulk lease + invoice operations",
