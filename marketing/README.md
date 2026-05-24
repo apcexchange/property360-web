@@ -4,20 +4,27 @@ Ready-to-send growth assets that live next to the marketing site (`web/src/app/p
 
 ## What's in here today
 
-### `whatsapp/`
-The WhatsApp share kit you use to reach out to hostel owners, small landlords, and property managers one-by-one. Mass broadcasts don't work in Nigeria; this is built for personal outreach.
+### `whatsapp/` — warm outreach
+For people who know you or were introduced. Mass broadcasts don't work in Nigeria; this is built for personal outreach.
 
 - [`messages.md`](whatsapp/messages.md) — 5 copy-and-paste message templates, one per audience.
 - [`screenshots.md`](whatsapp/screenshots.md) — brief for the 6 screenshots you should capture from the live app, with WhatsApp-friendly captions for each.
 - [`video-script.md`](whatsapp/video-script.md) — a 60-second screen-recording script you can record on your phone in one take.
 
+### `outreach/` — cold outreach
+For contacts who don't know you. Different register, different rules.
+
+- [`linkedin.md`](outreach/linkedin.md) — connection request notes, first DM, follow-up. Highest signal channel for property managers and agency owners.
+- [`email.md`](outreach/email.md) — subject lines, body templates, 2-step follow-up, anti-spam practices (SPF/DKIM/DMARC notes).
+- [`whatsapp-cold.md`](outreach/whatsapp-cold.md) — only for numbers you have a public, legitimate reason to use (listings, signs, mutual intros). Softer register than the warm WhatsApp templates.
+- [`README.md`](outreach/README.md) — the daily cadence + the recommended cross-channel sequence for a single high-value lead.
+
 ## Live URLs to share
 
-- **Agency one-pager** — [`/for-agencies`](https://property360.africa/for-agencies). Single-page, prints cleanly to A4 via the "Save as PDF" button at the top. Source lives in `web/src/app/for-agencies/page.tsx`. Use this URL in WhatsApp template #3 (the agency message) — recipients can either scan the URL on their phone or download it as a PDF and forward inside their agency.
+- **Agency one-pager** — [`/for-agencies`](https://property360.africa/for-agencies). Single-page, prints cleanly to A4 via the "Save as PDF" button at the top. Source lives in `web/src/app/for-agencies/page.tsx`. Used in WhatsApp template #3 (agency) and the LinkedIn + email agency templates.
 
 ## What's NOT in here yet
 
-- Cold email + LinkedIn outreach scripts (planned item 5).
 - Referral mechanic in the app — that's a code change, lives in the product, not here (planned item 6).
 
 Add them as you build them and link from this README.
