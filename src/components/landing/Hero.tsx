@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useRef } from "react";
 import { PhoneMockup } from "./PhoneMockup";
 import { Magnetic } from "./Magnetic";
@@ -50,7 +51,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/70 px-3 py-1 text-[11px] font-medium tracking-tight text-foundation-700 backdrop-blur-md"
           >
             <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-500" />
-            Built in Lagos · for landlords across Nigeria
+            Built in Nigeria · for landlords nationwide
           </motion.div>
 
           <h1 className="mt-7 text-[clamp(2.5rem,7vw,4.75rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700">
@@ -83,8 +84,8 @@ export function Hero() {
             className="mt-10 flex flex-wrap items-center gap-5"
           >
             <Magnetic>
-              <a
-                href="#download"
+              <Link
+                href="/onboarding"
                 className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-foundation-700 px-7 py-3.5 text-sm font-semibold text-paper shadow-[0_18px_40px_-22px_rgb(15_39_44_/_0.5)] transition-colors hover:bg-foundation-800"
               >
                 {/* Lime sweep on hover */}
@@ -93,9 +94,9 @@ export function Hero() {
                   className="pointer-events-none absolute inset-y-0 left-0 -translate-x-full bg-cryola-400/25 transition-transform duration-500 ease-out group-hover:translate-x-0"
                   style={{ width: "120%" }}
                 />
-                <span className="relative">Download the app</span>
+                <span className="relative">Start managing your property</span>
                 <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </a>
+              </Link>
             </Magnetic>
 
             <a
@@ -107,27 +108,16 @@ export function Hero() {
             </a>
           </motion.div>
 
-          {/* Trust strip */}
-          <motion.div
+          {/* Sub-CTA reassurance — kept honest until real social proof exists. */}
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 1.45 }}
-            className="mt-12 flex items-center gap-4"
+            className="mt-8 max-w-xl text-sm text-ink-muted"
           >
-            <div className="flex -space-x-2">
-              {["#13272C", "#19343B", "#1F414A", "#1C3B43"].map((c) => (
-                <div
-                  key={c}
-                  className="h-8 w-8 rounded-full border-2 border-paper"
-                  style={{ background: c }}
-                />
-              ))}
-            </div>
-            <p className="text-sm text-ink-muted">
-              <span className="font-semibold text-foundation-700">Trusted by landlords</span>{" "}
-              from Lagos to Port Harcourt.
-            </p>
-          </motion.div>
+            Free for your first property. No card required. Web app live today —
+            mobile app coming soon.
+          </motion.p>
         </div>
 
         {/* Visual column */}

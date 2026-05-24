@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useRef } from "react";
 import { Magnetic } from "./Magnetic";
 
@@ -53,8 +54,8 @@ export function FinalCta() {
           transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
           className="mx-auto mt-7 max-w-xl text-[17px] leading-[1.55] text-paper/75"
         >
-          Install Property360 today and run your first cycle by next month.
-          Free to download. No credit card. No commitment.
+          Use Property360 today on the web and run your first cycle by next
+          month. Free for your first property. No card. No commitment.
         </motion.p>
 
         <motion.div
@@ -65,11 +66,23 @@ export function FinalCta() {
           className="mt-12 flex flex-wrap items-center justify-center gap-4"
         >
           <Magnetic>
-            <StoreBadge label="Download on the" store="App Store" href="#" />
+            <Link
+              href="/onboarding"
+              className="group inline-flex items-center gap-2 rounded-full bg-cryola-300 px-8 py-4 text-[15px] font-semibold text-foundation-800 transition hover:bg-cryola-200"
+            >
+              Create your free account
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Magnetic>
-          <Magnetic>
-            <StoreBadge label="Get it on" store="Google Play" href="#" />
-          </Magnetic>
+          <Link
+            href="/login"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-cryola-300/20 px-6 py-3.5 text-[14px] font-semibold text-paper transition hover:border-cryola-300/60 hover:bg-foundation-800"
+          >
+            I already have an account
+            <span className="inline-block transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
+          </Link>
         </motion.div>
 
         <motion.p
@@ -79,38 +92,9 @@ export function FinalCta() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="mt-10 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-cryola-300"
         >
-          Coming soon to App Store &amp; Play Store
+          Mobile apps coming soon to App Store &amp; Play Store
         </motion.p>
       </div>
     </section>
-  );
-}
-
-function StoreBadge({
-  label,
-  store,
-  href,
-}: {
-  label: string;
-  store: string;
-  href: string;
-}) {
-  return (
-    <a
-      href={href}
-      className="group flex items-center gap-3 rounded-2xl border border-cryola-300/20 bg-foundation-800/80 px-6 py-3.5 backdrop-blur-sm transition hover:border-cryola-300/60 hover:bg-foundation-800"
-    >
-      <div className="grid h-10 w-10 place-items-center rounded-xl bg-cryola-300 text-foundation-700 transition-transform duration-500 group-hover:rotate-[10deg]">
-        <ArrowRight className="h-5 w-5 -rotate-45 transition-transform duration-500 group-hover:rotate-0" />
-      </div>
-      <div className="text-left">
-        <p className="text-[10px] uppercase tracking-[0.18em] text-cryola-300/80">
-          {label}
-        </p>
-        <p className="text-[15.5px] font-semibold tracking-tight text-paper">
-          {store}
-        </p>
-      </div>
-    </a>
   );
 }

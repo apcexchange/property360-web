@@ -25,7 +25,7 @@ const jetbrainsMono = JetBrains_Mono({
 const SITE_URL = "https://property360.africa";
 const TITLE = "Property360 — Property management for Nigerian landlords";
 const DESCRIPTION =
-  "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Lagos.";
+  "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Nigeria, for landlords nationwide.";
 
 export const viewport: Viewport = {
   themeColor: "#13272C",
