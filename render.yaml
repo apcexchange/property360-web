@@ -99,3 +99,19 @@ services:
       # GOOGLE_APPLICATION_CREDENTIALS is set via Render Secret Files (not env vars).
       # Upload your service-account JSON in dashboard → Secret Files → mount at /etc/secrets/gcloud.json
       # then add an env var: GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/gcloud.json
+      # AI provider — 'gemini' (default, free), 'groq' (free, fast), or
+      # 'anthropic' (paid). Flip AI_PROVIDER to switch; no code change needed.
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6

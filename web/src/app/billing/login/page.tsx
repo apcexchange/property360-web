@@ -45,7 +45,7 @@ function LoginInner() {
         </h1>
         <p className="mt-3 text-[15px] text-ink-muted">
           Use the same email and password you use on the Property360 app.
-          Subscriptions are landlord-only.
+          Subscriptions are for landlords and property managers.
         </p>
 
         <form onSubmit={onSubmit} className="mt-8 space-y-4">
@@ -91,11 +91,21 @@ function LoginInner() {
         </form>
 
         <p className="mt-8 text-[13px] text-ink-muted">
-          Not signed up yet? Create your account in the{" "}
-          <Link href="/#download" className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4">
+          Don&apos;t have an account yet?{" "}
+          <Link
+            href="/onboarding/role"
+            className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+          >
+            Create one
+          </Link>
+          {" "}or grab the{" "}
+          <Link
+            href="/#download"
+            className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+          >
             mobile app
-          </Link>{" "}
-          first — then return here to choose a plan.
+          </Link>
+          .
         </p>
       </section>
     </div>

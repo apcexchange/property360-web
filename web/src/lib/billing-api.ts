@@ -70,9 +70,9 @@ export const billingApi = {
     if (!data?.accessToken || !data?.user) {
       throw new Error("Invalid login response");
     }
-    if (data.user.role !== "landlord") {
+    if (data.user.role !== "landlord" && data.user.role !== "agent") {
       throw new Error(
-        "This account is not a landlord. Subscriptions are landlord-only."
+        "Subscriptions are for landlords and property managers. Tenants don't need a plan."
       );
     }
     session.set(data.accessToken, data.user);
@@ -104,5 +104,21 @@ export const billingApi = {
 
   async cancel(): Promise<void> {
     await api.post("/subscriptions/cancel");
+  },
+
+  /**
+   * Trade a single-use mobile handoff token for a real access JWT. Used by
+   * /billing when it sees ?handoff=… on the URL — the mobile app produced
+   * the token via POST /auth/web-handoff while signed in, then opened this
+   * page in the system browser. Sets the session on success.
+   */
+  async redeemHandoff(token: string): Promise<LoginResponse> {
+    const res = await api.post("/auth/web-handoff/redeem", { token });
+    const data = unwrap(res.data) as LoginResponse;
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Invalid handoff response");
+    }
+    session.set(data.accessToken, data.user);
+    return data;
   },
 };

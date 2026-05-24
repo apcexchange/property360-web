@@ -49,9 +49,17 @@ export function OnboardingShell({
               Property<span className="text-cryola-500">360</span>
             </span>
           </Link>
-          <span className="text-[12px] text-ink-muted">
-            Step {Math.max(0, currentIndex) + 1} of {steps.length}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="hidden text-[12px] text-ink-muted sm:inline">
+              Step {Math.max(0, currentIndex) + 1} of {steps.length}
+            </span>
+            <Link
+              href="/login"
+              className="rounded-full border border-foundation-700/20 px-3.5 py-1.5 text-[12px] font-semibold text-foundation-700 transition hover:border-foundation-700/40 hover:bg-foundation-700/5"
+            >
+              Sign in
+            </Link>
+          </div>
         </div>
         <ol className="mx-auto flex max-w-4xl items-center gap-2 overflow-x-auto px-6 pb-4 text-[11.5px]">
           {steps.map((s, i) => {

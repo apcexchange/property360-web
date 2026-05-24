@@ -86,11 +86,40 @@ export default function BillingPage() {
   }, []);
 
   useEffect(() => {
-    if (!session.getToken()) {
-      router.replace("/billing/login?next=/billing");
-      return;
+    // Mobile app deep-link path: when the user taps "Manage plan on the web"
+    // in the app, it opens this page with ?handoff=<single-use-token>. We
+    // swap the token for a real session BEFORE the auth check below so the
+    // user lands signed in without typing credentials. If redeem fails
+    // (expired, already-used, bad token) we fall through to the normal
+    // login bounce.
+    const params =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search)
+        : null;
+    const handoff = params?.get("handoff");
+
+    async function init() {
+      if (handoff) {
+        try {
+          await billingApi.redeemHandoff(handoff);
+        } catch {
+          // Silent fall-through — the next session.getToken() check will
+          // bounce to login if we still have no session.
+        }
+        // Strip the param either way so a reload doesn't try to redeem
+        // the (now consumed) token a second time. router.replace keeps
+        // history clean.
+        router.replace("/billing");
+      }
+
+      if (!session.getToken()) {
+        router.replace("/billing/login?next=/billing");
+        return;
+      }
+      void load();
     }
-    void load();
+
+    void init();
   }, [router, load]);
 
   function signOut() {
@@ -136,15 +165,16 @@ export default function BillingPage() {
     );
   }
 
-  // Tenants/agents end up here if they somehow logged in — show a polite block.
+  // Tenants end up here if they somehow logged in — show a polite block.
+  // (Landlords and property managers both have plans; only tenants don't.)
   if (sub && !sub.applicable) {
     return (
       <div className="min-h-screen bg-paper text-foundation-700">
         <Nav />
         <PageHero
           eyebrow="Billing"
-          title="Subscriptions are for landlords."
-          subtitle={`You're signed in as a ${sub.role}. Tenants and agents don't have subscriptions on Property360.`}
+          title="Subscriptions are for property owners and managers."
+          subtitle={`You're signed in as a ${sub.role}. Tenants don't have subscriptions on Property360.`}
         >
           <Link
             href="/"
@@ -377,7 +407,7 @@ function CurrentPlanCard({
             limit={sub.usage.propertyLimit}
           />
           <UsageMeter
-            label="Agent seats"
+            label="Property manager seats"
             used={sub.usage.agentSeatCount}
             limit={sub.usage.agentSeatLimit}
           />
@@ -580,8 +610,8 @@ function CancelDialog({
         <p className="mt-2 text-[14px] leading-[1.55] text-ink-muted">
           Your subscription will stop renewing.{" "}
           {renewsAt
-            ? `You keep access until ${formatDate(renewsAt)}, after which property creation, agent invitations, and listings will be blocked until you resubscribe.`
-            : "Property creation, agent invitations, and listings will be blocked once your access ends."}
+            ? `You keep access until ${formatDate(renewsAt)}, after which property creation, property manager invitations, and listings will be blocked until you resubscribe.`
+            : "Property creation, property manager invitations, and listings will be blocked once your access ends."}
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

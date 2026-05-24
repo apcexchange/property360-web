@@ -23,7 +23,10 @@ export default function PlanPage() {
 
   useEffect(() => {
     if (!ready) return;
-    if (state.role !== "landlord" || !state.registered) {
+    // Landlords AND property managers (role: agent) both pay for their
+    // own subscriptions now. Only tenants skip the plan step.
+    const planEligibleRoles: Array<typeof state.role> = ["landlord", "agent"];
+    if (!planEligibleRoles.includes(state.role) || !state.registered) {
       router.replace("/onboarding/role");
     }
   }, [ready, state, router]);
