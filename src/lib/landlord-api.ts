@@ -743,7 +743,21 @@ function asList<T>(data: unknown): T[] {
   return [];
 }
 
+export interface ReferralStats {
+  referralCode: string;
+  shareUrl: string;
+  bonusDaysPerSide: number;
+  totalReferred: number;
+  totalConverted: number;
+  totalBonusDaysEarned: number;
+}
+
 export const landlordApi = {
+  // Referrals
+  async getMyReferral(): Promise<ReferralStats> {
+    const res = await api.get("/referrals/me");
+    return unwrap(res.data) as ReferralStats;
+  },
   // Dashboard
   async dashboardStats(): Promise<DashboardStats> {
     const res = await api.get("/dashboard/stats");

@@ -12,6 +12,8 @@ export interface RegisterPayload {
   password: string;
   phone: string;
   role: UserRole;
+  /** Optional referral code from /onboarding?ref=… — backend silently ignores invalid codes. */
+  referralCode?: string;
 }
 
 export interface AuthResponse {

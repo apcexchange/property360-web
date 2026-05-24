@@ -19,6 +19,9 @@ export interface OnboardingState {
   registered?: boolean;
   // Whether phone OTP was verified during onboarding.
   phoneVerified?: boolean;
+  // Referral code stashed from the initial /onboarding?ref=… URL hit, then
+  // forwarded to /auth/register. Backend silently drops invalid codes.
+  referralCode?: string;
 }
 
 const KEY = "p360_onboarding";

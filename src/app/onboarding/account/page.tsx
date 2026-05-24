@@ -50,6 +50,7 @@ export default function AccountPage() {
         phone: normalizedPhone,
         password,
         role: state.role,
+        ...(state.referralCode ? { referralCode: state.referralCode } : {}),
       });
       update({
         firstName: firstName.trim(),

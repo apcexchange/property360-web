@@ -14,6 +14,7 @@ import { session } from "@/lib/session";
  */
 const ALWAYS_ALLOWED_PREFIXES = [
   "/app/profile",
+  "/app/refer",
   "/billing",
 ];
 
