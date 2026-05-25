@@ -99,7 +99,7 @@ function PropertyCard({ p }: { p: Property }) {
         <div className="mt-3 flex items-center gap-3 text-[11.5px] text-ink-muted">
           <span>{p.totalUnits} unit{p.totalUnits === 1 ? "" : "s"}</span>
           <span>·</span>
-          <span className="capitalize">{p.propertyType}</span>
+          <span className="capitalize">{p.propertyType === "apartment" ? "Residential" : p.propertyType}</span>
         </div>
       </div>
     </Link>

@@ -27,8 +27,11 @@ interface UnitDraft {
   rentPeriod: RentPeriod;
 }
 
+// Display labels are decoupled from the stored enum value. We keep
+// `apartment` on the wire so existing properties don't need a backfill;
+// landlords just see it as "Residential" in the picker.
 const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
-  { value: "apartment", label: "Apartment" },
+  { value: "apartment", label: "Residential" },
   { value: "house", label: "House" },
   { value: "bungalow", label: "Bungalow" },
   { value: "commercial", label: "Commercial" },
@@ -53,7 +56,7 @@ export default function NewPropertyPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [propertyType, setPropertyType] = useState<PropertyType>("apartment");
-  const [floors, setFloors] = useState(1);
+  const [floors, setFloors] = useState<number | "">(1);
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -75,7 +78,7 @@ export default function NewPropertyPage() {
         name: name.trim(),
         description: description.trim() || undefined,
         propertyType,
-        floors,
+        floors: typeof floors === "number" && floors > 0 ? floors : 1,
         totalUnits: units.length,
         address: {
           street: street.trim(),
@@ -172,8 +175,12 @@ export default function NewPropertyPage() {
               <Field label="Floors">
                 <Input
                   type="number"
-                  value={String(floors)}
-                  onChange={(v) => setFloors(Math.max(1, Number(v) || 1))}
+                  value={floors === "" ? "" : String(floors)}
+                  onChange={(v) => {
+                    if (v === "") return setFloors("");
+                    const n = Number(v);
+                    if (Number.isFinite(n) && n >= 0) setFloors(n);
+                  }}
                 />
               </Field>
             </div>

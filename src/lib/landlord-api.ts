@@ -808,6 +808,9 @@ export const landlordApi = {
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
   },
+  async deleteProperty(id: string): Promise<void> {
+    await api.delete(`/properties/${id}`);
+  },
 
   // Tenants / leases
   async listTenants(): Promise<Array<{
