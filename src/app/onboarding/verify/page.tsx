@@ -19,17 +19,17 @@ export default function VerifyPage() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!state.registered || !state.phone) {
+    if (!state.registered || !state.email) {
       router.replace("/onboarding/role");
     }
   }, [ready, state, router]);
 
   async function sendCode() {
-    if (!state.phone) return;
+    if (!state.email) return;
     setSending(true);
     setError(null);
     try {
-      await authApi.sendOtp("phone", state.phone);
+      await authApi.sendOtp("email", state.email);
       setSent(true);
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
@@ -44,11 +44,11 @@ export default function VerifyPage() {
 
   async function onVerify(e: FormEvent) {
     e.preventDefault();
-    if (!state.phone || !otp) return;
+    if (!state.email || !otp) return;
     setVerifying(true);
     setError(null);
     try {
-      const ok = await authApi.verifyOtp("phone", state.phone, otp.trim());
+      const ok = await authApi.verifyOtp("email", state.email, otp.trim());
       if (!ok) {
         setError("That code didn't match. Try again.");
         return;
@@ -78,15 +78,14 @@ export default function VerifyPage() {
     >
       <p className="eyebrow">Step 3</p>
       <h1 className="mt-2 font-display text-[clamp(1.75rem,4.5vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-        Verify your phone.
+        Verify your email.
       </h1>
       <p className="mt-3 text-[15px] text-ink-muted">
-        We&apos;ll text a code to{" "}
+        We&apos;ll send a 6-digit code to{" "}
         <span className="font-semibold text-foundation-700">
-          {state.phone ?? "your number"}
+          {state.email ?? "your email"}
         </span>
-        . Verifying helps your landlords / tenants / agents trust they&apos;re talking
-        to you.
+        . Check your inbox (and spam folder, just in case).
       </p>
 
       <div className="mt-8 space-y-4">
