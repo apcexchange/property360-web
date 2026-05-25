@@ -211,9 +211,13 @@ export default function NewTenantPage() {
               </Field>
               <Field label="Rent (NGN)">
                 <Input
-                  value={String(rentAmount)}
-                  onChange={(v) => setRentAmount(Math.max(0, Number(v) || 0))}
-                  type="number"
+                  value={rentAmount > 0 ? rentAmount.toLocaleString("en-NG") : ""}
+                  onChange={(v) => {
+                    const digits = v.replace(/[^0-9]/g, "");
+                    setRentAmount(digits === "" ? 0 : Number(digits));
+                  }}
+                  type="text"
+                  placeholder="500,000"
                 />
               </Field>
               <Field label="Payment frequency">

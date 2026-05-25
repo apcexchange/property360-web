@@ -27,15 +27,11 @@ interface UnitDraft {
   rentPeriod: RentPeriod;
 }
 
-// Display labels are decoupled from the stored enum value. We keep
-// `apartment` on the wire so existing properties don't need a backfill;
-// landlords just see it as "Residential" in the picker.
 const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
-  { value: "apartment", label: "Residential" },
-  { value: "house", label: "House" },
-  { value: "bungalow", label: "Bungalow" },
+  { value: "residential", label: "Residential" },
+  { value: "hostel", label: "Hostel" },
+  { value: "shop", label: "Shop" },
   { value: "commercial", label: "Commercial" },
-  { value: "land", label: "Land" },
 ];
 
 const AMENITIES = [
@@ -55,7 +51,7 @@ export default function NewPropertyPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [propertyType, setPropertyType] = useState<PropertyType>("apartment");
+  const [propertyType, setPropertyType] = useState<PropertyType>("residential");
   const [floors, setFloors] = useState<number | "">(1);
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");

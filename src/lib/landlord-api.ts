@@ -18,7 +18,16 @@ export interface PropertyImage {
   isPrimary?: boolean;
 }
 
-export type PropertyType = "apartment" | "house" | "commercial" | "land" | "bungalow";
+export type PropertyType =
+  | "residential"
+  | "hostel"
+  | "shop"
+  | "commercial"
+  // Legacy values pre-existing rows may still carry.
+  | "apartment"
+  | "house"
+  | "bungalow"
+  | "land";
 
 export interface Property {
   _id: string;

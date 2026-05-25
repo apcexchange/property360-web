@@ -11,7 +11,29 @@ import {
   Skeleton,
   ErrorBox,
 } from "@/components/app/ui";
-import { landlordApi, Property } from "@/lib/landlord-api";
+import { landlordApi, Property, PropertyType } from "@/lib/landlord-api";
+
+// Display label for a property type. Legacy values (apartment/house/bungalow)
+// roll up into "Residential" so old buildings keep a sensible label.
+function propertyTypeLabel(t: PropertyType | string | undefined): string {
+  switch (t) {
+    case "residential":
+    case "apartment":
+    case "house":
+    case "bungalow":
+      return "Residential";
+    case "hostel":
+      return "Hostel";
+    case "shop":
+      return "Shop";
+    case "commercial":
+      return "Commercial";
+    case "land":
+      return "Land";
+    default:
+      return String(t ?? "—");
+  }
+}
 
 export default function PropertiesPage() {
   const q = useQuery({
@@ -99,7 +121,7 @@ function PropertyCard({ p }: { p: Property }) {
         <div className="mt-3 flex items-center gap-3 text-[11.5px] text-ink-muted">
           <span>{p.totalUnits} unit{p.totalUnits === 1 ? "" : "s"}</span>
           <span>·</span>
-          <span className="capitalize">{p.propertyType === "apartment" ? "Residential" : p.propertyType}</span>
+          <span className="capitalize">{propertyTypeLabel(p.propertyType)}</span>
         </div>
       </div>
     </Link>
