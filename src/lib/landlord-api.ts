@@ -776,14 +776,23 @@ export const landlordApi = {
   },
   async getProperty(id: string): Promise<{ property: Property; units: Unit[] }> {
     const res = await api.get(`/properties/${id}`);
-    const data = unwrap(res.data) as { property?: Property; units?: Unit[] } | Property;
+    const data = unwrap(res.data) as
+      | { property?: Property; units?: Unit[] }
+      | (Property & { units?: Unit[] });
+    // Two shapes seen in the wild:
+    //   1) { property: {...}, units: [...] } — explicit wrapper
+    //   2) { ...propertyFields, units: [...] } — flat (current backend)
     if (data && typeof data === "object" && "property" in data) {
       return {
         property: data.property as Property,
         units: (data.units as Unit[]) ?? [],
       };
     }
-    return { property: data as Property, units: [] };
+    const flat = data as Property & { units?: Unit[] };
+    return {
+      property: flat as Property,
+      units: (flat.units as Unit[]) ?? [],
+    };
   },
   async createProperty(body: {
     name: string;
