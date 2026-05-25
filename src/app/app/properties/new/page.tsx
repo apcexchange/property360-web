@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Zap, ChevronUp, ChevronDown } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -71,6 +71,25 @@ export default function NewPropertyPage() {
       rentPeriod: "annually",
     },
   ]);
+  const [showQuickSetup, setShowQuickSetup] = useState(false);
+  const [quickCount, setQuickCount] = useState<number | "">("");
+  const [quickRent, setQuickRent] = useState<number | "">("");
+  const [quickPeriod, setQuickPeriod] = useState<RentPeriod>("annually");
+
+  function applyQuickSetup() {
+    const count = typeof quickCount === "number" ? Math.max(1, Math.floor(quickCount)) : 0;
+    const rent = typeof quickRent === "number" ? Math.max(0, quickRent) : 0;
+    if (!count) return;
+    const generated: UnitDraft[] = Array.from({ length: count }, (_, i) => ({
+      unitNumber: `Flat ${i + 1}`,
+      bedrooms: 1,
+      bathrooms: 1,
+      rentAmount: rent,
+      rentPeriod: quickPeriod,
+    }));
+    setUnits(generated);
+    setShowQuickSetup(false);
+  }
 
   const create = useMutation({
     mutationFn: () =>
@@ -259,6 +278,88 @@ export default function NewPropertyPage() {
                 <Plus className="h-3.5 w-3.5" /> Add unit
               </button>
             </div>
+
+            {/* Quick setup — generate N units with the same rent in one shot.
+                Best for hostels / mass-rental buildings; replaces the existing
+                unit list. */}
+            <div className="rounded-2xl border border-cryola-400/40 bg-cryola-50/60">
+              <button
+                type="button"
+                onClick={() => setShowQuickSetup((v) => !v)}
+                className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left"
+              >
+                <span className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-foundation-700">
+                  <Zap className="h-4 w-4 text-cryola-500" /> Quick setup
+                  <span className="text-[11.5px] font-normal text-ink-muted">
+                    — same rent for several units
+                  </span>
+                </span>
+                {showQuickSetup ? (
+                  <ChevronUp className="h-4 w-4 text-ink-muted" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-ink-muted" />
+                )}
+              </button>
+              {showQuickSetup && (
+                <div className="border-t border-cryola-400/30 px-4 py-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Field label="How many units?">
+                      <Input
+                        type="number"
+                        value={quickCount === "" ? "" : String(quickCount)}
+                        onChange={(v) => {
+                          if (v === "") return setQuickCount("");
+                          const n = Number(v);
+                          if (Number.isFinite(n) && n >= 0) setQuickCount(n);
+                        }}
+                        placeholder="e.g. 12"
+                      />
+                    </Field>
+                    <Field label="Rent each (NGN)">
+                      <Input
+                        type="text"
+                        value={
+                          quickRent === ""
+                            ? ""
+                            : quickRent.toLocaleString("en-NG")
+                        }
+                        onChange={(v) => {
+                          const digits = v.replace(/[^0-9]/g, "");
+                          setQuickRent(digits === "" ? "" : Number(digits));
+                        }}
+                        placeholder="500,000"
+                      />
+                    </Field>
+                    <Field label="Period">
+                      <Select
+                        value={quickPeriod}
+                        onChange={(v) => setQuickPeriod(v as RentPeriod)}
+                        options={[
+                          { value: "monthly", label: "Per month" },
+                          { value: "quarterly", label: "Per quarter" },
+                          { value: "annually", label: "Per year" },
+                        ]}
+                      />
+                    </Field>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-[11.5px] text-ink-muted">
+                      Replaces the unit list below. You can fine-tune individual
+                      units after.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={applyQuickSetup}
+                      disabled={!quickCount || typeof quickCount !== "number"}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12px] font-semibold text-paper transition hover:bg-foundation-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                      Generate {typeof quickCount === "number" ? quickCount : ""} units
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="space-y-3">
               {units.map((u, idx) => (
                 <div
@@ -327,13 +428,19 @@ export default function NewPropertyPage() {
                     </Field>
                     <Field label="Rent (NGN)">
                       <Input
-                        type="number"
-                        value={String(u.rentAmount)}
-                        onChange={(v) =>
-                          updateUnit(setUnits, idx, {
-                            rentAmount: Math.max(0, Number(v) || 0),
-                          })
+                        type="text"
+                        value={
+                          u.rentAmount > 0
+                            ? u.rentAmount.toLocaleString("en-NG")
+                            : ""
                         }
+                        onChange={(v) => {
+                          const digits = v.replace(/[^0-9]/g, "");
+                          updateUnit(setUnits, idx, {
+                            rentAmount: digits === "" ? 0 : Number(digits),
+                          });
+                        }}
+                        placeholder="500,000"
                       />
                     </Field>
                     <Field label="Period">
