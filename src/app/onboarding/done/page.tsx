@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, KeyRound, Mail } from "lucide-react";
+import { CheckCircle2, KeyRound, Mail, ArrowRight } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 import { useOnboardingState, OnboardingState } from "@/lib/onboarding-state";
@@ -69,6 +69,31 @@ export default function DonePage() {
           ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord — all in one place."
           : "Download the Property360 app. Once a landlord invites you to manage their property, you'll see it under My properties."}
       </p>
+
+      {/* Primary "continue" CTA — registration already created a session, so
+          they're effectively logged in. Send each role straight into the
+          surface they use. */}
+      <div className="mt-7 flex flex-wrap items-center gap-3">
+        <Link
+          href={
+            role === "landlord" || role === "agent"
+              ? "/app/dashboard"
+              : "/me"
+          }
+          className="group inline-flex items-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-[13.5px] font-semibold text-paper transition hover:bg-foundation-800"
+        >
+          {role === "landlord" || role === "agent"
+            ? "Open my dashboard"
+            : "Go to my account"}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </Link>
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper px-5 py-3 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+        >
+          Log in with another account
+        </Link>
+      </div>
 
       {pendingInvites.length > 0 && (
         <div className="mt-8 rounded-2xl border border-cryola-300/60 bg-cryola-100/40 p-5">
