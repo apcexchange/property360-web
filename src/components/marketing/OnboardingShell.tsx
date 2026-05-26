@@ -11,13 +11,14 @@ interface StepDef {
   label: string;
 }
 
-// Active flow is intentionally three steps — role, account, done — so that
-// signup is the same on web and mobile. "verify" and "plan" are still
-// accepted as currentStep values for legacy pages but don't render in the
-// rail (they're surfaced post-signup at /billing, etc.).
+// Active flow: role → account → verify (email OTP) → done. Mobile mirrors
+// this. "plan" is still accepted as a currentStep value for legacy pages
+// but doesn't render in the rail (subscription selection lives at /billing
+// post-signup).
 const STEPS: StepDef[] = [
   { id: "role", label: "Role" },
   { id: "account", label: "Account" },
+  { id: "verify", label: "Verify" },
   { id: "done", label: "Done" },
 ];
 
@@ -33,12 +34,10 @@ export function OnboardingShell({
   children: ReactNode;
 }) {
   const steps = STEPS;
-  // Map legacy step ids that no longer render onto the closest visible one
-  // so the indicator still highlights something sensible.
+  // "plan" no longer renders in the rail; map it to "account" so the
+  // indicator still highlights something sensible for any legacy callers.
   const visibleStep: OnboardingStep =
-    currentStep === "verify" || currentStep === "plan"
-      ? "account"
-      : currentStep;
+    currentStep === "plan" ? "account" : currentStep;
   const currentIndex = steps.findIndex((s) => s.id === visibleStep);
 
   return (

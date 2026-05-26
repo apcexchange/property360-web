@@ -36,6 +36,10 @@ export function TenantAuthGate({ children }: { children: React.ReactNode }) {
           return;
         }
         session.set(token, user);
+        if (user.emailVerified === false) {
+          router.replace("/onboarding/verify");
+          return;
+        }
         setState("ok");
       })
       .catch(() => {

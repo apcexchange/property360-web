@@ -68,7 +68,7 @@ export default function AccountPage() {
         referralCode: trimmedRef || undefined,
         registered: true,
       });
-      router.push("/onboarding/done");
+      router.push("/onboarding/verify");
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       setError(

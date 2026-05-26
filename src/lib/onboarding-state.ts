@@ -17,6 +17,8 @@ export interface OnboardingState {
   phone?: string;
   // Whether we've registered (created the user). Token is in session module.
   registered?: boolean;
+  // Whether the email OTP step has been completed during onboarding.
+  emailVerified?: boolean;
   // Whether phone OTP was verified during onboarding.
   phoneVerified?: boolean;
   // Referral code stashed from the initial /onboarding?ref=… URL hit, then

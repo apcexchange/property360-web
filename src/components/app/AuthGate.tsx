@@ -37,6 +37,13 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
           return;
         }
         session.set(token, user);
+        // Email verification is a hard gate. A user who skipped the verify
+        // step (closed the tab, etc.) and deep-links into /app/* gets
+        // bounced back to the OTP screen.
+        if (user.emailVerified === false) {
+          router.replace("/onboarding/verify");
+          return;
+        }
         setState("ok");
       })
       .catch(() => {
