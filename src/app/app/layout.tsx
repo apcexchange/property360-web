@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/app/SidebarContext";
 import { SubscriptionGate } from "@/components/app/SubscriptionGate";
 import { SubscriptionLimitModal } from "@/components/app/SubscriptionLimitModal";
 import { PhoneVerifyBanner } from "@/components/app/PhoneVerifyBanner";
+import { SubscriptionRenewalBanner } from "@/components/app/SubscriptionRenewalBanner";
 import { QueryProvider } from "@/lib/queryClient";
 
 export default function AppLayout({
@@ -19,6 +20,7 @@ export default function AppLayout({
             <AppSidebar />
             <div className="flex min-w-0 flex-1 flex-col">
               <PhoneVerifyBanner />
+              <SubscriptionRenewalBanner />
               <SubscriptionGate>{children}</SubscriptionGate>
             </div>
           </div>

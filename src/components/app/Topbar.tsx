@@ -96,7 +96,7 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
                   </p>
                 </div>
                 <Link
-                  href="/billing"
+                  href="/app/billing"
                   className="flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium text-foundation-700 transition hover:bg-foundation-700/5"
                   onClick={() => setMenuOpen(false)}
                 >

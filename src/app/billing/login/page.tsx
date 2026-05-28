@@ -9,7 +9,7 @@ import { billingApi } from "@/lib/billing-api";
 function LoginInner() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params?.get("next") ?? "/billing";
+  const next = params?.get("next") ?? "/app/billing";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);

@@ -447,7 +447,7 @@ function TemplateEditor({
               </button>
             ) : (
               <Link
-                href="/billing"
+                href="/app/billing"
                 className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-2.5 py-1 text-[11px] font-semibold text-foundation-700 hover:bg-foundation-700/5"
                 title="AI drafting is available on Pro and above"
               >
@@ -472,7 +472,7 @@ function TemplateEditor({
                   in seconds with Claude/Gemini and refine it with one click.
                 </p>
                 <Link
-                  href="/billing"
+                  href="/app/billing"
                   className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-3.5 py-1.5 text-[11.5px] font-semibold text-paper hover:bg-foundation-800"
                 >
                   <Sparkles className="h-3 w-3" /> See plans

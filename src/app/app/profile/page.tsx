@@ -226,7 +226,7 @@ function PlanCard({
         />
       </div>
       <Link
-        href="/billing"
+        href="/app/billing"
         className="flex items-center justify-center gap-1.5 border-t border-foundation-700/10 bg-foundation-700/5 py-3 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/10"
       >
         <Sparkles className="h-3.5 w-3.5" /> Manage subscription

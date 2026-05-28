@@ -107,7 +107,7 @@ export function SubscriptionLimitModal() {
 
         <div className="space-y-3 px-6 py-5">
           <Link
-            href="/billing"
+            href="/app/billing"
             onClick={() => setDetail(null)}
             className="flex w-full items-center justify-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
