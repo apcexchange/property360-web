@@ -12,7 +12,7 @@ import {
   Card,
   ErrorBox,
 } from "@/components/app/ui";
-import { landlordApi, PropertyType, RentPeriod } from "@/lib/landlord-api";
+import { landlordApi, PropertyType, RentPeriod, UnitFees } from "@/lib/landlord-api";
 import {
   NIGERIA_STATE_NAMES,
   citiesForState,
@@ -25,6 +25,7 @@ interface UnitDraft {
   size?: number;
   rentAmount: number;
   rentPeriod: RentPeriod;
+  defaultFees?: UnitFees;
 }
 
 const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
@@ -67,6 +68,10 @@ export default function NewPropertyPage() {
       rentPeriod: "annually",
     },
   ]);
+  // Per-unit fees disclosure. We render every unit's "Default fees" block
+  // collapsed by default so the form stays scannable, then let landlords
+  // expand only the units they want to set fees for.
+  const [expandedFees, setExpandedFees] = useState<Set<number>>(new Set());
   const [showQuickSetup, setShowQuickSetup] = useState(false);
   const [quickCount, setQuickCount] = useState<number | "">("");
   const [quickRent, setQuickRent] = useState<number | "">("");
@@ -109,6 +114,9 @@ export default function NewPropertyPage() {
           size: u.size,
           rentAmount: u.rentAmount,
           rentPeriod: u.rentPeriod,
+          ...(hasAnyFees(u.defaultFees)
+            ? { defaultFees: u.defaultFees }
+            : {}),
         })),
       }),
     onSuccess: (p) => {
@@ -455,6 +463,27 @@ export default function NewPropertyPage() {
                       />
                     </Field>
                   </div>
+
+                  {/* Optional default fees — security deposit, caution
+                      fee, agent fee, etc. Collapsed by default. */}
+                  <UnitFeesPanel
+                    unit={u}
+                    expanded={expandedFees.has(idx)}
+                    onToggle={() => {
+                      setExpandedFees((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(idx)) next.delete(idx);
+                        else next.add(idx);
+                        return next;
+                      });
+                    }}
+                    onFeeChange={(field, raw) =>
+                      updateUnitFee(setUnits, idx, field, raw)
+                    }
+                    onDescriptionChange={(raw) =>
+                      updateUnitFeeDescription(setUnits, idx, raw)
+                    }
+                  />
                 </div>
               ))}
             </div>
@@ -520,6 +549,58 @@ function updateUnit(
   setter((prev) => prev.map((u, i) => (i === idx ? { ...u, ...patch } : u)));
 }
 
+// Numeric fee fields on UnitFees. Used to detect whether the landlord
+// actually entered any fee for the unit — if not we drop the object from
+// the payload entirely so the backend doesn't persist a hollow record.
+const FEE_FIELDS = [
+  "securityDeposit",
+  "cautionFee",
+  "agentFee",
+  "agreementFee",
+  "legalFee",
+  "serviceCharge",
+  "otherFee",
+] as const;
+
+function hasAnyFees(fees: UnitFees | undefined): boolean {
+  if (!fees) return false;
+  return FEE_FIELDS.some((k) => {
+    const v = fees[k];
+    return typeof v === "number" && v > 0;
+  });
+}
+
+// Helper for the per-unit fees panel: updates a single numeric fee on a
+// unit. Empty string clears the field. Mirrors mobile's handleFeeChange.
+function updateUnitFee(
+  setter: React.Dispatch<React.SetStateAction<UnitDraft[]>>,
+  idx: number,
+  field: (typeof FEE_FIELDS)[number],
+  raw: string
+) {
+  const digits = raw.replace(/[^0-9]/g, "");
+  const amount = digits === "" ? 0 : Number(digits);
+  setter((prev) =>
+    prev.map((u, i) =>
+      i === idx ? { ...u, defaultFees: { ...(u.defaultFees ?? {}), [field]: amount } } : u
+    )
+  );
+}
+
+function updateUnitFeeDescription(
+  setter: React.Dispatch<React.SetStateAction<UnitDraft[]>>,
+  idx: number,
+  raw: string
+) {
+  setter((prev) =>
+    prev.map((u, i) =>
+      i === idx
+        ? { ...u, defaultFees: { ...(u.defaultFees ?? {}), otherFeeDescription: raw } }
+        : u
+    )
+  );
+}
+
 function Field({
   label,
   children,
@@ -583,6 +664,125 @@ function Textarea({
       rows={3}
       className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 placeholder:text-ink-muted/60 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10"
     />
+  );
+}
+
+function UnitFeesPanel({
+  unit,
+  expanded,
+  onToggle,
+  onFeeChange,
+  onDescriptionChange,
+}: {
+  unit: UnitDraft;
+  expanded: boolean;
+  onToggle: () => void;
+  onFeeChange: (field: (typeof FEE_FIELDS)[number], raw: string) => void;
+  onDescriptionChange: (raw: string) => void;
+}) {
+  const fees = unit.defaultFees ?? {};
+  const hasValues = hasAnyFees(unit.defaultFees);
+  // Two columns of fee inputs, ordered to mirror mobile so the form
+  // feels the same across platforms.
+  const FEE_PAIRS: Array<[
+    { key: (typeof FEE_FIELDS)[number]; label: string },
+    { key: (typeof FEE_FIELDS)[number]; label: string }
+  ]> = [
+    [
+      { key: "securityDeposit", label: "Security deposit" },
+      { key: "cautionFee", label: "Caution fee" },
+    ],
+    [
+      { key: "agentFee", label: "Agent fee" },
+      { key: "agreementFee", label: "Agreement fee" },
+    ],
+    [
+      { key: "legalFee", label: "Legal fee" },
+      { key: "serviceCharge", label: "Service charge" },
+    ],
+  ];
+
+  return (
+    <div className="mt-4 rounded-2xl border border-foundation-700/10 bg-foundation-700/[0.02]">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left"
+      >
+        <span className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-foundation-700">
+          Default fees
+          {hasValues && (
+            <span className="rounded-full bg-cryola-300 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.06em] text-foundation-700">
+              set
+            </span>
+          )}
+          <span className="text-[11.5px] font-normal text-ink-muted">
+            — optional, applied when adding a tenant
+          </span>
+        </span>
+        {expanded ? (
+          <ChevronUp className="h-4 w-4 text-ink-muted" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-ink-muted" />
+        )}
+      </button>
+      {expanded && (
+        <div className="border-t border-foundation-700/10 px-4 py-4">
+          <div className="space-y-3">
+            {FEE_PAIRS.map(([a, b]) => (
+              <div key={a.key} className="grid gap-3 sm:grid-cols-2">
+                <Field label={a.label}>
+                  <Input
+                    type="text"
+                    value={
+                      typeof fees[a.key] === "number" && (fees[a.key] as number) > 0
+                        ? (fees[a.key] as number).toLocaleString("en-NG")
+                        : ""
+                    }
+                    onChange={(v) => onFeeChange(a.key, v)}
+                    placeholder="₦0"
+                  />
+                </Field>
+                <Field label={b.label}>
+                  <Input
+                    type="text"
+                    value={
+                      typeof fees[b.key] === "number" && (fees[b.key] as number) > 0
+                        ? (fees[b.key] as number).toLocaleString("en-NG")
+                        : ""
+                    }
+                    onChange={(v) => onFeeChange(b.key, v)}
+                    placeholder="₦0"
+                  />
+                </Field>
+              </div>
+            ))}
+            <Field label="Other fee">
+              <Input
+                type="text"
+                value={
+                  typeof fees.otherFee === "number" && fees.otherFee > 0
+                    ? fees.otherFee.toLocaleString("en-NG")
+                    : ""
+                }
+                onChange={(v) => onFeeChange("otherFee", v)}
+                placeholder="₦0"
+              />
+            </Field>
+            {typeof fees.otherFee === "number" && fees.otherFee > 0 && (
+              <Field label="Other fee description">
+                <Input
+                  type="text"
+                  value={fees.otherFeeDescription ?? ""}
+                  onChange={onDescriptionChange}
+                  placeholder="What's this fee for?"
+                />
+              </Field>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

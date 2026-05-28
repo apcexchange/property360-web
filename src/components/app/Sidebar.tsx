@@ -44,10 +44,15 @@ function buildSections(role: string | undefined): NavSection[] {
       label: "Finance",
       items: [
         { href: "/app/invoices", label: "Invoices" },
+        { href: "/app/receipts", label: "Receipts" },
         { href: "/app/wallet", label: "Wallet" },
         { href: "/app/transactions", label: "Transactions" },
         { href: "/app/reports", label: "Reports" },
       ],
+    },
+    {
+      label: "Operations",
+      items: [{ href: "/app/maintenance", label: "Maintenance" }],
     },
     {
       label: "Marketplace",

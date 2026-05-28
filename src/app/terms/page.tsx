@@ -87,7 +87,7 @@ export default function TermsPage() {
       <h2>7. Tenancy Agreements &amp; E-Signing</h2>
       <ul>
         <li>Tenancy agreements created or signed via the Service are contracts between the landlord and tenant. Property360 is not a party.</li>
-        <li>Electronic signatures are facilitated by DocuSeal. Signed agreements are stored on Cloudinary and are downloadable by both parties.</li>
+        <li>Electronic signatures are captured in-app via clickwrap: the signer types their full name, ticks an "I agree" acknowledgement, and may optionally upload or draw a signature image. Property360 records the typed name, document hash, IP address, user agent, and timestamp as evidence. Signed agreements are stored on Cloudinary and are downloadable by both parties.</li>
         <li>You are responsible for ensuring the legal validity of any agreement you sign and for obtaining independent legal advice where needed.</li>
       </ul>
 
