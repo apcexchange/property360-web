@@ -28,7 +28,7 @@ const features = [
   {
     icon: FileSignature,
     title: "Tenancy agreements, in-app",
-    body: "Upload an agreement, OCR pulls the key fields, and both parties sign with DocuSeal — fully legal, fully digital.",
+    body: "Upload an agreement, OCR pulls the key fields, and both parties sign electronically in-app — typed name, optional signature image, defensible audit trail.",
   },
   {
     icon: ShieldCheck,

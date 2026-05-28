@@ -22,6 +22,8 @@ export interface SubscriptionUsage {
 export interface SubscriptionFeatures {
   /** AI-drafted tenancy agreement templates (Pro and above; trial users get a taste). */
   canUseAiTemplates: boolean;
+  /** WhatsApp delivery for invoices, receipts, and rent reminders (Pro and above). */
+  canUseWhatsAppDelivery: boolean;
 }
 
 export interface SubscriptionView {

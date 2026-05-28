@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, Ban } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Ban, Send, Download, Mail } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -58,11 +58,42 @@ export default function InvoiceDetailPage() {
     },
     onError: () => toast.error("Couldn't cancel invoice"),
   });
+  const sendDraft = useMutation({
+    mutationFn: () => landlordApi.sendInvoice(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["invoices", id] });
+      toast.success({
+        title: "Invoice sent",
+        body: "Tenant will receive a branded PDF by email.",
+      });
+    },
+    onError: () => toast.error("Couldn't send invoice"),
+  });
+  const emailAgain = useMutation({
+    mutationFn: () => landlordApi.emailInvoice(id),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["invoices", id] });
+      toast.success({
+        title: "Email sent",
+        body: `Sent to ${r.emailedTo}`,
+      });
+    },
+    onError: () => toast.error("Couldn't email invoice"),
+  });
+  const downloadPdf = useMutation({
+    mutationFn: () => landlordApi.downloadInvoicePdf(id),
+    onSuccess: (r) => {
+      window.open(r.pdfUrl, "_blank", "noopener,noreferrer");
+    },
+    onError: () => toast.error("Couldn't fetch invoice PDF"),
+  });
 
   const inv = q.data;
   const canMarkPaid =
     !!inv && inv.status !== "paid" && inv.status !== "cancelled";
   const canCancel = !!inv && inv.status !== "paid" && inv.status !== "cancelled";
+  const canSend = !!inv && inv.status === "draft";
+  const canEmail = !!inv && inv.status !== "draft" && inv.status !== "cancelled";
 
   return (
     <>
@@ -183,6 +214,26 @@ export default function InvoiceDetailPage() {
             )}
 
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => downloadPdf.mutate()}
+                disabled={downloadPdf.isPending}
+                className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+              >
+                <Download className="h-4 w-4" />{" "}
+                {downloadPdf.isPending ? "Preparing…" : "Download PDF"}
+              </button>
+              {canEmail && (
+                <button
+                  type="button"
+                  onClick={() => emailAgain.mutate()}
+                  disabled={emailAgain.isPending}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+                >
+                  <Mail className="h-4 w-4" />{" "}
+                  {emailAgain.isPending ? "Sending…" : "Re-send email"}
+                </button>
+              )}
               {canCancel && (
                 <button
                   type="button"
@@ -194,6 +245,17 @@ export default function InvoiceDetailPage() {
                 >
                   <Ban className="h-4 w-4" />{" "}
                   {cancel.isPending ? "Cancelling…" : "Cancel"}
+                </button>
+              )}
+              {canSend && (
+                <button
+                  type="button"
+                  onClick={() => sendDraft.mutate()}
+                  disabled={sendDraft.isPending}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+                >
+                  <Send className="h-4 w-4" />{" "}
+                  {sendDraft.isPending ? "Sending…" : "Send invoice"}
                 </button>
               )}
               {canMarkPaid && (

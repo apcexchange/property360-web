@@ -38,7 +38,7 @@ const BENEFITS = [
     icon: FileSignature,
     title: "Tenancy agreements signed in-app.",
     body:
-      "Upload your template once. New tenants sign electronically through DocuSeal — legally binding, time-stamped, and stored against the lease.",
+      "Upload your template once. Tenants sign electronically in-app — typed name plus optional signature image, with timestamp, IP, and document hash captured as evidence. Stored against the lease and downloadable as PDF.",
   },
   {
     icon: Wrench,

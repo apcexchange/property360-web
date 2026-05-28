@@ -41,7 +41,7 @@ const REASONS = [
     icon: FileSignature,
     title: "Tenancy agreements in-app.",
     body:
-      "Sign electronically through DocuSeal. No printouts, no agent's office, no signature mismatch headaches.",
+      "Sign electronically in-app: type your name, tick the acknowledgement, optionally upload your signature. No printouts, no agent's office, no signature mismatch headaches.",
   },
   {
     icon: Wrench,

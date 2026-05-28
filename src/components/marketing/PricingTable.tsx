@@ -46,6 +46,7 @@ export const TIERS: Tier[] = [
       "Up to 30 properties (buildings)",
       "Everything in Solo",
       "AI-drafted tenancy agreements (Claude / Gemini)",
+      "WhatsApp delivery for invoices, receipts & rent reminders",
       "Up to 5 property manager seats with role permissions",
       "Per-property financial reports",
       "Priority email support",
