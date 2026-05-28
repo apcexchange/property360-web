@@ -76,20 +76,47 @@ export default function NewPropertyPage() {
   const [quickCount, setQuickCount] = useState<number | "">("");
   const [quickRent, setQuickRent] = useState<number | "">("");
   const [quickPeriod, setQuickPeriod] = useState<RentPeriod>("annually");
+  // Quick-setup default fees: the landlord types each fee once and we
+  // propagate the values to every generated unit (or, via "Apply to all
+  // units", to the units already on the form). Saves a real chunk of
+  // typing on multi-unit buildings where every flat carries the same
+  // security deposit, caution fee, agent fee, etc.
+  const [quickFees, setQuickFees] = useState<UnitFees>({});
+
+  function quickFeesHaveValues(): boolean {
+    return hasAnyFees(quickFees);
+  }
 
   function applyQuickSetup() {
     const count = typeof quickCount === "number" ? Math.max(1, Math.floor(quickCount)) : 0;
     const rent = typeof quickRent === "number" ? Math.max(0, quickRent) : 0;
     if (!count) return;
+    const sharedFees: UnitFees | undefined = quickFeesHaveValues()
+      ? { ...quickFees }
+      : undefined;
     const generated: UnitDraft[] = Array.from({ length: count }, (_, i) => ({
       unitNumber: `Flat ${i + 1}`,
       bedrooms: 1,
       bathrooms: 1,
       rentAmount: rent,
       rentPeriod: quickPeriod,
+      // Spread per-unit so mutations to one unit's fees don't leak
+      // into the others.
+      ...(sharedFees ? { defaultFees: { ...sharedFees } } : {}),
     }));
     setUnits(generated);
     setShowQuickSetup(false);
+  }
+
+  // For when the units are already on the form (e.g. landlord typed
+  // them one-by-one and only thought of the fees afterwards). Stamps
+  // every existing unit's defaultFees with the quick-setup values,
+  // overwriting any prior fee entries on those units.
+  function applyQuickFeesToAllUnits() {
+    if (!quickFeesHaveValues()) return;
+    setUnits((prev) =>
+      prev.map((u) => ({ ...u, defaultFees: { ...quickFees } }))
+    );
   }
 
   const create = useMutation({
@@ -346,6 +373,21 @@ export default function NewPropertyPage() {
                       />
                     </Field>
                   </div>
+                  <QuickDefaultFees
+                    fees={quickFees}
+                    onChange={(field, raw) => {
+                      const digits = raw.replace(/[^0-9]/g, "");
+                      setQuickFees((prev) => ({
+                        ...prev,
+                        [field]: digits === "" ? undefined : Number(digits),
+                      }));
+                    }}
+                    onApplyToExisting={applyQuickFeesToAllUnits}
+                    canApplyToExisting={
+                      quickFeesHaveValues() && units.length > 0
+                    }
+                  />
+
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <p className="text-[11.5px] text-ink-muted">
                       Replaces the unit list below. You can fine-tune individual
@@ -664,6 +706,92 @@ function Textarea({
       rows={3}
       className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 placeholder:text-ink-muted/60 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10"
     />
+  );
+}
+
+// Quick-setup fees block. Lives inside the Quick setup panel so the
+// landlord can type each fee once and have it inherited by every
+// generated unit (or pushed onto units that already exist).
+function QuickDefaultFees({
+  fees,
+  onChange,
+  onApplyToExisting,
+  canApplyToExisting,
+}: {
+  fees: UnitFees;
+  onChange: (field: Exclude<(typeof FEE_FIELDS)[number], "otherFee">, raw: string) => void;
+  onApplyToExisting: () => void;
+  canApplyToExisting: boolean;
+}) {
+  const PAIRS: Array<[
+    { key: Exclude<(typeof FEE_FIELDS)[number], "otherFee">; label: string },
+    { key: Exclude<(typeof FEE_FIELDS)[number], "otherFee">; label: string }
+  ]> = [
+    [
+      { key: "securityDeposit", label: "Security deposit" },
+      { key: "cautionFee", label: "Caution fee" },
+    ],
+    [
+      { key: "agentFee", label: "Agent fee" },
+      { key: "agreementFee", label: "Agreement fee" },
+    ],
+    [
+      { key: "legalFee", label: "Legal fee" },
+      { key: "serviceCharge", label: "Service charge" },
+    ],
+  ];
+
+  return (
+    <div className="mt-4 rounded-xl border border-cryola-400/30 bg-paper p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="text-[12.5px] font-semibold text-foundation-700">
+          Default fees for every unit
+        </p>
+        <p className="text-[11px] text-ink-muted">
+          Optional · applied when adding a tenant
+        </p>
+      </div>
+      <div className="mt-3 space-y-3">
+        {PAIRS.map(([a, b]) => (
+          <div key={a.key} className="grid gap-3 sm:grid-cols-2">
+            <Field label={a.label}>
+              <Input
+                type="text"
+                value={
+                  typeof fees[a.key] === "number" && (fees[a.key] as number) > 0
+                    ? (fees[a.key] as number).toLocaleString("en-NG")
+                    : ""
+                }
+                onChange={(v) => onChange(a.key, v)}
+                placeholder="₦0"
+              />
+            </Field>
+            <Field label={b.label}>
+              <Input
+                type="text"
+                value={
+                  typeof fees[b.key] === "number" && (fees[b.key] as number) > 0
+                    ? (fees[b.key] as number).toLocaleString("en-NG")
+                    : ""
+                }
+                onChange={(v) => onChange(b.key, v)}
+                placeholder="₦0"
+              />
+            </Field>
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 flex justify-end">
+        <button
+          type="button"
+          onClick={onApplyToExisting}
+          disabled={!canApplyToExisting}
+          className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-3.5 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Apply to all units already on the form
+        </button>
+      </div>
+    </div>
   );
 }
 
