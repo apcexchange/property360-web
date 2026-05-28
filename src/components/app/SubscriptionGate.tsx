@@ -8,13 +8,15 @@ import { billingApi, SubscriptionView } from "@/lib/billing-api";
 import { session } from "@/lib/session";
 
 /**
- * Paths inside /app/* (or sibling /billing) the user can still visit
- * when their subscription has lapsed — so they can pay, manage their
- * account, or sign out.
+ * Paths inside /app/* the user can still visit when their subscription
+ * has lapsed — so they can pay, manage their account, or sign out.
+ * Includes the legacy top-level `/billing` thin-redirect for mobile
+ * handoff users; the real billing UI lives at `/app/billing`.
  */
 const ALWAYS_ALLOWED_PREFIXES = [
   "/app/profile",
   "/app/refer",
+  "/app/billing",
   "/billing",
 ];
 
@@ -110,7 +112,7 @@ function LockedView({ view }: { view: SubscriptionView }) {
 
         <div className="space-y-3 px-8 py-7">
           <Link
-            href="/billing"
+            href="/app/billing"
             className="group flex w-full items-center justify-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-[13.5px] font-semibold text-paper transition hover:bg-foundation-800"
           >
             <Sparkles className="h-4 w-4" />

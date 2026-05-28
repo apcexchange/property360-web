@@ -134,10 +134,10 @@ export default function DonePage() {
                 Use the email or phone below with the password you just
                 created. The same credentials work in the mobile app and on{" "}
                 <Link
-                  href="/billing/login"
+                  href="/app/billing"
                   className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
                 >
-                  property360.africa/billing
+                  property360.africa/app/billing
                 </Link>
                 .
               </p>
@@ -190,7 +190,7 @@ export default function DonePage() {
         </Link>
         {role === "landlord" && (
           <Link
-            href="/billing"
+            href="/app/billing"
             className="rounded-2xl border border-foundation-700/10 bg-surface px-5 py-4 transition hover:bg-foundation-700/5"
           >
             <p className="text-[13px] font-semibold text-foundation-700">

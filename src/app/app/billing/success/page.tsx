@@ -4,8 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
-import { Nav } from "@/components/landing/Nav";
-import { Footer } from "@/components/landing/Footer";
 import { billingApi, SubscriptionResponse } from "@/lib/billing-api";
 import { session } from "@/lib/session";
 
@@ -97,9 +95,7 @@ function SuccessInner() {
   }, [reference, router]);
 
   return (
-    <div className="min-h-screen bg-paper text-foundation-700">
-      <Nav />
-
+    <div className="text-foundation-700">
       <section className="mx-auto flex max-w-md flex-col items-start px-6 pt-20 pb-16">
         <div className="grid h-12 w-12 place-items-center rounded-full bg-cryola-200 text-foundation-700">
           <CheckCircle2 className="h-6 w-6" />
@@ -155,21 +151,19 @@ function SuccessInner() {
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
-            href="/billing"
+            href="/app/dashboard"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            Back to billing →
+            Back to dashboard →
           </Link>
           <Link
-            href="/"
+            href="/app/billing"
             className="text-[13px] font-semibold text-foundation-700 transition hover:text-foundation-900"
           >
-            Open the marketing site
+            View billing
           </Link>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

@@ -85,15 +85,51 @@ export function FinalCta() {
           </Link>
         </motion.div>
 
-        <motion.p
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-10 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-cryola-300"
+          className="mt-10 flex flex-col items-center gap-4"
         >
-          Mobile apps coming soon to App Store &amp; Play Store
-        </motion.p>
+          <p className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-cryola-300">
+            Also on mobile
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="https://apps.apple.com/ng/app/property360/id6767078488"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-cryola-300/25 bg-foundation-800 px-4 py-2.5 text-[12px] font-semibold text-paper transition hover:border-cryola-300/70"
+            >
+              <span aria-hidden="true" className="text-[18px] leading-none">
+
+              </span>
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[9px] uppercase tracking-[0.18em] text-paper/60">
+                  Download on the
+                </span>
+                <span className="text-[13px]">App Store</span>
+              </span>
+            </Link>
+            <Link
+              href="https://play.google.com/store/apps/details?id=com.property360.africa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-xl border border-cryola-300/25 bg-foundation-800 px-4 py-2.5 text-[12px] font-semibold text-paper transition hover:border-cryola-300/70"
+            >
+              <span aria-hidden="true" className="text-[16px] leading-none">
+                ▶
+              </span>
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-[9px] uppercase tracking-[0.18em] text-paper/60">
+                  Get it on
+                </span>
+                <span className="text-[13px]">Google Play</span>
+              </span>
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

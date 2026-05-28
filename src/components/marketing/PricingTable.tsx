@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { BillingInterval } from "@/lib/billing-api";
+import { session } from "@/lib/session";
 
 export type Tier = {
   name: string;
@@ -107,6 +111,37 @@ export function PricingTable({
 }
 
 function TierCard({ tier, interval }: { tier: Tier; interval: BillingInterval }) {
+  // Logged-in landlords / agents should skip the marketing /onboarding
+  // funnel and land straight in the in-app billing page with the picked
+  // tier + interval prefilled. The tenant + anonymous case keeps the
+  // original CTAs (contact, onboarding) untouched.
+  const [mounted, setMounted] = useState(false);
+  const [ctaHref, setCtaHref] = useState(tier.ctaHref);
+  useEffect(() => {
+    setMounted(true);
+    const user = session.getUser();
+    if (
+      user &&
+      (user.role === "landlord" || user.role === "agent") &&
+      tier.monthlyNgn != null
+    ) {
+      const qs = new URLSearchParams({
+        tier: tier.name.toLowerCase(),
+        interval,
+      });
+      setCtaHref(`/app/billing?${qs}`);
+    }
+  }, [tier, interval]);
+
+  const ctaLabel = (() => {
+    if (!mounted) return tier.ctaLabel;
+    const user = session.getUser();
+    if (!user) return tier.ctaLabel;
+    if (user.role !== "landlord" && user.role !== "agent") return tier.ctaLabel;
+    if (tier.monthlyNgn == null) return tier.ctaLabel;
+    return `Choose ${tier.name}`;
+  })();
+
   const isHighlight = !!tier.highlight;
   const price =
     interval === "annual" ? tier.annualNgn : tier.monthlyNgn;
@@ -199,14 +234,14 @@ function TierCard({ tier, interval }: { tier: Tier; interval: BillingInterval })
       </ul>
 
       <Link
-        href={tier.ctaHref}
+        href={ctaHref}
         className={`mt-7 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
           isHighlight
             ? "bg-cryola-300 text-foundation-700 hover:bg-cryola-400"
             : "bg-foundation-700 text-paper hover:bg-foundation-800"
         }`}
       >
-        {tier.ctaLabel}
+        {ctaLabel}
       </Link>
     </div>
   );

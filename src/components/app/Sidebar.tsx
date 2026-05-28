@@ -67,7 +67,7 @@ function buildSections(role: string | undefined): NavSection[] {
       items: [
         { href: "/app/refer", label: "Refer a landlord" },
         { href: "/app/profile", label: "Profile" },
-        { href: "/billing", label: "Subscription" },
+        { href: "/app/billing", label: "Subscription" },
       ],
     },
   ];

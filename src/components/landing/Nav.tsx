@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { session } from "@/lib/session";
 
 const links = [
   { href: "/listings", label: "Browse" },
@@ -12,8 +13,27 @@ const links = [
   { href: "/pricing", label: "Pricing" },
 ];
 
+// Map role → in-app landing route. Tenants live under /me/*, landlords
+// and agents under /app/*. Anything else (admin, custom) defaults to
+// /app/dashboard which the AppAuthGate will handle.
+function inAppHomeFor(role?: string): string {
+  if (role === "tenant") return "/me";
+  return "/app/dashboard";
+}
+
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  // Hydration: session is localStorage-backed. Until mounted, render
+  // the logged-out variant so anonymous users on first paint never see
+  // a misleading "Open dashboard" link.
+  const [mounted, setMounted] = useState(false);
+  const [signedInHref, setSignedInHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const user = session.getUser();
+    if (user) setSignedInHref(inAppHomeFor(user.role));
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -66,19 +86,31 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden rounded-full px-3 py-2 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 sm:inline-flex"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/onboarding"
-            className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
-          >
-            Get started
-            <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
-          </Link>
+          {mounted && signedInHref ? (
+            <Link
+              href={signedInHref}
+              className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
+            >
+              Open dashboard
+              <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden rounded-full px-3 py-2 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 sm:inline-flex"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/onboarding"
+                className="group inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
+              >
+                Get started
+                <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </motion.header>

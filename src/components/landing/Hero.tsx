@@ -115,8 +115,8 @@ export function Hero() {
             transition={{ duration: 0.7, delay: 1.45 }}
             className="mt-8 max-w-xl text-sm text-ink-muted"
           >
-            Free for your first property. No card required. Web app live today —
-            mobile app coming soon.
+            Free for your first property. No card required. Web, iOS and
+            Android — pick the one that fits.
           </motion.p>
         </div>
 
