@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { Check, ExternalLink, AlertTriangle } from "lucide-react";
-import { TIERS, Tier } from "@/components/marketing/PricingTable";
+import { Tier } from "@/components/marketing/pricingTiers"
+import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
 import {
   billingApi,

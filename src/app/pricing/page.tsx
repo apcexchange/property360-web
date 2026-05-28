@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { PageHero } from "@/components/marketing/PageHero";
-import { TIERS } from "@/components/marketing/PricingTable";
+import { TIERS } from "@/components/marketing/pricingTiers";
 import { PricingTableWithToggle } from "@/components/marketing/PricingTableWithToggle";
 
 export const metadata: Metadata = {

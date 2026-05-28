@@ -6,7 +6,8 @@ import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { useOnboardingState } from "@/lib/onboarding-state";
-import { TIERS, Tier } from "@/components/marketing/PricingTable";
+import { Tier } from "@/components/marketing/pricingTiers"
+import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
 import { billingApi, BillingInterval } from "@/lib/billing-api";
 import { API_BASE_URL } from "@/lib/api";
