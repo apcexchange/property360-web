@@ -334,7 +334,7 @@ export default function NewPropertyPage() {
               {showQuickSetup && (
                 <div className="border-t border-cryola-400/30 px-4 py-4">
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <Field label="How many units?">
+                    <Field label="How many flats/rooms?">
                       <Input
                         type="number"
                         value={quickCount === "" ? "" : String(quickCount)}
@@ -390,8 +390,8 @@ export default function NewPropertyPage() {
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <p className="text-[11.5px] text-ink-muted">
-                      Replaces the unit list below. You can fine-tune individual
-                      units after.
+                      Replaces the list below. You can fine-tune individual
+                      flats/rooms after.
                     </p>
                     <button
                       type="button"
@@ -400,7 +400,7 @@ export default function NewPropertyPage() {
                       className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12px] font-semibold text-paper transition hover:bg-foundation-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Zap className="h-3.5 w-3.5" />
-                      Generate {typeof quickCount === "number" ? quickCount : ""} units
+                      Generate {typeof quickCount === "number" ? quickCount : ""} flats/rooms
                     </button>
                   </div>
                 </div>
@@ -745,7 +745,7 @@ function QuickDefaultFees({
     <div className="mt-4 rounded-xl border border-cryola-400/30 bg-paper p-4">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-[12.5px] font-semibold text-foundation-700">
-          Default fees for every unit
+          Default fees for every flat/room
         </p>
         <p className="text-[11px] text-ink-muted">
           Optional · applied when adding a tenant
@@ -788,7 +788,7 @@ function QuickDefaultFees({
           disabled={!canApplyToExisting}
           className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-3.5 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Apply to all units already on the form
+          Apply to all flats/rooms already on the form
         </button>
       </div>
     </div>
