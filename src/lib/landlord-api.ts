@@ -39,6 +39,7 @@ export interface Property {
   totalUnits: number;
   amenities?: string[];
   images?: PropertyImage[];
+  videos?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -978,6 +979,7 @@ export const landlordApi = {
     totalUnits: number;
     amenities?: string[];
     images?: PropertyImage[];
+    videos?: string[];
     units?: Array<{
       unitNumber: string;
       bedrooms: number;
@@ -988,9 +990,34 @@ export const landlordApi = {
       defaultFees?: UnitFees;
     }>;
   }): Promise<Property> {
-    const res = await api.post("/properties", body);
+    // Backend expects flat image URLs, not the {url, publicId, isPrimary}
+    // shape we use on the client (where isPrimary helps render the first
+    // photo prominently). Strip down to URLs at the boundary.
+    const payload = {
+      ...body,
+      images: body.images?.map((i) => i.url),
+    };
+    const res = await api.post("/properties", payload);
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
+  },
+  async uploadPropertyImage(file: File): Promise<{ url: string; publicId: string }> {
+    const form = new FormData();
+    form.append("image", file);
+    const res = await api.post("/properties/upload-image", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const data = unwrap(res.data) as { imageUrl: string; publicId: string };
+    return { url: data.imageUrl, publicId: data.publicId };
+  },
+  async uploadPropertyVideo(file: File): Promise<{ url: string; publicId: string }> {
+    const form = new FormData();
+    form.append("video", file);
+    const res = await api.post("/properties/upload-video", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const data = unwrap(res.data) as { videoUrl: string; publicId: string };
+    return { url: data.videoUrl, publicId: data.publicId };
   },
   async deleteProperty(id: string): Promise<void> {
     await api.delete(`/properties/${id}`);
