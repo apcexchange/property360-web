@@ -1007,8 +1007,15 @@ export const landlordApi = {
     const res = await api.post("/properties/upload-image", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    const data = unwrap(res.data) as { imageUrl: string; publicId: string };
-    return { url: data.imageUrl, publicId: data.publicId };
+    const data = unwrap(res.data) as { imageUrl?: string; publicId?: string };
+    // Fail loud rather than letting undefined propagate into state — the
+    // caller then renders `url.split(...)` on undefined and crashes the
+    // tree. Server should have returned the upload URL on a 200; if it
+    // didn't, that's an upstream bug we want surfaced as a toast.
+    if (!data?.imageUrl) {
+      throw new Error("Upload succeeded but no image URL was returned");
+    }
+    return { url: data.imageUrl, publicId: data.publicId ?? "" };
   },
   async uploadPropertyVideo(file: File): Promise<{ url: string; publicId: string }> {
     const form = new FormData();
@@ -1016,8 +1023,11 @@ export const landlordApi = {
     const res = await api.post("/properties/upload-video", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    const data = unwrap(res.data) as { videoUrl: string; publicId: string };
-    return { url: data.videoUrl, publicId: data.publicId };
+    const data = unwrap(res.data) as { videoUrl?: string; publicId?: string };
+    if (!data?.videoUrl) {
+      throw new Error("Upload succeeded but no video URL was returned");
+    }
+    return { url: data.videoUrl, publicId: data.publicId ?? "" };
   },
   async deleteProperty(id: string): Promise<void> {
     await api.delete(`/properties/${id}`);
