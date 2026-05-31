@@ -349,6 +349,17 @@ function UnitRow({ u }: { u: Unit }) {
   );
 }
 
+// Pull a readable filename out of a Cloudinary (or other CDN) URL —
+// defensive against empty strings / non-string values that defeated
+// the original `url.split('/').pop()` and crashed the tree on
+// production. Always returns a printable string.
+function videoFilename(url: unknown): string {
+  if (typeof url !== "string" || url.length === 0) return "Video";
+  const stripped = url.split(/[?#]/, 1)[0];
+  const last = stripped.split("/").pop();
+  return last && last.length > 0 ? last : "Video";
+}
+
 /**
  * Editable media gallery for an existing property. Lets the landlord
  * add/remove photos and videos after creation — the only feature that
@@ -373,8 +384,17 @@ function PropertyMediaCard({
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [savingPatch, setSavingPatch] = useState(false);
 
-  const images: PropertyImage[] = property.images ?? [];
-  const videos: string[] = property.videos ?? [];
+  // Guard against null / "" entries the server might have written from
+  // older code paths or partial uploads — `url.split(...)` etc. need a
+  // real string. Defensive coercion here is cheaper than scattering
+  // null-checks through every render branch.
+  const images: PropertyImage[] = (property.images ?? []).filter(
+    (i): i is PropertyImage =>
+      !!i && typeof i.url === "string" && i.url.length > 0
+  );
+  const videos: string[] = (property.videos ?? []).filter(
+    (v): v is string => typeof v === "string" && v.length > 0
+  );
   const hasMedia = images.length > 0 || videos.length > 0;
 
   // Persist whichever array changed. Backend's PUT /properties/:id
@@ -572,7 +592,7 @@ function PropertyMediaCard({
                 <VideoIcon className="h-4 w-4" />
               </span>
               <p className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-foundation-700">
-                {url.split("/").pop() ?? "Video"}
+                {videoFilename(url)}
               </p>
               <button
                 type="button"
