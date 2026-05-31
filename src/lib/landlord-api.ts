@@ -1022,6 +1022,27 @@ export const landlordApi = {
   async deleteProperty(id: string): Promise<void> {
     await api.delete(`/properties/${id}`);
   },
+  /**
+   * Patch property fields. Sends only the keys provided. Media arrays
+   * (images, videos) replace whatever's on the server, so callers must
+   * pass the full desired array — append the new URL when adding, omit
+   * a URL when removing.
+   */
+  async updateProperty(
+    id: string,
+    patch: {
+      name?: string;
+      description?: string;
+      images?: string[];
+      videos?: string[];
+      amenities?: string[];
+      currentValue?: number;
+    }
+  ): Promise<Property> {
+    const res = await api.put(`/properties/${id}`, patch);
+    const data = unwrap(res.data);
+    return ((data as { property?: Property }).property ?? data) as Property;
+  },
 
   // Tenants / leases
   async listTenants(): Promise<Array<{
