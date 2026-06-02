@@ -77,7 +77,9 @@ product-led/bold). User picked product-led, then refined to a white base.
      - **Property360** — in-progress (own project; link to repo/landing or mark "coming soon")
    - Grid closes with a "+ more" note (covers the rest of the 15+ that are not
      individually linked).
-5. **About** — 2–3 line bio derived from CV professional summary.
+5. **About** — 2–3 line bio derived from CV professional summary, paired with
+   the **headshot** (rounded, soft shadow, beside the text). A small avatar
+   version also appears in the footer. Headshot file lives in `/public`.
 6. **Skills** — grouped tag clusters:
    - Languages: React Native, TypeScript, JavaScript
    - State/Data: Redux Toolkit, Redux-Saga, React Query
