@@ -58,14 +58,23 @@ product-led/bold). User picked product-led, then refined to a white base.
    - Responsive grid of app cards. Each card: app icon/color, name, one-line
      description, tech tags, and store badges (**App Store** and/or **Google
      Play**) linking to the live listing.
-   - Confirmed apps (App Store links provided):
-     - **V by VFD** — https://apps.apple.com/ng/app/v-by-vfd/id1462870303
-     - **Switch by Sterling** — https://apps.apple.com/ng/app/switch-by-sterling/id1494153941
-     - **Finna Stablecoin Wallet** — https://apps.apple.com/ng/app/finna-stablecoin-wallet/id6483920894
-     - **Wowzi for Creators** — https://apps.apple.com/ng/app/wowzi-for-creators/id1635743764
-     - **AbbeyMobile** — https://apps.apple.com/ng/app/abbeymobile/id1604213434
+   - Confirmed apps (both App Store + Google Play links provided):
+     - **V by VFD**
+       - iOS: https://apps.apple.com/ng/app/v-by-vfd/id1462870303
+       - Android: https://play.google.com/store/apps/details?id=com.vfd.app
+     - **Switch by Sterling**
+       - iOS: https://apps.apple.com/ng/app/switch-by-sterling/id1494153941
+       - Android: https://play.google.com/store/apps/details?id=ng.sterling.sterlingswitch
+     - **Finna Stablecoin Wallet**
+       - iOS: https://apps.apple.com/ng/app/finna-stablecoin-wallet/id6483920894
+       - Android: https://play.google.com/store/apps/details?id=com.finna.protocol
+     - **Wowzi for Creators**
+       - iOS: https://apps.apple.com/ng/app/wowzi-for-creators/id1635743764
+       - Android: https://play.google.com/store/apps/details?id=co.threewin.wowzi.app
+     - **AbbeyMobile**
+       - iOS: https://apps.apple.com/ng/app/abbeymobile/id1604213434
+       - Android: https://play.google.com/store/apps/details?id=com.abbey.app
      - **Property360** — in-progress (own project; link to repo/landing or mark "coming soon")
-   - Play Store links to be added per-app as the user supplies them.
    - Grid closes with a "+ more" note (covers the rest of the 15+ that are not
      individually linked).
 5. **About** — 2–3 line bio derived from CV professional summary.
