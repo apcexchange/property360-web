@@ -62,7 +62,7 @@ export default function WalletPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
                   Available balance
                 </p>
-                <p className="mt-3 font-display text-[28px] font-extrabold leading-none text-foundation-700">
+                <p className="mt-3 font-amount text-[28px] font-extrabold leading-none text-foundation-700">
                   {formatNgn(wallet.data.balance)}
                 </p>
               </Card>
@@ -70,7 +70,7 @@ export default function WalletPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
                   Pending
                 </p>
-                <p className="mt-3 font-display text-[28px] font-extrabold leading-none text-foundation-700">
+                <p className="mt-3 font-amount text-[28px] font-extrabold leading-none text-foundation-700">
                   {formatNgn(wallet.data.pendingBalance)}
                 </p>
                 <p className="mt-2 text-[11.5px] text-ink-muted">
@@ -81,7 +81,7 @@ export default function WalletPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
                   Total earned
                 </p>
-                <p className="mt-3 font-display text-[28px] font-extrabold leading-none text-foundation-700">
+                <p className="mt-3 font-amount text-[28px] font-extrabold leading-none text-foundation-700">
                   {formatNgn(wallet.data.totalEarned)}
                 </p>
               </Card>
@@ -89,7 +89,7 @@ export default function WalletPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
                   Paid out
                 </p>
-                <p className="mt-3 font-display text-[28px] font-extrabold leading-none text-foundation-700">
+                <p className="mt-3 font-amount text-[28px] font-extrabold leading-none text-foundation-700">
                   {formatNgn(wallet.data.totalPaidOut)}
                 </p>
               </Card>

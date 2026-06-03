@@ -11,28 +11,34 @@ interface StepDef {
   label: string;
 }
 
-const ALL_STEPS: StepDef[] = [
+// Active flow: role → account → verify (email OTP) → done. Mobile mirrors
+// this. "plan" is still accepted as a currentStep value for legacy pages
+// but doesn't render in the rail (subscription selection lives at /billing
+// post-signup).
+const STEPS: StepDef[] = [
   { id: "role", label: "Role" },
   { id: "account", label: "Account" },
   { id: "verify", label: "Verify" },
-  { id: "plan", label: "Plan" },
   { id: "done", label: "Done" },
 ];
 
 export function OnboardingShell({
   currentStep,
-  includesPlan = true,
+  // Kept for backwards-compat with callers that still pass it; the prop is
+  // now a no-op since "plan" is no longer part of the rail at all.
+  includesPlan: _includesPlan = true,
   children,
 }: {
   currentStep: OnboardingStep;
-  /** Tenants/agents skip the plan step — pass false to hide it from the rail. */
   includesPlan?: boolean;
   children: ReactNode;
 }) {
-  const steps = includesPlan
-    ? ALL_STEPS
-    : ALL_STEPS.filter((s) => s.id !== "plan");
-  const currentIndex = steps.findIndex((s) => s.id === currentStep);
+  const steps = STEPS;
+  // "plan" no longer renders in the rail; map it to "account" so the
+  // indicator still highlights something sensible for any legacy callers.
+  const visibleStep: OnboardingStep =
+    currentStep === "plan" ? "account" : currentStep;
+  const currentIndex = steps.findIndex((s) => s.id === visibleStep);
 
   return (
     <div className="min-h-screen bg-paper text-foundation-700">

@@ -70,10 +70,10 @@ export default function AgentsPage() {
             Sign up →
           </Link>
           <Link
-            href="/landlord"
+            href="/for-agencies"
             className="inline-flex items-center gap-1 text-[13.5px] font-semibold text-foundation-700 transition hover:text-foundation-900"
           >
-            How landlords assign agents →
+            Running an agency? See the agency one-pager →
           </Link>
         </div>
       </PageHero>

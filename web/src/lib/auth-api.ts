@@ -12,6 +12,8 @@ export interface RegisterPayload {
   password: string;
   phone: string;
   role: UserRole;
+  /** Optional referral code from /onboarding?ref=… — backend silently ignores invalid codes. */
+  referralCode?: string;
 }
 
 export interface AuthResponse {
@@ -60,5 +62,48 @@ export const authApi = {
     const res = await api.post("/auth/otp/verify", { type, value, otp });
     const data = unwrap(res.data) as { verified: boolean };
     return !!data?.verified;
+  },
+
+  /**
+   * Resend the email-verification OTP to the currently signed-in user. The
+   * first one is sent automatically by /auth/register; this is for the
+   * "didn't get it?" button on the verify-email screen.
+   */
+  async resendEmailVerification(): Promise<void> {
+    await api.post("/auth/email/send-verification");
+  },
+
+  /**
+   * Submit the 6-digit code from the verify-email screen. On success the
+   * backend flips emailVerified=true and returns the updated user; we mirror
+   * that into the local session so the UI unblocks immediately.
+   */
+  async verifyEmail(code: string): Promise<AdminUser> {
+    const res = await api.post("/auth/email/verify", { code });
+    const data = unwrap(res.data) as { user: AdminUser };
+    if (!data?.user) {
+      throw new Error("Verify email failed: unexpected response.");
+    }
+    // Reuse the existing token; only the user shape changes.
+    const token = session.getToken();
+    if (token) session.set(token, data.user);
+    return data.user;
+  },
+
+  /** Send an SMS OTP to the signed-in user's phone (in-app phone-verify modal). */
+  async sendPhoneVerification(): Promise<void> {
+    await api.post("/auth/phone/send-verification");
+  },
+
+  /** Verify the SMS code; on success flips phoneVerified=true on the user. */
+  async verifyPhone(code: string): Promise<AdminUser> {
+    const res = await api.post("/auth/phone/verify", { code });
+    const data = unwrap(res.data) as { user: AdminUser };
+    if (!data?.user) {
+      throw new Error("Verify phone failed: unexpected response.");
+    }
+    const token = session.getToken();
+    if (token) session.set(token, data.user);
+    return data.user;
   },
 };

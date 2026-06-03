@@ -34,7 +34,13 @@ import {
   QUIT_NOTICE_REASON_LABELS,
   GuarantorRequest,
   GuarantorRequestAddressee,
+  TenantProfileField,
+  TenantProfileRequest,
+  TenantProfileSnapshot,
+  TENANT_PROFILE_FIELD_LABELS,
 } from "@/lib/landlord-api";
+import { RequestTenantProfileModal } from "@/components/app/RequestTenantProfileModal";
+import { EditTenantProfileForm } from "@/components/app/EditTenantProfileForm";
 import { useToast } from "@/components/ui/Toast";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 import { NIGERIA_STATES } from "@/lib/nigeria-locations";
@@ -77,6 +83,16 @@ function LeaseDetailInner() {
   const quitNotices = useQuery({
     queryKey: ["quit-notices", id],
     queryFn: () => landlordApi.listQuitNotices(id),
+    enabled: !!id,
+  });
+  const tenantProfile = useQuery({
+    queryKey: ["tenant-profile", id],
+    queryFn: () => landlordApi.getTenantProfileForLease(id),
+    enabled: !!id,
+  });
+  const tenantProfileRequests = useQuery({
+    queryKey: ["tenant-profile-requests", id],
+    queryFn: () => landlordApi.listTenantProfileRequests(id),
     enabled: !!id,
   });
 
@@ -208,6 +224,19 @@ function LeaseDetailInner() {
               </div>
             </div>
 
+            <div className="mt-8">
+              <AutoInvoiceCard leaseId={id} lease={lease} />
+            </div>
+
+            <div className="mt-8">
+              <TenantProfileSection
+                leaseId={id}
+                profile={tenantProfile.data ?? null}
+                loading={tenantProfile.isLoading}
+                requests={tenantProfileRequests.data ?? []}
+              />
+            </div>
+
             <div className="mt-8 grid gap-6 lg:grid-cols-2">
               <PaymentHistorySection
                 payments={payments.data}
@@ -236,6 +265,318 @@ function LeaseDetailInner() {
         )}
       </PageContainer>
     </>
+  );
+}
+
+function TenantProfileSection({
+  leaseId,
+  profile,
+  loading,
+  requests,
+}: {
+  leaseId: string;
+  profile: TenantProfileSnapshot | null;
+  loading: boolean;
+  requests: TenantProfileRequest[];
+}) {
+  const [showRequest, setShowRequest] = useState(false);
+  const [showFill, setShowFill] = useState(false);
+  const toast = useToast();
+  const qc = useQueryClient();
+  const pending = requests.find((r) => r.status === "pending") ?? null;
+
+  const cancel = useMutation({
+    mutationFn: (id: string) => landlordApi.cancelTenantProfileRequest(id),
+    onSuccess: () => {
+      toast.success({ title: "Request cancelled" });
+      qc.invalidateQueries({
+        queryKey: ["tenant-profile-requests", leaseId],
+      });
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as AxiosError<{ message?: string }>).response?.data?.message ??
+        "Couldn't cancel the request";
+      toast.error({ title: "Couldn't cancel", body: msg });
+    },
+  });
+
+  const filledFields: TenantProfileField[] = profile
+    ? [
+        profile.avatar ? "avatar" : null,
+        profile.dateOfBirth ? "dateOfBirth" : null,
+        profile.occupation ? "occupation" : null,
+        profile.nin ? "nin" : null,
+        profile.address?.street || profile.address?.city || profile.address?.state
+          ? "currentAddress"
+          : null,
+        profile.kyc?.selfieUrl ? "kycSelfie" : null,
+        profile.kyc?.document?.imageUrl ? "idDocument" : null,
+      ].filter((f): f is TenantProfileField => !!f)
+    : [];
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-foundation-700/10 px-5 py-4">
+        <div>
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+            Tenant profile
+          </h2>
+          {pending && (
+            <p className="mt-1 text-[12px] text-ink-muted">
+              <StatusPill label="Request sent" tone="info" />{" "}
+              <span className="ml-1">Sent {formatDate(pending.createdAt)}</span>
+            </p>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {pending ? (
+            <button
+              type="button"
+              onClick={() => cancel.mutate(pending._id)}
+              disabled={cancel.isPending}
+              className="rounded-full border border-foundation-700/15 bg-paper px-4 py-1.5 text-[12px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+            >
+              Cancel request
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowRequest(true)}
+              className="rounded-full border border-foundation-700/15 bg-paper px-4 py-1.5 text-[12px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              Request from tenant
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowFill(true)}
+            className="rounded-full bg-foundation-700 px-4 py-1.5 text-[12px] font-semibold text-paper transition hover:bg-foundation-800"
+          >
+            Fill in myself
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="p-5">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="mt-3 h-4 w-1/2" />
+        </div>
+      ) : !profile ? (
+        <div className="p-5">
+          <p className="text-[13px] text-ink-muted">
+            No profile info on file yet.
+          </p>
+        </div>
+      ) : (
+        <div className="px-5 py-5">
+          <div className="flex flex-wrap items-start gap-4">
+            {profile.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar}
+                alt={`${profile.firstName} ${profile.lastName}`}
+                className="h-16 w-16 rounded-2xl object-cover"
+              />
+            ) : (
+              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-foundation-700/10 text-[18px] font-bold text-foundation-700">
+                {(profile.firstName?.[0] ?? "?").toUpperCase()}
+              </div>
+            )}
+            <div className="flex-1">
+              <p className="font-display text-[18px] font-bold text-foundation-700">
+                {profile.firstName} {profile.lastName}
+              </p>
+              <p className="text-[12.5px] text-ink-muted">
+                {profile.email}
+                {profile.phone ? ` · ${profile.phone}` : ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.dateOfBirth}
+              value={
+                profile.dateOfBirth
+                  ? formatDate(profile.dateOfBirth)
+                  : null
+              }
+            />
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.occupation}
+              value={profile.occupation ?? null}
+            />
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.nin}
+              value={profile.nin ?? null}
+            />
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.currentAddress}
+              value={
+                [
+                  profile.address?.street,
+                  profile.address?.city,
+                  profile.address?.state,
+                ]
+                  .filter(Boolean)
+                  .join(", ") || null
+              }
+            />
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.idDocument}
+              value={
+                profile.kyc?.document?.imageUrl
+                  ? `${profile.kyc.document.type ?? "ID"}${
+                      profile.kyc.document.number
+                        ? `: ${profile.kyc.document.number}`
+                        : ""
+                    }`
+                  : null
+              }
+            />
+            <ProfileFact
+              label={TENANT_PROFILE_FIELD_LABELS.kycSelfie}
+              value={profile.kyc?.selfieUrl ? "Uploaded" : null}
+            />
+          </div>
+        </div>
+      )}
+
+      {showRequest && (
+        <RequestTenantProfileModal
+          leaseId={leaseId}
+          filledFields={filledFields}
+          onClose={() => setShowRequest(false)}
+        />
+      )}
+      {showFill && (
+        <EditTenantProfileForm
+          leaseId={leaseId}
+          initial={profile}
+          onClose={() => setShowFill(false)}
+        />
+      )}
+    </Card>
+  );
+}
+
+function ProfileFact({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border px-3.5 py-3 ${
+        value
+          ? "border-foundation-700/10 bg-paper"
+          : "border-dashed border-foundation-700/15 bg-foundation-700/5"
+      }`}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+        {label}
+      </p>
+      <p
+        className={`mt-1 text-[13px] ${
+          value ? "text-foundation-700" : "italic text-ink-muted"
+        }`}
+      >
+        {value ?? "Not on file"}
+      </p>
+    </div>
+  );
+}
+
+function AutoInvoiceCard({
+  leaseId,
+  lease,
+}: {
+  leaseId: string;
+  lease: {
+    autoGenerateInvoice?: boolean;
+    nextInvoiceDate?: string | null;
+    gracePeriodDays?: number | null;
+    paymentFrequency: string;
+    rentAmount: number;
+  };
+}) {
+  const toast = useToast();
+  const qc = useQueryClient();
+  const enabled = lease.autoGenerateInvoice === true;
+
+  const setAuto = useMutation({
+    mutationFn: (body: { enabled: boolean }) =>
+      landlordApi.setAutoInvoice(leaseId, body),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["occupied-units"] });
+      toast.success({
+        title: res.autoGenerateInvoice
+          ? "Auto-billing on"
+          : "Auto-billing off",
+        body: res.autoGenerateInvoice
+          ? `Next invoice ${
+              res.nextInvoiceDate
+                ? "drafts on " + formatDate(res.nextInvoiceDate)
+                : "will draft soon"
+            }`
+          : "Recurring rent invoices won't be drafted automatically",
+      });
+    },
+    onError: (err) => {
+      const msg =
+        err instanceof AxiosError
+          ? (err.response?.data as { message?: string })?.message
+          : null;
+      toast.error(msg || "Couldn't update auto-billing");
+    },
+  });
+
+  return (
+    <Card className="p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+            Auto-billing
+          </p>
+          <p className="mt-1.5 text-[15px] font-semibold text-foundation-700">
+            {enabled
+              ? "On — invoices draft and email automatically"
+              : "Off — invoices are created manually"}
+          </p>
+          <p className="mt-1 text-[12.5px] text-ink-muted">
+            {enabled
+              ? `${formatNgn(lease.rentAmount)} per ${
+                  lease.paymentFrequency
+                } drafts overnight, then emails the tenant.${
+                  lease.nextInvoiceDate
+                    ? ` Next draft: ${formatDate(lease.nextInvoiceDate)}.`
+                    : ""
+                }`
+              : "Toggle on to have Property360 draft and email the next rent invoice on schedule. You can turn it off any time."}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setAuto.mutate({ enabled: !enabled })}
+          disabled={setAuto.isPending}
+          className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition disabled:opacity-50 ${
+            enabled ? "bg-foundation-700" : "bg-foundation-700/15"
+          }`}
+          aria-pressed={enabled}
+          aria-label="Toggle auto-billing"
+        >
+          <span
+            className={`inline-block h-5 w-5 transform rounded-full bg-paper shadow transition ${
+              enabled ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      </div>
+    </Card>
   );
 }
 

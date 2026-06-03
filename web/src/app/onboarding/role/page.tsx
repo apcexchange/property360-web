@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Home, Key, Briefcase } from "lucide-react";
@@ -36,6 +37,18 @@ const ROLES: {
 export default function RolePage() {
   const router = useRouter();
   const { state, update, ready } = useOnboardingState();
+
+  useEffect(() => {
+    if (!ready) return;
+    const ref = new URLSearchParams(window.location.search)
+      .get("ref")
+      ?.trim()
+      .toUpperCase();
+    if (ref && ref !== state.referralCode) {
+      update({ referralCode: ref });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   function pick(role: UserRole) {
     update({ role });

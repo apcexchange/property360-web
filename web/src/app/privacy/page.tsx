@@ -71,8 +71,7 @@ export default function PrivacyPage() {
         <li><strong>Paystack Payments Limited</strong> — card, bank transfer, and USSD payment processing; landlord payouts via the Paystack Transfer API. (Nigeria)</li>
         <li><strong>Cloudinary Ltd.</strong> — storage and delivery of images and PDF documents you upload (profile photos, tenancy agreements, maintenance photos). (Israel / EU / US)</li>
         <li><strong>Google LLC — Document AI</strong> — OCR processing of uploaded tenancy agreements to extract structured fields. Documents are processed in transit and not retained by Google for model training. (US / EU)</li>
-        <li><strong>DocuSeal</strong> — electronic signing of tenancy agreements. Signers&apos; name, email, and signature are shared. (EU / US)</li>
-        <li><strong>Resend, Inc.</strong> — delivery of transactional email (e.g. password reset, invoice notifications). (US)</li>
+        <li><strong>Resend, Inc.</strong> — delivery of transactional email (e.g. password reset, invoice notifications, signed agreements). (US)</li>
         <li><strong>MongoDB, Inc. — Atlas (Frankfurt region)</strong> — primary database hosting. (Germany / EU)</li>
         <li><strong>Render Services, Inc.</strong> — application hosting for the API. (Germany / EU)</li>
         <li><strong>Apple Inc.</strong> and <strong>Google LLC</strong> — mobile push notification delivery via APNs and FCM respectively.</li>

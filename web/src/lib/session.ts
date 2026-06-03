@@ -11,6 +11,11 @@ export interface AdminUser {
   firstName: string;
   lastName: string;
   role: string;
+  phone?: string;
+  // Self-serve verification flags. Email must be verified before the user
+  // can reach the dashboard; phone is optional and prompted in-app.
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
 }
 
 // Cache the parsed user keyed by the raw localStorage string. React's

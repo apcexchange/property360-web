@@ -63,3 +63,16 @@ mobile/android/app/keystore/
 #   mobile/  → apcexchange/property360-mobile.git
 backend/
 mobile/
+
+# Presentation & content-creation artifacts — kept local, not committed.
+# Marketing collateral, pitch decks, outreach copy, generated social
+# images/banners, the content-gen skill, and brainstorm/browser scratch.
+# These are collateral, not product code.
+/docs/launch/
+/web/public/launch/
+/pitch-deck/
+/web/marketing/
+/.playwright-mcp/
+/.superpowers/
+/.claude/skills/property360-launch-content/
+/_loader.png

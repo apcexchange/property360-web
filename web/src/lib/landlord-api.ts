@@ -18,7 +18,16 @@ export interface PropertyImage {
   isPrimary?: boolean;
 }
 
-export type PropertyType = "apartment" | "house" | "commercial" | "land" | "bungalow";
+export type PropertyType =
+  | "residential"
+  | "hostel"
+  | "shop"
+  | "commercial"
+  // Legacy values pre-existing rows may still carry.
+  | "apartment"
+  | "house"
+  | "bungalow"
+  | "land";
 
 export interface Property {
   _id: string;
@@ -30,6 +39,7 @@ export interface Property {
   totalUnits: number;
   amenities?: string[];
   images?: PropertyImage[];
+  videos?: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -111,6 +121,8 @@ export interface Tenant {
 export type LeaseStatus = "pending" | "active" | "expired" | "terminated" | "declined";
 export type PaymentFrequency = "monthly" | "quarterly" | "annually";
 
+export type LateFeeType = "none" | "fixed" | "percentage";
+
 export interface Lease {
   _id: string;
   property: string | Property;
@@ -123,6 +135,13 @@ export interface Lease {
   paymentFrequency: PaymentFrequency;
   status: LeaseStatus;
   fees?: UnitFees;
+  // Recurring billing — when true, the nightly cron drafts and emails
+  // the next rent invoice as `nextInvoiceDate` passes.
+  autoGenerateInvoice?: boolean;
+  nextInvoiceDate?: string;
+  gracePeriodDays?: number;
+  lateFeeType?: LateFeeType;
+  lateFeeValue?: number;
   createdAt: string;
 }
 
@@ -139,6 +158,11 @@ export interface LeaseSummary {
   rentAmount: number;
   paymentFrequency: PaymentFrequency;
   status: LeaseStatus;
+  autoGenerateInvoice?: boolean;
+  nextInvoiceDate?: string | null;
+  gracePeriodDays?: number | null;
+  lateFeeType?: LateFeeType;
+  lateFeeValue?: number;
 }
 
 /** Slimmed property/unit/tenant shapes that /tenants/occupied-units returns. */
@@ -194,7 +218,82 @@ export interface Invoice {
   dueDate: string;
   status: InvoiceStatus;
   notes?: string;
+  pdfUrl?: string;
+  pdfGeneratedAt?: string;
+  sentAt?: string;
+  paidAt?: string;
   createdAt: string;
+}
+
+export type ReceiptPaymentMethod =
+  | "cash"
+  | "bank_transfer"
+  | "cheque"
+  | "mobile_money"
+  | "card"
+  | "other";
+
+export interface Receipt {
+  _id: string;
+  id?: string;
+  receiptNumber: string;
+  transaction: string | { _id: string; amount: number };
+  invoice?:
+    | string
+    | { _id: string; invoiceNumber: string; total: number; amountPaid: number; amountDue: number }
+    | null;
+  tenant:
+    | string
+    | { _id: string; firstName: string; lastName: string; email: string; phone?: string };
+  landlord: string | { _id: string; firstName: string; lastName: string };
+  property: string | { _id: string; name: string; address?: Address };
+  unit?: string | { _id: string; unitNumber: string };
+  amount: number;
+  paymentMethod: ReceiptPaymentMethod;
+  paymentDate: string;
+  description: string;
+  issuedAt: string;
+  emailedAt?: string;
+  emailedTo?: string;
+  pdfUrl?: string;
+  pdfGeneratedAt?: string;
+  createdAt: string;
+}
+
+export type MaintenanceStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export type MaintenancePriority = "low" | "medium" | "high" | "urgent";
+
+export interface MaintenanceRequest {
+  _id: string;
+  title: string;
+  description: string;
+  priority: MaintenancePriority;
+  status: MaintenanceStatus;
+  images: string[];
+  property: { _id: string; name: string; address?: Address } | string;
+  unit: { _id: string; unitNumber: string } | string;
+  tenant:
+    | {
+        _id: string;
+        firstName: string;
+        lastName: string;
+        email?: string;
+        phone?: string;
+        avatar?: string;
+      }
+    | string;
+  assignedTo?:
+    | { _id: string; firstName: string; lastName: string; email?: string }
+    | string
+    | null;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface WalletSummary {
@@ -345,8 +444,6 @@ export interface TenancyAgreement {
   signedDocumentUrl?: string;
   signedDocumentPublicId?: string;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled";
-  signingProvider?: "docuseal";
-  signingId?: string;
   signedAt?: string;
   /** Clickwrap signing — set when the tenant typed-name signs in-app. */
   tenantAcknowledged?: boolean;
@@ -468,6 +565,85 @@ export interface QuitNotice {
   withdrawReason?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ----- Tenant profile-info request -----
+export type TenantProfileField =
+  | "avatar"
+  | "dateOfBirth"
+  | "currentAddress"
+  | "nin"
+  | "idDocument"
+  | "kycSelfie"
+  | "occupation";
+
+export const TENANT_PROFILE_FIELD_LABELS: Record<TenantProfileField, string> = {
+  avatar: "Profile photo",
+  dateOfBirth: "Date of birth",
+  currentAddress: "Current address",
+  nin: "NIN",
+  idDocument: "ID document",
+  kycSelfie: "Verification selfie",
+  occupation: "Occupation",
+};
+
+export type TenantProfileRequestStatus =
+  | "pending"
+  | "submitted"
+  | "expired"
+  | "cancelled";
+
+export interface TenantProfileRequest {
+  _id: string;
+  id?: string;
+  lease: string;
+  property: string;
+  unit: string;
+  tenant: string;
+  landlord: string;
+  requestedBy: string;
+  requestedFields: TenantProfileField[];
+  message?: string;
+  status: TenantProfileRequestStatus;
+  submittedAt?: string;
+  tokenExpiresAt: string;
+  submittedSnapshot?: Partial<Record<TenantProfileField, unknown>>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Profile fields populated on the tenant's User document — what the
+ * landlord's "Tenant profile" card on the lease detail page renders.
+ * Mirrors the existing IUser shape; only the requestable fields are
+ * exposed here.
+ */
+export interface TenantProfileSnapshot {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  dateOfBirth?: string;
+  occupation?: string;
+  nin?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+  };
+  kyc?: {
+    status?: KycStatus;
+    selfieUrl?: string;
+    document?: {
+      type?: "nin" | "drivers" | "passport" | "voters";
+      number?: string;
+      imageUrl?: string;
+      uploadedAt?: string;
+    };
+  };
 }
 
 export interface Listing {
@@ -743,7 +919,22 @@ function asList<T>(data: unknown): T[] {
   return [];
 }
 
+export interface ReferralStats {
+  referralCode: string;
+  shareUrl: string;
+  bonusDaysPerSide: number;
+  totalReferred: number;
+  totalPaid: number;
+  totalPending: number;
+  totalBonusDaysEarned: number;
+}
+
 export const landlordApi = {
+  // Referrals
+  async getMyReferral(): Promise<ReferralStats> {
+    const res = await api.get("/referrals/me");
+    return unwrap(res.data) as ReferralStats;
+  },
   // Dashboard
   async dashboardStats(): Promise<DashboardStats> {
     const res = await api.get("/dashboard/stats");
@@ -761,14 +952,23 @@ export const landlordApi = {
   },
   async getProperty(id: string): Promise<{ property: Property; units: Unit[] }> {
     const res = await api.get(`/properties/${id}`);
-    const data = unwrap(res.data) as { property?: Property; units?: Unit[] } | Property;
+    const data = unwrap(res.data) as
+      | { property?: Property; units?: Unit[] }
+      | (Property & { units?: Unit[] });
+    // Two shapes seen in the wild:
+    //   1) { property: {...}, units: [...] } — explicit wrapper
+    //   2) { ...propertyFields, units: [...] } — flat (current backend)
     if (data && typeof data === "object" && "property" in data) {
       return {
         property: data.property as Property,
         units: (data.units as Unit[]) ?? [],
       };
     }
-    return { property: data as Property, units: [] };
+    const flat = data as Property & { units?: Unit[] };
+    return {
+      property: flat as Property,
+      units: (flat.units as Unit[]) ?? [],
+    };
   },
   async createProperty(body: {
     name: string;
@@ -779,6 +979,7 @@ export const landlordApi = {
     totalUnits: number;
     amenities?: string[];
     images?: PropertyImage[];
+    videos?: string[];
     units?: Array<{
       unitNumber: string;
       bedrooms: number;
@@ -789,7 +990,66 @@ export const landlordApi = {
       defaultFees?: UnitFees;
     }>;
   }): Promise<Property> {
-    const res = await api.post("/properties", body);
+    // Backend expects flat image URLs, not the {url, publicId, isPrimary}
+    // shape we use on the client (where isPrimary helps render the first
+    // photo prominently). Strip down to URLs at the boundary.
+    const payload = {
+      ...body,
+      images: body.images?.map((i) => i.url),
+    };
+    const res = await api.post("/properties", payload);
+    const data = unwrap(res.data);
+    return ((data as { property?: Property }).property ?? data) as Property;
+  },
+  async uploadPropertyImage(file: File): Promise<{ url: string; publicId: string }> {
+    const form = new FormData();
+    form.append("image", file);
+    const res = await api.post("/properties/upload-image", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const data = unwrap(res.data) as { imageUrl?: string; publicId?: string };
+    // Fail loud rather than letting undefined propagate into state — the
+    // caller then renders `url.split(...)` on undefined and crashes the
+    // tree. Server should have returned the upload URL on a 200; if it
+    // didn't, that's an upstream bug we want surfaced as a toast.
+    if (!data?.imageUrl) {
+      throw new Error("Upload succeeded but no image URL was returned");
+    }
+    return { url: data.imageUrl, publicId: data.publicId ?? "" };
+  },
+  async uploadPropertyVideo(file: File): Promise<{ url: string; publicId: string }> {
+    const form = new FormData();
+    form.append("video", file);
+    const res = await api.post("/properties/upload-video", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    const data = unwrap(res.data) as { videoUrl?: string; publicId?: string };
+    if (!data?.videoUrl) {
+      throw new Error("Upload succeeded but no video URL was returned");
+    }
+    return { url: data.videoUrl, publicId: data.publicId ?? "" };
+  },
+  async deleteProperty(id: string): Promise<void> {
+    await api.delete(`/properties/${id}`);
+  },
+  /**
+   * Patch property fields. Sends only the keys provided. Media arrays
+   * (images, videos) replace whatever's on the server, so callers must
+   * pass the full desired array — append the new URL when adding, omit
+   * a URL when removing.
+   */
+  async updateProperty(
+    id: string,
+    patch: {
+      name?: string;
+      description?: string;
+      images?: string[];
+      videos?: string[];
+      amenities?: string[];
+      currentValue?: number;
+    }
+  ): Promise<Property> {
+    const res = await api.put(`/properties/${id}`, patch);
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
   },
@@ -858,6 +1118,32 @@ export const landlordApi = {
     const res = await api.get(`/tenants/lease/${leaseId}/payments`);
     return asList(unwrap(res.data));
   },
+  async setAutoInvoice(
+    leaseId: string,
+    body: {
+      enabled: boolean;
+      gracePeriodDays?: number;
+      lateFeeType?: LateFeeType;
+      lateFeeValue?: number;
+    }
+  ): Promise<{
+    leaseId: string;
+    autoGenerateInvoice: boolean;
+    nextInvoiceDate?: string;
+    gracePeriodDays?: number;
+    lateFeeType?: LateFeeType;
+    lateFeeValue?: number;
+  }> {
+    const res = await api.put(`/tenants/lease/${leaseId}/auto-invoice`, body);
+    return unwrap(res.data) as {
+      leaseId: string;
+      autoGenerateInvoice: boolean;
+      nextInvoiceDate?: string;
+      gracePeriodDays?: number;
+      lateFeeType?: LateFeeType;
+      lateFeeValue?: number;
+    };
+  },
 
   // Invoices
   async listInvoices(): Promise<Invoice[]> {
@@ -884,6 +1170,68 @@ export const landlordApi = {
   async cancelInvoice(id: string): Promise<Invoice> {
     const res = await api.post(`/invoices/${id}/cancel`);
     return unwrap(res.data) as Invoice;
+  },
+  async sendInvoice(id: string): Promise<Invoice> {
+    const res = await api.post(`/invoices/${id}/send`);
+    return unwrap(res.data) as Invoice;
+  },
+  async emailInvoice(id: string): Promise<{ emailedTo: string; pdfUrl: string }> {
+    const res = await api.post(`/invoices/${id}/email`);
+    return unwrap(res.data) as { emailedTo: string; pdfUrl: string };
+  },
+  async downloadInvoicePdf(id: string): Promise<{ pdfUrl: string }> {
+    const res = await api.get(`/invoices/${id}/pdf`);
+    return unwrap(res.data) as { pdfUrl: string };
+  },
+
+  // Receipts
+  async listReceipts(params?: {
+    page?: number;
+    limit?: number;
+    tenantId?: string;
+    propertyId?: string;
+  }): Promise<Receipt[]> {
+    const res = await api.get("/receipts", { params });
+    return asList<Receipt>(unwrap(res.data));
+  },
+  async getReceipt(id: string): Promise<Receipt> {
+    const res = await api.get(`/receipts/${id}`);
+    return unwrap(res.data) as Receipt;
+  },
+  async emailReceipt(id: string): Promise<{ emailedTo: string; pdfUrl: string }> {
+    const res = await api.post(`/receipts/${id}/email`);
+    return unwrap(res.data) as { emailedTo: string; pdfUrl: string };
+  },
+  async downloadReceiptPdf(id: string): Promise<{ pdfUrl: string }> {
+    const res = await api.get(`/receipts/${id}/pdf`);
+    return unwrap(res.data) as { pdfUrl: string };
+  },
+
+  // Maintenance
+  async listMaintenanceRequests(params?: {
+    status?: MaintenanceStatus;
+    priority?: MaintenancePriority;
+    propertyId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<MaintenanceRequest[]> {
+    const res = await api.get("/maintenance", { params });
+    return asList<MaintenanceRequest>(unwrap(res.data));
+  },
+  async getMaintenanceRequest(id: string): Promise<MaintenanceRequest> {
+    const res = await api.get(`/maintenance/${id}`);
+    return unwrap(res.data) as MaintenanceRequest;
+  },
+  async updateMaintenanceRequest(
+    id: string,
+    body: {
+      status?: MaintenanceStatus;
+      priority?: MaintenancePriority;
+      assignedTo?: string | null;
+    }
+  ): Promise<MaintenanceRequest> {
+    const res = await api.patch(`/maintenance/${id}`, body);
+    return unwrap(res.data) as MaintenanceRequest;
   },
 
   // Wallet
@@ -1111,16 +1459,6 @@ export const landlordApi = {
     );
     return unwrap(res.data) as TenancyAgreement;
   },
-  async sendAgreementForSigning(id: string): Promise<TenancyAgreement> {
-    const res = await api.post(`/tenancy-agreements/${id}/send-for-signing`);
-    return unwrap(res.data) as TenancyAgreement;
-  },
-  async getAgreementSigningLink(
-    id: string
-  ): Promise<{ url: string }> {
-    const res = await api.get(`/tenancy-agreements/${id}/signing-link`);
-    return unwrap(res.data) as { url: string };
-  },
 
   // Quit notices
   async listQuitNotices(leaseId?: string): Promise<QuitNotice[]> {
@@ -1190,6 +1528,50 @@ export const landlordApi = {
   async cancelGuarantorRequest(id: string): Promise<GuarantorRequest> {
     const res = await api.post(`/guarantor-requests/${id}/cancel`);
     return unwrap(res.data) as GuarantorRequest;
+  },
+
+  // Tenant profile-info requests
+  async getTenantProfileForLease(
+    leaseId: string
+  ): Promise<TenantProfileSnapshot> {
+    const res = await api.get(`/tenants/lease/${leaseId}/tenant-profile`);
+    return unwrap(res.data) as TenantProfileSnapshot;
+  },
+  async createTenantProfileRequest(body: {
+    leaseId: string;
+    fields: TenantProfileField[];
+    message?: string;
+  }): Promise<TenantProfileRequest> {
+    const res = await api.post("/tenant-profile-requests", body);
+    return unwrap(res.data) as TenantProfileRequest;
+  },
+  async listTenantProfileRequests(
+    leaseId: string
+  ): Promise<TenantProfileRequest[]> {
+    const res = await api.get(`/tenant-profile-requests/by-lease/${leaseId}`);
+    return asList<TenantProfileRequest>(unwrap(res.data));
+  },
+  async cancelTenantProfileRequest(
+    id: string
+  ): Promise<TenantProfileRequest> {
+    const res = await api.post(`/tenant-profile-requests/${id}/cancel`);
+    return unwrap(res.data) as TenantProfileRequest;
+  },
+  /**
+   * Landlord fills the tenant's profile on their behalf. Multipart so
+   * avatar / kycSelfie / idDocument can be attached. Backend accepts any
+   * subset of the fields — partial updates are fine.
+   */
+  async fillTenantProfile(
+    leaseId: string,
+    payload: FormData
+  ): Promise<TenantProfileSnapshot> {
+    const res = await api.put(
+      `/tenants/lease/${leaseId}/tenant-profile`,
+      payload,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    return unwrap(res.data) as TenantProfileSnapshot;
   },
 
   // Agreement templates
