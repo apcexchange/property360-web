@@ -7,6 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Check, X, Mail, Phone } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
+import { BrandLoader } from "@/components/ui/BrandLoader";
 import {
   PageContainer,
   Card,
@@ -74,7 +75,7 @@ export default function ReservationDetailPage() {
       <PageContainer>
         {!r ? (
           list.isLoading ? (
-            <Card className="p-5">Loading…</Card>
+            <BrandLoader fullScreen={false} />
           ) : (
             <ErrorBox message="Reservation not found." />
           )

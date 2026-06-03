@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, MapPin, Building2 } from "lucide-react";
+import { Plus, MapPin } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -11,7 +11,30 @@ import {
   Skeleton,
   ErrorBox,
 } from "@/components/app/ui";
-import { landlordApi, Property } from "@/lib/landlord-api";
+import { landlordApi, Property, PropertyType } from "@/lib/landlord-api";
+import { getPropertyCoverImage } from "@/lib/propertyImage";
+
+// Display label for a property type. Legacy values (apartment/house/bungalow)
+// roll up into "Residential" so old buildings keep a sensible label.
+function propertyTypeLabel(t: PropertyType | string | undefined): string {
+  switch (t) {
+    case "residential":
+    case "apartment":
+    case "house":
+    case "bungalow":
+      return "Residential";
+    case "hostel":
+      return "Hostel";
+    case "shop":
+      return "Shop";
+    case "commercial":
+      return "Commercial";
+    case "land":
+      return "Land";
+    default:
+      return String(t ?? "—");
+  }
+}
 
 export default function PropertiesPage() {
   const q = useQuery({
@@ -68,25 +91,19 @@ export default function PropertiesPage() {
 }
 
 function PropertyCard({ p }: { p: Property }) {
-  const primary = p.images?.find((i) => i.isPrimary) ?? p.images?.[0];
+  const coverUrl = getPropertyCoverImage(p);
   return (
     <Link
       href={`/app/properties/${p._id}`}
       className="group block overflow-hidden rounded-2xl border border-foundation-700/10 bg-paper transition hover:border-foundation-700/20"
     >
       <div className="aspect-[16/10] w-full overflow-hidden bg-foundation-700/5">
-        {primary?.url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={primary.url}
-            alt={p.name}
-            className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-foundation-700/30">
-            <Building2 className="h-10 w-10" />
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={coverUrl}
+          alt={p.name}
+          className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+        />
       </div>
       <div className="p-4">
         <p className="truncate text-[14.5px] font-semibold text-foundation-700">
@@ -99,7 +116,7 @@ function PropertyCard({ p }: { p: Property }) {
         <div className="mt-3 flex items-center gap-3 text-[11.5px] text-ink-muted">
           <span>{p.totalUnits} unit{p.totalUnits === 1 ? "" : "s"}</span>
           <span>·</span>
-          <span className="capitalize">{p.propertyType}</span>
+          <span className="capitalize">{propertyTypeLabel(p.propertyType)}</span>
         </div>
       </div>
     </Link>

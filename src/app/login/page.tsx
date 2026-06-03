@@ -45,6 +45,10 @@ function LoginInner() {
     setError(null);
     try {
       const res = await authApi.login(identifier.trim(), password);
+      // Email verification is enforced only in the self-service onboarding
+      // flow, not at sign-in. Returning users (incl. mobile-registered and
+      // landlord-created tenants) sign straight in; gating here locked them
+      // out. See web AppAuthGate / me AuthGate and backfillEmailVerified.
       router.replace(safeNext(res.user.role));
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;

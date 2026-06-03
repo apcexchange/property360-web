@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, X, AlertTriangle, Clock } from "lucide-react";
+import { Sparkles, X, AlertTriangle, Clock, Wand2 } from "lucide-react";
 import {
   SubscriptionLimitDetail,
   SubscriptionLimitReason,
@@ -81,7 +81,8 @@ export function SubscriptionLimitModal() {
           </p>
         </div>
 
-        {detail.reason !== "SUBSCRIPTION_EXPIRED" && (
+        {(detail.reason === "PROPERTY_LIMIT_REACHED" ||
+          detail.reason === "AGENT_SEAT_LIMIT_REACHED") && (
           <div className="border-b border-foundation-700/10 px-6 py-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
               Current usage
@@ -106,13 +107,15 @@ export function SubscriptionLimitModal() {
 
         <div className="space-y-3 px-6 py-5">
           <Link
-            href="/billing"
+            href="/app/billing"
             onClick={() => setDetail(null)}
             className="flex w-full items-center justify-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
             <Sparkles className="h-4 w-4" />
             {detail.reason === "SUBSCRIPTION_EXPIRED"
               ? "Reactivate plan"
+              : detail.reason === "AI_FEATURE_NOT_IN_PLAN"
+              ? "Upgrade to Pro"
               : "Upgrade plan"}
           </Link>
           <button
@@ -152,5 +155,11 @@ const META_FOR_REASON: Record<SubscriptionLimitReason, ReasonMeta> = {
     title: "Subscription ended",
     body: () =>
       "Your trial or subscription has ended. Reactivate a plan to add new properties or invite managers. Your existing data is safe.",
+  },
+  AI_FEATURE_NOT_IN_PLAN: {
+    Icon: Wand2,
+    title: "AI drafting is on Pro and above",
+    body: () =>
+      "AI-drafted tenancy agreements are included on the Pro plan and up. You can keep using the manual editor on your current plan — or upgrade to draft and refine with one click.",
   },
 };

@@ -1,88 +1,17 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { BillingInterval } from "@/lib/billing-api";
+import { session } from "@/lib/session";
+import { TIERS, Tier } from "./pricingTiers";
 
-export type Tier = {
-  name: string;
-  tagline: string;
-  monthlyNgn: number | null;
-  annualNgn: number | null; // 20% saving vs monthly × 12; null for trial/custom
-  monthlyLabel?: string;
-  ctaLabel: string;
-  ctaHref: string;
-  highlight?: boolean;
-  trial?: string;
-  features: string[];
-};
-
-export const TIERS: Tier[] = [
-  {
-    name: "Solo",
-    tagline: "For a landlord with one or two properties.",
-    monthlyNgn: 2250,
-    annualNgn: 21600,
-    trial: "14-day free trial",
-    ctaLabel: "Start free trial",
-    ctaHref: "/onboarding",
-    features: [
-      "Up to 2 properties",
-      "Lease + tenancy agreement generation",
-      "Rent collection via Paystack",
-      "Maintenance requests",
-      "Real-time chat with tenants",
-      "Marketplace listings",
-    ],
-  },
-  {
-    name: "Pro",
-    tagline: "For growing landlords and small agencies.",
-    monthlyNgn: 8500,
-    annualNgn: 81600,
-    highlight: true,
-    ctaLabel: "Choose Pro",
-    ctaHref: "/onboarding",
-    features: [
-      "Up to 30 properties",
-      "Everything in Solo",
-      "Up to 5 property manager seats with role permissions",
-      "Per-property financial reports",
-      "Quit notice + receipt templates",
-      "Priority email support",
-    ],
-  },
-  {
-    name: "Agency",
-    tagline: "For property managers operating at scale.",
-    monthlyNgn: 22500,
-    annualNgn: 216000,
-    ctaLabel: "Choose Agency",
-    ctaHref: "/onboarding",
-    features: [
-      "Up to 100 properties",
-      "Everything in Pro",
-      "Unlimited property manager seats",
-      "Bulk lease + invoice operations",
-      "Dedicated onboarding session",
-      "Phone + WhatsApp support",
-    ],
-  },
-  {
-    name: "Custom",
-    tagline: "For enterprises and large portfolios.",
-    monthlyNgn: null,
-    annualNgn: null,
-    monthlyLabel: "Talk to us",
-    ctaLabel: "Contact sales",
-    ctaHref: "/contact",
-    features: [
-      "Unlimited properties + seats",
-      "Custom integrations",
-      "Whitelabel options",
-      "SLA-backed uptime",
-      "Migration assistance",
-    ],
-  },
-];
+// Re-export so existing imports `from "@/components/marketing/PricingTable"`
+// keep working — the data lives in pricingTiers.ts now so server
+// components can import it without crashing the prerender.
+export { TIERS };
+export type { Tier };
 
 export function PricingTable({
   compact = false,
@@ -105,6 +34,37 @@ export function PricingTable({
 }
 
 function TierCard({ tier, interval }: { tier: Tier; interval: BillingInterval }) {
+  // Logged-in landlords / agents should skip the marketing /onboarding
+  // funnel and land straight in the in-app billing page with the picked
+  // tier + interval prefilled. The tenant + anonymous case keeps the
+  // original CTAs (contact, onboarding) untouched.
+  const [mounted, setMounted] = useState(false);
+  const [ctaHref, setCtaHref] = useState(tier.ctaHref);
+  useEffect(() => {
+    setMounted(true);
+    const user = session.getUser();
+    if (
+      user &&
+      (user.role === "landlord" || user.role === "agent") &&
+      tier.monthlyNgn != null
+    ) {
+      const qs = new URLSearchParams({
+        tier: tier.name.toLowerCase(),
+        interval,
+      });
+      setCtaHref(`/app/billing?${qs}`);
+    }
+  }, [tier, interval]);
+
+  const ctaLabel = (() => {
+    if (!mounted) return tier.ctaLabel;
+    const user = session.getUser();
+    if (!user) return tier.ctaLabel;
+    if (user.role !== "landlord" && user.role !== "agent") return tier.ctaLabel;
+    if (tier.monthlyNgn == null) return tier.ctaLabel;
+    return `Choose ${tier.name}`;
+  })();
+
   const isHighlight = !!tier.highlight;
   const price =
     interval === "annual" ? tier.annualNgn : tier.monthlyNgn;
@@ -197,14 +157,14 @@ function TierCard({ tier, interval }: { tier: Tier; interval: BillingInterval })
       </ul>
 
       <Link
-        href={tier.ctaHref}
+        href={ctaHref}
         className={`mt-7 inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${
           isHighlight
             ? "bg-cryola-300 text-foundation-700 hover:bg-cryola-400"
             : "bg-foundation-700 text-paper hover:bg-foundation-800"
         }`}
       >
-        {tier.ctaLabel}
+        {ctaLabel}
       </Link>
     </div>
   );

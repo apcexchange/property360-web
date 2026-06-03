@@ -16,8 +16,8 @@ const pains = [
   },
   {
     n: "03",
-    title: "Your agent says one thing, your tenant says another",
-    body: "No paper trail. No shared truth. Every disagreement turns into he-said-she-said until someone pulls receipts.",
+    title: "30 tenants, one phone, the 1st of the month",
+    body: "Reminders to chase. Receipts to write. Names to remember. Hostels and multi-unit buildings turn one landlord into a part-time clerk. Property360 hands the work back.",
   },
 ];
 

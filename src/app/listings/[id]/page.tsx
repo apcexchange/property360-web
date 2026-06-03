@@ -14,6 +14,7 @@ import {
   listingTitle,
   locationLabel,
 } from "@/lib/listings-api";
+import { ensureCoverImages } from "@/lib/propertyImage";
 
 export const revalidate = 60;
 
@@ -263,14 +264,10 @@ export default async function ListingDetailPage({
 }
 
 function Gallery({ images, alt }: { images: string[]; alt: string }) {
-  if (images.length === 0) {
-    return (
-      <div className="mt-6 grid aspect-[16/8] w-full place-items-center rounded-2xl bg-foundation-700/5 text-[12px] uppercase tracking-[0.18em] text-ink-faint">
-        No photos yet
-      </div>
-    );
-  }
-  const [primary, ...rest] = images;
+  // Fall back to the bundled brand placeholder so the gallery is never
+  // an empty grey box. Public-facing listing detail; the marketplace
+  // is the worst place to look incomplete.
+  const [primary, ...rest] = ensureCoverImages(images);
   return (
     <div className="mt-6 grid gap-3 sm:grid-cols-[1.6fr_1fr]">
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-foundation-700/5">

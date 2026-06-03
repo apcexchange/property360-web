@@ -9,7 +9,7 @@ const claims = [
   "In-app chat",
   "Maintenance with photos",
   "Multi-property, multi-agent",
-  "Built in Lagos",
+  "Built in Nigeria",
 ];
 
 export function TrustStrip() {

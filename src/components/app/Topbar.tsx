@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, ChevronDown, User, Menu } from "lucide-react";
+import { LogOut, ChevronDown, User, Menu, Gift } from "lucide-react";
 import { session } from "@/lib/session";
 import { useSidebar } from "./SidebarContext";
 
@@ -61,8 +61,16 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {actions}
+          <Link
+            href="/app/refer"
+            aria-label="Refer a landlord"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cryola-400/40 bg-cryola-50 px-2.5 py-1.5 text-[12.5px] font-semibold text-foundation-700 transition hover:border-cryola-500/60 hover:bg-cryola-100"
+          >
+            <Gift className="h-4 w-4 text-foundation-700" />
+            <span className="hidden sm:inline">Refer & earn</span>
+          </Link>
           <div ref={wrapRef} className="relative">
             <button
               type="button"
@@ -88,7 +96,7 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
                   </p>
                 </div>
                 <Link
-                  href="/billing"
+                  href="/app/billing"
                   className="flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium text-foundation-700 transition hover:bg-foundation-700/5"
                   onClick={() => setMenuOpen(false)}
                 >

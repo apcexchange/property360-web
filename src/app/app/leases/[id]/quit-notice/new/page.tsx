@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +56,9 @@ function NewQuitNoticeInner() {
   const [reasonDetail, setReasonDetail] = useState("");
   const [period, setPeriod] = useState<number | "">("");
   const [body, setBody] = useState("");
+  // Goes true the moment the user types into the body textarea — once
+  // they've made custom edits we stop overwriting them.
+  const [bodyManuallyEdited, setBodyManuallyEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -70,24 +73,49 @@ function NewQuitNoticeInner() {
     ? `${row.property.name}${row.unit.unitNumber ? `, Unit ${row.unit.unitNumber}` : ""}`
     : "the premises";
 
-  function autofillTemplate() {
+  function buildTemplateBody(): string {
     const expiryDate = new Date(
       Date.now() + effectivePeriod * 24 * 60 * 60 * 1000
     );
     const expiryLine = formatDate(expiryDate.toISOString());
     const reasonText = QUIT_NOTICE_REASON_LABELS[reason];
-    setBody(
+    return (
       `Dear ${tenantName},\n\n` +
-        `Take notice that I, the landlord of ${propertyLine}, hereby require ` +
-        `you to deliver up possession of the premises which you hold of me as my tenant ` +
-        `on or before ${expiryLine}.\n\n` +
-        `This notice is issued on the following grounds: ${reasonText}.\n\n` +
-        (reasonDetail.trim() ? `Further details: ${reasonDetail.trim()}\n\n` : "") +
-        `Failure to deliver up possession on the date specified may result in the ` +
-        `commencement of recovery-of-premises proceedings in accordance with the law.\n\n` +
-        `Yours faithfully,\nThe Landlord`
+      `Take notice that I, the landlord of ${propertyLine}, hereby require ` +
+      `you to deliver up possession of the premises which you hold of me as my tenant ` +
+      `on or before ${expiryLine}.\n\n` +
+      `This notice is issued on the following grounds: ${reasonText}.\n\n` +
+      (reasonDetail.trim() ? `Further details: ${reasonDetail.trim()}\n\n` : "") +
+      `Failure to deliver up possession on the date specified may result in the ` +
+      `commencement of recovery-of-premises proceedings in accordance with the law.\n\n` +
+      `Yours faithfully,\nThe Landlord`
     );
   }
+
+  function autofillTemplate() {
+    setBody(buildTemplateBody());
+    setBodyManuallyEdited(false);
+  }
+
+  // Auto-refresh the suggested body whenever the reason / detail /
+  // period changes, until the user has typed their own edits into the
+  // body. Without this, changing reasonDetail after a first auto-fill
+  // would silently leave "Other" in the body with no further details.
+  useEffect(() => {
+    if (mode !== "template" || bodyManuallyEdited || !row) return;
+    setBody(buildTemplateBody());
+    // buildTemplateBody is a stable closure over the same deps below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    mode,
+    reason,
+    reasonDetail,
+    effectivePeriod,
+    tenantName,
+    propertyLine,
+    row,
+    bodyManuallyEdited,
+  ]);
 
   const issueTemplate = useMutation({
     mutationFn: () =>
@@ -251,13 +279,28 @@ function NewQuitNoticeInner() {
                   </div>
                   <textarea
                     value={body}
-                    onChange={(e) => setBody(e.target.value)}
+                    onChange={(e) => {
+                      setBody(e.target.value);
+                      setBodyManuallyEdited(true);
+                    }}
                     rows={14}
                     placeholder={`Take notice that I, the landlord of …, hereby require you to deliver up possession of the premises …`}
                     className="w-full rounded-xl border border-foundation-700/15 bg-paper p-4 font-mono text-[12.5px] leading-relaxed text-foundation-700"
                   />
                   <p className="mt-2 text-[11.5px] text-ink-muted">
                     Minimum 30 characters. This becomes the body of the served PDF.
+                    {bodyManuallyEdited && (
+                      <>
+                        {" "}
+                        <button
+                          type="button"
+                          onClick={autofillTemplate}
+                          className="font-semibold text-foundation-700 underline hover:no-underline"
+                        >
+                          Reset to suggested template
+                        </button>
+                      </>
+                    )}
                   </p>
                 </div>
               ) : (

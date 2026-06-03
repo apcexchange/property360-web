@@ -6,7 +6,7 @@ import { PricingTable } from "./PricingTable";
 import { IntervalToggle } from "./IntervalToggle";
 
 export function PricingTableWithToggle({
-  initialInterval = "monthly",
+  initialInterval = "annual",
   variant = "light",
 }: {
   initialInterval?: BillingInterval;

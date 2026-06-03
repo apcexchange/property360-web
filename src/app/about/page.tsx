@@ -25,7 +25,7 @@ export default function AboutPage() {
         eyebrow="About"
         title={
           <>
-            Built in Lagos.
+            Built in Nigeria.
             <br />
             <span className="text-cryola-500">For the way Nigeria rents.</span>
           </>

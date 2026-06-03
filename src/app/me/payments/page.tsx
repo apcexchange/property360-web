@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Banknote, CreditCard, X } from "lucide-react";
 import { AxiosError } from "axios";
 import { TenantTopbar } from "@/components/me/Topbar";
+import { BrandLoader } from "@/components/ui/BrandLoader";
 import {
   PageContainer,
   Card,
@@ -28,7 +29,7 @@ import {
 
 export default function PaymentsPage() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-ink-muted">Loading…</div>}>
+    <Suspense fallback={<BrandLoader />}>
       <PaymentsInner />
     </Suspense>
   );

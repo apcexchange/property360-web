@@ -78,6 +78,24 @@ export default function DashboardPage() {
               </div>
             </Card>
           )}
+        {/* Referral nudge — one-line banner, non-intrusive. Hidden once
+            it would compete with the agent-onboarding banner above. */}
+        {!(user?.role === "agent" && stats.data?.totalProperties === 0) && (
+          <Link
+            href="/app/refer"
+            className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-foundation-700/10 bg-cryola-50/70 px-5 py-3 transition hover:border-foundation-700/20"
+          >
+            <p className="text-[13px] text-foundation-700">
+              <span className="font-semibold">Refer a landlord →</span>{" "}
+              Both of you get 30 days free when they pay for their first
+              plan.
+            </p>
+            <span className="text-[12px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4">
+              Get your link
+            </span>
+          </Link>
+        )}
+
         {stats.isError ? (
           <ErrorBox
             message={(stats.error as Error)?.message}

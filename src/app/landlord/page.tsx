@@ -38,7 +38,7 @@ const BENEFITS = [
     icon: FileSignature,
     title: "Tenancy agreements signed in-app.",
     body:
-      "Upload your template once. New tenants sign electronically through DocuSeal — legally binding, time-stamped, and stored against the lease.",
+      "Upload your template once. Tenants sign electronically in-app — typed name plus optional signature image, with timestamp, IP, and document hash captured as evidence. Stored against the lease and downloadable as PDF.",
   },
   {
     icon: Wrench,
@@ -135,10 +135,11 @@ export default function LandlordPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
         <h2 className="mx-auto max-w-2xl font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-          Built in Lagos. Used from Lekki to Port Harcourt.
+          Built in Nigeria, for landlords nationwide.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-[15px] text-ink-muted">
-          Download the app and bring your first property over in under ten minutes.
+          Create your free account and bring your first property over in under
+          ten minutes.
         </p>
         <div className="mt-8">
           <AppStoreButtons align="center" />

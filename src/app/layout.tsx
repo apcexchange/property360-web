@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { CrispChat } from "@/components/CrispChat";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -25,7 +27,7 @@ const jetbrainsMono = JetBrains_Mono({
 const SITE_URL = "https://property360.africa";
 const TITLE = "Property360 — Property management for Nigerian landlords";
 const DESCRIPTION =
-  "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Lagos.";
+  "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Nigeria, for landlords nationwide.";
 
 export const viewport: Viewport = {
   themeColor: "#13272C",
@@ -69,8 +71,8 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
   robots: {
     index: true,
@@ -93,7 +95,7 @@ const jsonLd = {
       "@id": `${SITE_URL}#organization`,
       name: "Property360",
       url: SITE_URL,
-      logo: `${SITE_URL}/icon.svg`,
+      logo: `${SITE_URL}/icon.png`,
       address: {
         "@type": "PostalAddress",
         addressCountry: "NG",
@@ -139,6 +141,8 @@ export default function RootLayout({
     >
       <body className="font-sans">
         <ToastProvider>{children}</ToastProvider>
+        <Analytics />
+        <CrispChat />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
