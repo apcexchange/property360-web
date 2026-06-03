@@ -3,7 +3,13 @@
 import { api, unwrap } from "./api";
 import { session, AdminUser } from "./session";
 
-export type SubscriptionTier = "trial" | "solo" | "pro" | "agency" | "custom";
+export type SubscriptionTier =
+  | "trial"
+  | "solo"
+  | "pro"
+  | "agency"
+  | "custom"
+  | "founding";
 export type SubscriptionStatus =
   | "trialing"
   | "active"
