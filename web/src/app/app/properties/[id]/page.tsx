@@ -77,7 +77,7 @@ export default function PropertyDetailPage() {
         title={property?.name ?? "Property"}
         subtitle={
           property
-            ? `${property.address.city}, ${property.address.state} · ${property.totalUnits} unit${
+            ? `${[property.address?.city, property.address?.state].filter(Boolean).join(", ")} · ${property.totalUnits} unit${
                 property.totalUnits === 1 ? "" : "s"
               }`
             : undefined
@@ -128,9 +128,10 @@ export default function PropertyDetailPage() {
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[13px] text-ink-muted">
                   <MapPin className="h-4 w-4" />
-                  {property.address.street}, {property.address.city},{" "}
-                  {property.address.state}
-                  {property.address.postalCode
+                  {[property.address?.street, property.address?.city, property.address?.state]
+                    .filter(Boolean)
+                    .join(", ") || "—"}
+                  {property.address?.postalCode
                     ? ` · ${property.address.postalCode}`
                     : ""}
                 </div>

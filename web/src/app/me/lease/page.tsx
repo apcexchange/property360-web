@@ -90,7 +90,7 @@ function Content({
               </span>
             </p>
             <p className="mt-1 text-[13px] text-ink-muted">
-              {[property.address.street, property.address.city, property.address.state]
+              {[property.address?.street, property.address?.city, property.address?.state]
                 .filter(Boolean)
                 .join(", ")}
             </p>
