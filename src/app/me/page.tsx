@@ -168,9 +168,9 @@ export default function TenantHomePage() {
                     </p>
                     <p className="mt-2 text-[12.5px] text-paper/70">
                       {[
-                        property?.address.street,
-                        property?.address.city,
-                        property?.address.state,
+                        property?.address?.street,
+                        property?.address?.city,
+                        property?.address?.state,
                       ]
                         .filter(Boolean)
                         .join(", ")}
