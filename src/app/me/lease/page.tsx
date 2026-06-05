@@ -104,8 +104,10 @@ function Content({
           <KeyValue
             label="Frequency"
             value={
-              lease.paymentFrequency.charAt(0).toUpperCase() +
-              lease.paymentFrequency.slice(1)
+              lease.paymentFrequency
+                ? lease.paymentFrequency.charAt(0).toUpperCase() +
+                  lease.paymentFrequency.slice(1)
+                : "—"
             }
           />
           <KeyValue
