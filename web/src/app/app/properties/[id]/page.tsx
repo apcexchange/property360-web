@@ -62,9 +62,14 @@ export default function PropertyDetailPage() {
     },
   });
 
+  // Legacy rows can carry a null/empty name; `.trim()` on it would throw and
+  // crash the whole page on render. Coerce, and never let an empty name match
+  // an empty input (which would silently arm the delete button).
+  const propertyName = (q.data?.property?.name ?? "").trim();
   const nameMatches =
     !!q.data?.property &&
-    deleteConfirm.trim().toLowerCase() === q.data.property.name.trim().toLowerCase();
+    propertyName.length > 0 &&
+    deleteConfirm.trim().toLowerCase() === propertyName.toLowerCase();
 
   const property = q.data?.property;
   const units = q.data?.units ?? [];
