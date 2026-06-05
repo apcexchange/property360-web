@@ -16,7 +16,12 @@ export function getPropertyCoverImage(
   property: { images?: PropertyImage[] | null } | null | undefined
 ): string {
   if (!property) return DEFAULT_PROPERTY_IMAGE;
-  const images = property.images ?? [];
+  // The stored images array can contain null/partial entries (legacy rows,
+  // failed uploads). Drop anything that isn't a usable {url} before find/[0],
+  // or `i.isPrimary` throws on a null element and crashes the whole page.
+  const images = (property.images ?? []).filter(
+    (i): i is PropertyImage => !!i && typeof i.url === "string" && i.url.length > 0
+  );
   const primary = images.find((i) => i.isPrimary) ?? images[0];
   return primary?.url || DEFAULT_PROPERTY_IMAGE;
 }
