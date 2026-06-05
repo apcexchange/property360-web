@@ -1,5 +1,3 @@
-import type { PropertyImage } from "./landlord-api";
-
 // Public path of the on-brand placeholder served from /public. The asset
 // is a self-contained SVG (no external requests), so it loads instantly
 // and stays consistent if Cloudinary or any image CDN is unreachable.
@@ -13,17 +11,16 @@ export const DEFAULT_PROPERTY_IMAGE = "/property-default.svg";
  * fallback rule is changed in one place.
  */
 export function getPropertyCoverImage(
-  property: { images?: PropertyImage[] | null } | null | undefined
+  property: { images?: string[] | null } | null | undefined
 ): string {
   if (!property) return DEFAULT_PROPERTY_IMAGE;
-  // The stored images array can contain null/partial entries (legacy rows,
-  // failed uploads). Drop anything that isn't a usable {url} before find/[0],
-  // or `i.isPrimary` throws on a null element and crashes the whole page.
+  // Images are flat URL strings on the backend. Drop null/"" entries (legacy
+  // rows, failed uploads) so a stray value can't crash the card, then use the
+  // first usable photo as the cover.
   const images = (property.images ?? []).filter(
-    (i): i is PropertyImage => !!i && typeof i.url === "string" && i.url.length > 0
+    (u): u is string => typeof u === "string" && u.length > 0
   );
-  const primary = images.find((i) => i.isPrimary) ?? images[0];
-  return primary?.url || DEFAULT_PROPERTY_IMAGE;
+  return images[0] || DEFAULT_PROPERTY_IMAGE;
 }
 
 /**
