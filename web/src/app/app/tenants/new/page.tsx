@@ -16,6 +16,27 @@ import {
 } from "@/components/app/ui";
 import { landlordApi, PaymentFrequency } from "@/lib/landlord-api";
 
+// Lease end date defaults to one billing period after the start date, keyed
+// off the payment frequency. It's auto-filled whenever the start date or
+// frequency changes, but the field stays editable so a landlord can set a
+// custom term.
+function endDateForFrequency(
+  startIso: string,
+  frequency: PaymentFrequency
+): string {
+  const d = new Date(startIso);
+  if (Number.isNaN(d.getTime())) return startIso;
+  const day = d.getDate();
+  if (frequency === "monthly") d.setMonth(d.getMonth() + 1);
+  else if (frequency === "quarterly") d.setMonth(d.getMonth() + 3);
+  else d.setFullYear(d.getFullYear() + 1); // annually
+  // Guard month-length rollover (e.g. Jan 31 + 1mo would land on Mar 3):
+  // if the day-of-month drifted, snap back to the last day of the intended
+  // month.
+  if (d.getDate() !== day) d.setDate(0);
+  return d.toISOString().slice(0, 10);
+}
+
 export default function NewTenantPage() {
   const router = useRouter();
   const properties = useQuery({
@@ -40,11 +61,9 @@ export default function NewTenantPage() {
   const [leaseStartDate, setLeaseStartDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
-  const [leaseEndDate, setLeaseEndDate] = useState(() => {
-    const d = new Date();
-    d.setFullYear(d.getFullYear() + 1);
-    return d.toISOString().slice(0, 10);
-  });
+  const [leaseEndDate, setLeaseEndDate] = useState(() =>
+    endDateForFrequency(new Date().toISOString().slice(0, 10), "annually")
+  );
   const [rentAmount, setRentAmount] = useState(0);
   const [paymentFrequency, setPaymentFrequency] =
     useState<PaymentFrequency>("annually");
@@ -198,7 +217,10 @@ export default function NewTenantPage() {
               <Field label="Start date">
                 <Input
                   value={leaseStartDate}
-                  onChange={setLeaseStartDate}
+                  onChange={(v) => {
+                    setLeaseStartDate(v);
+                    setLeaseEndDate(endDateForFrequency(v, paymentFrequency));
+                  }}
                   type="date"
                 />
               </Field>
@@ -223,9 +245,13 @@ export default function NewTenantPage() {
               <Field label="Payment frequency">
                 <Select
                   value={paymentFrequency}
-                  onChange={(v) =>
-                    setPaymentFrequency(v as PaymentFrequency)
-                  }
+                  onChange={(v) => {
+                    const freq = v as PaymentFrequency;
+                    setPaymentFrequency(freq);
+                    setLeaseEndDate(
+                      endDateForFrequency(leaseStartDate, freq)
+                    );
+                  }}
                   options={[
                     { value: "annually", label: "Annually" },
                     { value: "quarterly", label: "Quarterly" },
