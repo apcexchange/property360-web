@@ -11,12 +11,12 @@ import { FoundingBar } from "@/components/marketing/FoundingBar";
 export const metadata: Metadata = {
   title: "Pricing — Property360 for Nigerian landlords",
   description:
-    "Start free with a 14-day trial — no card required. Pay only when your portfolio grows. Tier pricing based on number of properties; tenants and managers are always included.",
+    "Start free with a 7-day trial — no card required. Pay only when your portfolio grows. Tier pricing based on number of properties; tenants and managers are always included.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Property360 pricing",
     description:
-      "Start free with a 14-day trial. No card required. Tier pricing scaled by portfolio size.",
+      "Start free with a 7-day trial. No card required. Tier pricing scaled by portfolio size.",
     url: "https://property360.africa/pricing",
     type: "website",
   },
@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes. Every new account starts on a 14-day free trial with up to 2 properties — no card required. After the trial you pick a tier and start paying.",
+    a: "Yes. Every new account starts on a 7-day free trial with up to 2 properties — no card required. After the trial you pick a tier and start paying.",
   },
   {
     q: "Are payment processing fees included?",
@@ -67,7 +67,7 @@ export default function PricingPage() {
             <span className="text-cryola-500">Pay only when you grow.</span>
           </>
         }
-        subtitle="14-day free trial on every new account — no card required. Then pay only for the number of properties you manage. Tenants and property managers are always included, no per-seat fees."
+        subtitle="7-day free trial on every new account — no card required. Then pay only for the number of properties you manage. Tenants and property managers are always included, no per-seat fees."
       >
         <p className="text-[13px] text-ink-muted">
           Save <span className="font-semibold text-foundation-700">20% when paid annually</span>.

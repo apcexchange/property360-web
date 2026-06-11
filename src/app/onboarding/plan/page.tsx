@@ -109,7 +109,7 @@ export default function PlanPage() {
         Pick a plan.
       </h1>
       <p className="mt-3 text-[15px] text-ink-muted">
-        Your 14-day free trial is already active. You can add up to 2 properties
+        Your 7-day free trial is already active. You can add up to 2 properties
         and invite 2 agents while you decide. Pick a plan now or do it later from
         your billing portal.
       </p>
@@ -154,7 +154,7 @@ export default function PlanPage() {
           <Sparkles className="mt-0.5 h-5 w-5 text-foundation-700" />
           <div>
             <p className="text-[14.5px] font-semibold text-foundation-700">
-              You&apos;re on a 14-day free trial.
+              You&apos;re on a 7-day free trial.
             </p>
             <p className="mt-1 text-[13px] text-ink-muted">
               Skip ahead to set up your first property if you&apos;re not ready to

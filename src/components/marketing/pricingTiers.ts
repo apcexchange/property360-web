@@ -24,7 +24,7 @@ export const TIERS: Tier[] = [
     tagline: "For a landlord or hostel owner with up to 2 buildings.",
     monthlyNgn: 2250,
     annualNgn: 21600,
-    trial: "Start with 14 days FREE · no card required",
+    trial: "Start with 7 days FREE · no card required",
     ctaLabel: "Start free trial",
     ctaHref: "/onboarding",
     features: [
