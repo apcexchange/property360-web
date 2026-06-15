@@ -27,6 +27,13 @@ function buildSections(role: string | undefined): NavSection[] {
       : { href: "/app/agents", label: "Property managers" },
     { href: "/app/community", label: "Community" },
   ];
+  if (isAgent) {
+    // Managers accept landlord invitations on the web (previously mobile-only).
+    portfolioItems.splice(2, 0, {
+      href: "/app/invitations",
+      label: "Invitations",
+    });
+  }
 
   return [
     {
