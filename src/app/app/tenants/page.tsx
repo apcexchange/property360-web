@@ -18,9 +18,12 @@ import {
 import { landlordApi } from "@/lib/landlord-api";
 
 export default function TenantsPage() {
+  // Distinct key from the active-only occupied-units used by invoicing /
+  // payments / renewals — this list also includes pending invitations so a
+  // just-added tenant shows up immediately (marked pending).
   const q = useQuery({
-    queryKey: ["tenants", "occupied-units"],
-    queryFn: () => landlordApi.getOccupiedUnits(),
+    queryKey: ["tenants", "occupied-units", "with-pending"],
+    queryFn: () => landlordApi.getOccupiedUnits({ includePending: true }),
   });
   const [propertyId, setPropertyId] = useState("");
 
@@ -42,7 +45,7 @@ export default function TenantsPage() {
     <>
       <AppTopbar
         title="Tenants"
-        subtitle="Active leases across your portfolio"
+        subtitle="Active tenants and pending invitations"
         actions={
           <Link
             href="/app/tenants/new"
@@ -139,10 +142,16 @@ export default function TenantsPage() {
                     {row.lease ? (
                       <>
                         <StatusPill
-                          label={row.lease.status}
+                          label={
+                            row.lease.status === "pending"
+                              ? "Invitation sent"
+                              : row.lease.status
+                          }
                           tone={
                             row.lease.status === "active"
                               ? "good"
+                              : row.lease.status === "pending"
+                              ? "warn"
                               : row.lease.status === "expired"
                               ? "warn"
                               : row.lease.status === "terminated"
