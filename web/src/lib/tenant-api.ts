@@ -532,6 +532,11 @@ export const tenantApi = {
     const data = unwrap(res.data) as { count?: number } | number;
     return typeof data === "number" ? data : data?.count ?? 0;
   },
+  async unreadChatCount(): Promise<number> {
+    const res = await api.get("/chat/unread-count");
+    const data = unwrap(res.data) as { count?: number } | number;
+    return typeof data === "number" ? data : data?.count ?? 0;
+  },
   async markNotificationRead(id: string): Promise<void> {
     await api.patch(`/notifications/${id}/read`);
   },
