@@ -386,6 +386,44 @@ function mapInvitation(raw: unknown): LeaseInvitation {
   };
 }
 
+// ----- Tenant profile requests -----
+// The fields a landlord/agent can ask a tenant to fill in.
+export type TenantProfileField =
+  | "avatar"
+  | "dateOfBirth"
+  | "currentAddress"
+  | "nin"
+  | "idDocument"
+  | "kycSelfie"
+  | "occupation";
+
+export interface ProfileRequest {
+  id: string;
+  requestedFields: TenantProfileField[];
+  message?: string;
+  status: string;
+  property?: { name?: string; address?: { city?: string; state?: string } };
+  unit?: { unitNumber?: string };
+  landlord?: { firstName?: string; lastName?: string };
+  createdAt?: string;
+  tokenExpiresAt?: string;
+}
+
+function mapProfileRequest(raw: unknown): ProfileRequest {
+  const r = (raw ?? {}) as Record<string, any>;
+  return {
+    id: r._id ?? r.id ?? "",
+    requestedFields: (r.requestedFields ?? []) as TenantProfileField[],
+    message: r.message,
+    status: r.status,
+    property: r.property,
+    unit: r.unit,
+    landlord: r.landlord,
+    createdAt: r.createdAt,
+    tokenExpiresAt: r.tokenExpiresAt,
+  };
+}
+
 // All tenant-app endpoints are mounted at /tenant/* on the backend
 // (see backend/src/routes/index.ts), not /tenant-app/* as the spec hint says.
 export const tenantApi = {
@@ -537,6 +575,23 @@ export const tenantApi = {
     const data = unwrap(res.data) as { count?: number } | number;
     return typeof data === "number" ? data : data?.count ?? 0;
   },
+
+  // ----- Profile requests (landlord asked the tenant to fill in details) -----
+  async listPendingProfileRequests(): Promise<ProfileRequest[]> {
+    const res = await api.get("/tenant-profile-requests/pending");
+    return asList<unknown>(unwrap(res.data)).map(mapProfileRequest);
+  },
+  async getProfileRequest(id: string): Promise<ProfileRequest | null> {
+    const res = await api.get(`/tenant-profile-requests/${id}`);
+    const raw = unwrap(res.data);
+    return raw ? mapProfileRequest(raw) : null;
+  },
+  async submitProfileRequest(id: string, form: FormData): Promise<void> {
+    await api.post(`/tenant-profile-requests/${id}/submit`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
   async markNotificationRead(id: string): Promise<void> {
     await api.patch(`/notifications/${id}/read`);
   },
