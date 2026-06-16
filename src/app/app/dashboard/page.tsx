@@ -26,6 +26,16 @@ export default function DashboardPage() {
     queryKey: ["dashboard", "activities"],
     queryFn: () => landlordApi.recentActivities(8),
   });
+  // Pending landlord → manager invitations. Managers accept these on the web
+  // now, so surface them prominently on the dashboard.
+  const invitations = useQuery({
+    queryKey: ["agent", "invitations"],
+    queryFn: () => landlordApi.myAgentInvitations(),
+    enabled: user?.role === "agent",
+  });
+  const pendingInvites = (invitations.data ?? []).filter(
+    (i) => i.status === "pending"
+  );
 
   return (
     <>
@@ -42,6 +52,30 @@ export default function DashboardPage() {
         }
       />
       <PageContainer>
+        {/* Pending landlord invitations — shown to managers whenever any are
+           waiting, regardless of whether they already have properties. */}
+        {user?.role === "agent" && pendingInvites.length > 0 && (
+          <Link
+            href="/app/invitations"
+            className="mb-6 flex items-start gap-3 rounded-2xl border border-cryola-400 bg-cryola-200/40 p-4 transition hover:border-cryola-500"
+          >
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foundation-700 text-paper">
+              <Mail className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-foundation-700">
+                You have {pendingInvites.length} pending landlord{" "}
+                {pendingInvites.length === 1 ? "invitation" : "invitations"}
+              </p>
+              <p className="mt-0.5 text-[13px] text-ink-muted">
+                Review and accept to start managing their properties.
+              </p>
+            </div>
+            <span className="mt-1.5 text-[12.5px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4">
+              Review
+            </span>
+          </Link>
+        )}
         {/* Property manager banner — visible to role=agent until they have
            any properties (own or managed). Once stats.totalProperties > 0
            the regular dashboard takes over. */}
@@ -71,8 +105,14 @@ export default function DashboardPage() {
                   </div>
                   <p className="mt-3 inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted">
                     <Mail className="h-3 w-3" />
-                    Landlord invitations are accepted in the Property360
-                    mobile app.
+                    Invited by a landlord?{" "}
+                    <Link
+                      href="/app/invitations"
+                      className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-2"
+                    >
+                      Review your invitations
+                    </Link>
+                    .
                   </p>
                 </div>
               </div>

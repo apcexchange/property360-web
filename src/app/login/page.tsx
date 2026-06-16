@@ -45,13 +45,10 @@ function LoginInner() {
     setError(null);
     try {
       const res = await authApi.login(identifier.trim(), password);
-      // Email verification is the only blocking gate. If the user signed up
-      // but never finished verifying, bounce them back to that screen so
-      // they can resume — they can't reach the app until they do.
-      if (res.user.emailVerified === false) {
-        router.replace("/onboarding/verify");
-        return;
-      }
+      // Email verification is enforced only in the self-service onboarding
+      // flow, not at sign-in. Returning users (incl. mobile-registered and
+      // landlord-created tenants) sign straight in; gating here locked them
+      // out. See web AppAuthGate / me AuthGate and backfillEmailVerified.
       router.replace(safeNext(res.user.role));
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;

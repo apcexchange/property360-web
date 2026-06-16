@@ -27,6 +27,13 @@ function buildSections(role: string | undefined): NavSection[] {
       : { href: "/app/agents", label: "Property managers" },
     { href: "/app/community", label: "Community" },
   ];
+  if (isAgent) {
+    // Managers accept landlord invitations on the web (previously mobile-only).
+    portfolioItems.splice(2, 0, {
+      href: "/app/invitations",
+      label: "Invitations",
+    });
+  }
 
   return [
     {
@@ -104,13 +111,21 @@ function SidebarNav({
       <div className="border-b border-foundation-600/70 px-6 pb-5 pt-7">
         <div className="flex items-start justify-between">
           <div>
-            <div className="flex items-baseline">
-              <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-paper">
-                Property
-              </span>
-              <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-cryola-300">
-                360
-              </span>
+            <div className="flex items-center gap-2.5">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-reversed.png"
+                alt="Property360"
+                className="h-9 w-9 shrink-0 object-contain"
+              />
+              <div className="flex items-baseline">
+                <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-paper">
+                  Property
+                </span>
+                <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-cryola-300">
+                  360
+                </span>
+              </div>
             </div>
             <div className="mt-3 flex items-center gap-2.5">
               <span className="h-px w-7 bg-cryola-400" />

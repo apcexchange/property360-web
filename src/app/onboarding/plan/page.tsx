@@ -10,10 +10,12 @@ import { Tier } from "@/components/marketing/pricingTiers"
 import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
 import { billingApi, BillingInterval } from "@/lib/billing-api";
+import { getFoundingStatus, FoundingStatus } from "@/lib/founding-api";
+import { FOUNDING, naira } from "@/components/marketing/foundingOffer";
 import { API_BASE_URL } from "@/lib/api";
 import { AxiosError } from "axios";
 
-type CheckoutTier = "solo" | "pro" | "agency";
+type CheckoutTier = "solo" | "pro" | "agency" | "founding";
 
 export default function PlanPage() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function PlanPage() {
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const [pending, setPending] = useState<CheckoutTier | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [founding, setFounding] = useState(false);
+  const [foundingStatus, setFoundingStatus] = useState<FoundingStatus | null>(null);
 
   useEffect(() => {
     if (!ready) return;
@@ -32,11 +36,37 @@ export default function PlanPage() {
     }
   }, [ready, state, router]);
 
+  // The Founding 50 CTA routes here with ?founding=1. Read it without
+  // useSearchParams (avoids a Suspense boundary) and confirm the offer is
+  // still live + has slots before surfacing the founding card.
+  useEffect(() => {
+    const isFounding =
+      new URLSearchParams(window.location.search).get("founding") === "1";
+    if (!isFounding) return;
+    let active = true;
+    // Set state from the async callback (not synchronously in the effect body)
+    // so we don't trigger the cascading-render lint rule, and only surface the
+    // founding card once we know the offer is live with slots left.
+    getFoundingStatus().then((s) => {
+      if (!active) return;
+      setFounding(true);
+      setFoundingStatus(s);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const foundingAvailable =
+    founding && !!foundingStatus?.enabled && foundingStatus.remaining > 0;
+
   async function pick(tier: CheckoutTier) {
     setPending(tier);
     setError(null);
     try {
-      const { authorizationUrl } = await billingApi.createCheckout(tier, interval);
+      // Founding is annual-only and locked to its price; ignore the toggle.
+      const chosenInterval: BillingInterval = tier === "founding" ? "annual" : interval;
+      const { authorizationUrl } = await billingApi.createCheckout(tier, chosenInterval);
       // Tell the post-payment success page to send us on to /onboarding/done
       // instead of stopping at the billing dashboard. Cleared by that page
       // after it reads it.
@@ -48,6 +78,14 @@ export default function PlanPage() {
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       const status = axErr.response?.status;
+      // Founding sold out between landing here and clicking — flip the card
+      // to its closed state instead of showing a raw error.
+      if (tier === "founding" && status === 409) {
+        setFoundingStatus((s) => (s ? { ...s, remaining: 0, claimed: s.total } : s));
+        setError("The Founding 50 just filled up — pick a standard plan below, or start your free trial.");
+        setPending(null);
+        return;
+      }
       const body =
         axErr.response?.data?.message ??
         (err instanceof Error ? err.message : "Could not start checkout.");
@@ -71,17 +109,52 @@ export default function PlanPage() {
         Pick a plan.
       </h1>
       <p className="mt-3 text-[15px] text-ink-muted">
-        Your 14-day free trial is already active. You can add up to 2 properties
+        Your 7-day free trial is already active. You can add up to 2 properties
         and invite 2 agents while you decide. Pick a plan now or do it later from
         your billing portal.
       </p>
+
+      {foundingAvailable && (
+        <div className="mt-6 overflow-hidden rounded-2xl border border-foundation-700 bg-foundation-700 p-6 text-paper">
+          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-cryola-300">
+            <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-300" />
+            Founding 50 · {foundingStatus?.remaining} of {foundingStatus?.total} left
+          </div>
+          <p className="mt-3 font-display text-[22px] font-extrabold leading-tight">
+            Claim your Founding Landlord spot
+          </p>
+          <div className="mt-2 flex flex-wrap items-baseline gap-2">
+            <span className="font-display text-[30px] font-extrabold text-cryola-300">
+              {naira(FOUNDING.foundingAnnualNgn)}
+            </span>
+            <span className="text-[13px] text-paper/70">/year</span>
+            <span className="text-[13px] text-paper/55 line-through">
+              {naira(FOUNDING.normalAnnualNgn)}
+            </span>
+            <span className="rounded-full bg-cryola-300/15 px-2 py-0.5 text-[11.5px] font-semibold text-cryola-300">
+              {FOUNDING.tier} features · locked forever
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => pick("founding")}
+            disabled={pending !== null}
+            className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cryola-300 px-6 py-3 text-[14px] font-semibold text-foundation-800 transition hover:bg-cryola-200 disabled:opacity-60 sm:w-auto"
+          >
+            {pending === "founding" ? "Redirecting…" : "Claim founding spot — pay yearly"}
+          </button>
+          <p className="mt-3 text-[12px] text-paper/55">
+            Or pick a standard plan / start your free trial below.
+          </p>
+        </div>
+      )}
 
       <div className="mt-6 rounded-2xl border border-cryola-300/40 bg-cryola-50 p-5">
         <div className="flex items-start gap-3">
           <Sparkles className="mt-0.5 h-5 w-5 text-foundation-700" />
           <div>
             <p className="text-[14.5px] font-semibold text-foundation-700">
-              You&apos;re on a 14-day free trial.
+              You&apos;re on a 7-day free trial.
             </p>
             <p className="mt-1 text-[13px] text-ink-muted">
               Skip ahead to set up your first property if you&apos;re not ready to

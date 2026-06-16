@@ -144,7 +144,7 @@ export default function ForAgenciesPage() {
               <Step
                 n={1}
                 title="Sign up as an agency"
-                body="Create your manager account at property360.africa. Free 14-day trial."
+                body="Create your manager account at property360.africa. Free 7-day trial."
               />
               <Step
                 n={2}

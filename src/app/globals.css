@@ -105,6 +105,16 @@
   letter-spacing: -0.03em;
 }
 
+/* Monetary / numeric figures — sans with tabular lining numerals so the
+   Naira sign (₦) and zeros stay legible. Fraunces' old-style round zero
+   reads as "O" next to ₦ (₦0 → "NO"), so amounts must not use the display
+   serif. Size/weight come from utility classes at the call site. */
+.font-amount {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
 /* Small caps eyebrow / section label — newspaper standfirst feel */
 .eyebrow {
   font-family: var(--font-sans);
@@ -139,6 +149,19 @@
 .live-dot {
   animation: p360-live-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Branded full-page loader (BrandLoader): wordmark breathes while a cryola
+   segment sweeps across a hairline track beneath it. */
+@keyframes p360-breathe {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.99); }
+}
+@keyframes p360-sweep {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(260%); }
+}
+.brand-breathe { animation: p360-breathe 1.6s ease-in-out infinite; }
+.brand-sweep   { animation: p360-sweep 1.4s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
 
 /* ──────────────────────────────────────────────────────────────────────────
  *  Landing-page motion utilities
@@ -220,7 +243,9 @@
   .drift-slow,
   .drift-fast,
   .draw-underline,
-  .live-dot {
+  .live-dot,
+  .brand-breathe,
+  .brand-sweep {
     animation: none !important;
   }
   .tilt-card:hover {

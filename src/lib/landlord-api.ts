@@ -38,7 +38,8 @@ export interface Property {
   floors: number;
   totalUnits: number;
   amenities?: string[];
-  images?: PropertyImage[];
+  // Stored on the backend as flat arrays of Cloudinary secure_url strings.
+  images?: string[];
   videos?: string[];
   isActive: boolean;
   createdAt: string;
