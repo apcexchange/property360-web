@@ -68,9 +68,11 @@ export default function BillingPage() {
   // when the visitor is already signed in. We use those to preselect the
   // billing interval; tier itself is implicit (the matching plan card is
   // visible) so we don't auto-start checkout to avoid surprise charges.
+  // Default to annual (better value, and what we want to nudge); an explicit
+  // ?interval=monthly deep-link still wins.
   const initialInterval: BillingInterval = useMemo(() => {
     const v = searchParams?.get("interval");
-    return v === "annual" ? "annual" : "monthly";
+    return v === "monthly" ? "monthly" : "annual";
   }, [searchParams]);
 
   const [sub, setSub] = useState<SubscriptionResponse | null>(null);
