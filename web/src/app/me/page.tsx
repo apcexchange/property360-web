@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, FileSignature, Mail, Home } from "lucide-react";
+import { ChevronRight, FileSignature, Mail, Home, IdCard } from "lucide-react";
 import { TenantTopbar } from "@/components/me/Topbar";
 import {
   PageContainer,
@@ -35,6 +35,12 @@ export default function TenantHomePage() {
     queryKey: ["me", "invitations"],
     queryFn: () => tenantApi.listInvitations(),
   });
+
+  const profileRequests = useQuery({
+    queryKey: ["me", "profile-requests"],
+    queryFn: () => tenantApi.listPendingProfileRequests(),
+  });
+  const pendingProfileRequests = profileRequests.data ?? [];
 
   const leaseId = dash.data?.lease.id;
   const agreements = useQuery({
@@ -91,6 +97,26 @@ export default function TenantHomePage() {
               </p>
               <p className="mt-0.5 text-[13px] text-ink-muted">
                 Review the terms and accept or decline.
+              </p>
+            </div>
+            <ChevronRight className="mt-1.5 h-5 w-5 text-foundation-700" />
+          </Link>
+        )}
+
+        {pendingProfileRequests.length > 0 && (
+          <Link
+            href={`/me/requests/${pendingProfileRequests[0].id}`}
+            className="mb-6 flex items-start gap-3 rounded-2xl border border-cryola-400 bg-cryola-200/40 p-4 transition hover:border-cryola-500"
+          >
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foundation-700 text-paper">
+              <IdCard className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-foundation-700">
+                Your landlord needs a few details
+              </p>
+              <p className="mt-0.5 text-[13px] text-ink-muted">
+                Complete your tenant profile to share the requested information.
               </p>
             </div>
             <ChevronRight className="mt-1.5 h-5 w-5 text-foundation-700" />

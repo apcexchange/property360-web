@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -47,6 +48,17 @@ function isRead(n: TenantNotification): boolean {
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
+  const router = useRouter();
+
+  // Some notifications deep-link somewhere actionable. A profile request opens
+  // its fill page so the tenant can complete it straight from the bell.
+  const linkFor = (n: TenantNotification): string | null => {
+    if (n.type === "profile_request") {
+      const requestId = n.data?.requestId;
+      if (typeof requestId === "string") return `/me/requests/${requestId}`;
+    }
+    return null;
+  };
 
   const q = useQuery({
     queryKey: ["me", "notifications"],
@@ -110,6 +122,8 @@ export default function NotificationsPage() {
                   key={n._id}
                   onClick={() => {
                     if (!read) markOne.mutate(n._id);
+                    const href = linkFor(n);
+                    if (href) router.push(href);
                   }}
                   className={`flex w-full items-start gap-3 p-4 text-left transition hover:bg-foundation-700/5 ${
                     read ? "opacity-75" : ""
