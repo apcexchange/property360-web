@@ -1686,6 +1686,21 @@ export const landlordApi = {
     });
     return unwrap(res.data) as { body: string };
   },
+  /**
+   * Render an AI-generated / edited body straight into a signable agreement
+   * for a lease (no saved template needed). Optionally also persists it as a
+   * reusable template for the property.
+   */
+  async issueAgreementFromText(body: {
+    leaseId: string;
+    body: string;
+    title?: string;
+    saveAsTemplate?: boolean;
+    templateName?: string;
+  }): Promise<TenancyAgreement> {
+    const res = await api.post("/agreement-templates/issue", body);
+    return unwrap(res.data) as TenancyAgreement;
+  },
 
   // Marketplace seller
   async myListings(): Promise<Listing[]> {
