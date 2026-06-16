@@ -1065,13 +1065,18 @@ export const landlordApi = {
     const res = await api.get("/tenants/occupied-units");
     return asList(unwrap(res.data));
   },
-  async getOccupiedUnits(): Promise<Array<{
+  async getOccupiedUnits(opts?: { includePending?: boolean }): Promise<Array<{
     tenant: TenantSummary;
     property: PropertySummary;
     unit: UnitSummary;
     lease: LeaseSummary | null;
   }>> {
-    const res = await api.get("/tenants/occupied-units");
+    // includePending also returns pending invitations — used by the Tenants
+    // page so a just-invited tenant is visible. Other callers (invoicing,
+    // payments, renewals) omit it and get active leases only.
+    const res = await api.get("/tenants/occupied-units", {
+      params: opts?.includePending ? { includePending: "true" } : undefined,
+    });
     return asList(unwrap(res.data));
   },
   async getVacantUnits(propertyId: string): Promise<Unit[]> {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -15,6 +15,7 @@ import {
   formatNgn,
 } from "@/components/app/ui";
 import { landlordApi, PaymentFrequency } from "@/lib/landlord-api";
+import { useToast } from "@/components/ui/Toast";
 
 // Lease end date defaults to one billing period after the start date, keyed
 // off the payment frequency. It's auto-filled whenever the start date or
@@ -39,6 +40,8 @@ function endDateForFrequency(
 
 export default function NewTenantPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const toast = useToast();
   const properties = useQuery({
     queryKey: ["properties"],
     queryFn: () => landlordApi.listProperties(),
@@ -87,6 +90,13 @@ export default function NewTenantPage() {
         paymentFrequency,
       }),
     onSuccess: () => {
+      // Refresh the tenants list (incl. pending) and the now-reserved unit so
+      // the just-invited tenant shows immediately as "Invitation sent".
+      queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      queryClient.invalidateQueries({ queryKey: ["vacant-units"] });
+      toast.success(
+        "Invitation sent — the tenant appears as pending until they accept."
+      );
       router.push("/app/tenants");
     },
   });
