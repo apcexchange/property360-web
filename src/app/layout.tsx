@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { CrispChat } from "@/components/CrispChat";
+import { TawkChat } from "@/components/TawkChat";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -142,7 +142,7 @@ export default function RootLayout({
       <body className="font-sans">
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
-        <CrispChat />
+        <TawkChat />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
