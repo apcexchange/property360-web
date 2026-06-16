@@ -8,7 +8,7 @@ import { Check, ExternalLink, AlertTriangle } from "lucide-react";
 import { Tier } from "@/components/marketing/pricingTiers"
 import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
-import { BrandLoader } from "@/components/ui/BrandLoader";
+import { BrandLoader } from "@/components/ui/BrandLoader";>>>>>>> main
 import {
   billingApi,
   SubscriptionView,
