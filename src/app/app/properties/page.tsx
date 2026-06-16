@@ -111,7 +111,7 @@ function PropertyCard({ p }: { p: Property }) {
         </p>
         <p className="mt-1 flex items-center gap-1 truncate text-[12px] text-ink-muted">
           <MapPin className="h-3 w-3" />
-          {p.address.city}, {p.address.state}
+          {[p.address?.city, p.address?.state].filter(Boolean).join(", ") || "—"}
         </p>
         <div className="mt-3 flex items-center gap-3 text-[11.5px] text-ink-muted">
           <span>{p.totalUnits} unit{p.totalUnits === 1 ? "" : "s"}</span>

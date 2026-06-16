@@ -64,9 +64,14 @@ export function Nav() {
             initial={false}
             animate={{ scale: scrolled ? 0.92 : 1 }}
             transition={{ type: "spring", stiffness: 380, damping: 28 }}
-            className="grid h-8 w-8 place-items-center rounded-full bg-foundation-700 text-cryola-300"
+            className="grid h-9 w-9 place-items-center"
           >
-            <span className="text-[13px] font-bold leading-none">P</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Property360"
+              className="h-9 w-9 object-contain"
+            />
           </motion.span>
           <span className="text-[15px] text-foundation-700">
             Property<span className="text-cryola-500">360</span>

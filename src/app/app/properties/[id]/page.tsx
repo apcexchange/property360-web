@@ -28,8 +28,8 @@ import {
   StatusPill,
   formatNgn,
 } from "@/components/app/ui";
-import { landlordApi, Unit, Property, PropertyImage } from "@/lib/landlord-api";
-import { DEFAULT_PROPERTY_IMAGE } from "@/lib/propertyImage";
+import { landlordApi, Unit } from "@/lib/landlord-api";
+import { PropertyMediaCard } from "@/components/app/PropertyMedia";
 import { useToast } from "@/components/ui/Toast";
 
 export default function PropertyDetailPage() {
@@ -62,9 +62,14 @@ export default function PropertyDetailPage() {
     },
   });
 
+  // Legacy rows can carry a null/empty name; `.trim()` on it would throw and
+  // crash the whole page on render. Coerce, and never let an empty name match
+  // an empty input (which would silently arm the delete button).
+  const propertyName = (q.data?.property?.name ?? "").trim();
   const nameMatches =
     !!q.data?.property &&
-    deleteConfirm.trim().toLowerCase() === q.data.property.name.trim().toLowerCase();
+    propertyName.length > 0 &&
+    deleteConfirm.trim().toLowerCase() === propertyName.toLowerCase();
 
   const property = q.data?.property;
   const units = q.data?.units ?? [];
@@ -77,7 +82,7 @@ export default function PropertyDetailPage() {
         title={property?.name ?? "Property"}
         subtitle={
           property
-            ? `${property.address.city}, ${property.address.state} · ${property.totalUnits} unit${
+            ? `${[property.address?.city, property.address?.state].filter(Boolean).join(", ")} · ${property.totalUnits} unit${
                 property.totalUnits === 1 ? "" : "s"
               }`
             : undefined
@@ -128,9 +133,10 @@ export default function PropertyDetailPage() {
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[13px] text-ink-muted">
                   <MapPin className="h-4 w-4" />
-                  {property.address.street}, {property.address.city},{" "}
-                  {property.address.state}
-                  {property.address.postalCode
+                  {[property.address?.street, property.address?.city, property.address?.state]
+                    .filter(Boolean)
+                    .join(", ") || "—"}
+                  {property.address?.postalCode
                     ? ` · ${property.address.postalCode}`
                     : ""}
                 </div>

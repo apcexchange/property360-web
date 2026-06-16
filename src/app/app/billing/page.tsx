@@ -8,6 +8,7 @@ import { Check, ExternalLink, AlertTriangle } from "lucide-react";
 import { Tier } from "@/components/marketing/pricingTiers"
 import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
+import { BrandLoader } from "@/components/ui/BrandLoader";>>>>>>> main
 import {
   billingApi,
   SubscriptionView,
@@ -16,8 +17,10 @@ import {
 } from "@/lib/billing-api";
 import { session } from "@/lib/session";
 import { API_BASE_URL } from "@/lib/api";
+import { getFoundingStatus, FoundingStatus } from "@/lib/founding-api";
+import { FOUNDING, naira, foundingSaving } from "@/components/marketing/foundingOffer";
 
-type CheckoutTier = "solo" | "pro" | "agency";
+type CheckoutTier = "solo" | "pro" | "agency" | "founding";
 
 interface LoadError {
   kind: "not-found" | "network" | "unknown";
@@ -78,6 +81,11 @@ export default function BillingPage() {
   const [cancelling, setCancelling] = useState(false);
   const [loadError, setLoadError] = useState<LoadError | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [foundingStatus, setFoundingStatus] = useState<FoundingStatus | null>(null);
+
+  useEffect(() => {
+    getFoundingStatus().then(setFoundingStatus);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,14 +113,25 @@ export default function BillingPage() {
     router.replace("/login?next=/app/billing");
   }
 
-  async function startCheckout(tier: CheckoutTier) {
+  async function startCheckout(tier: CheckoutTier, overrideInterval?: BillingInterval) {
     setPendingTier(tier);
     setActionError(null);
     try {
-      const { authorizationUrl } = await billingApi.createCheckout(tier, interval);
+      const { authorizationUrl } = await billingApi.createCheckout(
+        tier,
+        overrideInterval ?? interval
+      );
       window.location.href = authorizationUrl;
     } catch (err) {
-      setActionError(classifyError(err).message);
+      // Founding filled up between page load and click — flip the banner to
+      // sold-out instead of a raw error, and nudge to the standard plans.
+      const ax = err as AxiosError;
+      if (tier === "founding" && ax.response?.status === 409) {
+        setFoundingStatus((s) => (s ? { ...s, remaining: 0, claimed: s.total } : s));
+        setActionError("The Founding 50 just sold out — choose a standard plan below.");
+      } else {
+        setActionError(classifyError(err).message);
+      }
       setPendingTier(null);
     }
   }
@@ -133,11 +152,7 @@ export default function BillingPage() {
   }
 
   if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-6 py-20 text-[14px] text-ink-muted">
-        Loading…
-      </div>
-    );
+    return <BrandLoader />;
   }
 
   // Tenants end up here if they somehow logged in — show a polite block.
@@ -192,6 +207,17 @@ export default function BillingPage() {
       </section>
 
       <CurrentPlanCard sub={sub} onCancelClick={() => setCancelOpen(true)} />
+
+      {foundingStatus?.enabled &&
+        foundingStatus.remaining > 0 &&
+        sub.tier !== "founding" && (
+          <FoundingOfferCard
+            status={foundingStatus}
+            pending={pendingTier === "founding"}
+            disabled={pendingTier !== null}
+            onClaim={() => startCheckout("founding", "annual")}
+          />
+        )}
 
       <section className="mx-auto max-w-6xl px-6 pb-20 pt-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -478,7 +504,7 @@ function PlanCard({
       <div className="mt-5">
         {price != null ? (
           <>
-            <p className="font-display text-[32px] font-extrabold leading-none tracking-[-0.02em]">
+            <p className="font-amount text-[32px] font-extrabold leading-none tracking-[-0.02em]">
               ₦{price.toLocaleString("en-NG")}
               <span
                 className={`ml-1 text-[13px] font-medium ${
@@ -556,6 +582,66 @@ function PlanCard({
         </button>
       )}
     </div>
+  );
+}
+
+function FoundingOfferCard({
+  status,
+  pending,
+  disabled,
+  onClaim,
+}: {
+  status: FoundingStatus;
+  pending: boolean;
+  disabled: boolean;
+  onClaim: () => void;
+}) {
+  const showCounter =
+    status.claimed > 0 && status.remaining > 0 && status.remaining < status.total;
+  return (
+    <section className="mx-auto max-w-6xl px-6 pt-8">
+      <div className="relative overflow-hidden rounded-2xl border border-cryola-300/20 bg-foundation-700 p-6 text-paper shadow-card sm:p-7">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 right-0 h-64 w-80 rounded-full bg-cryola-300/15 blur-3xl"
+        />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-cryola-300">
+              <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-300" />
+              Founding 50
+              {showCounter && <span>· {status.remaining} of {status.total} left</span>}
+            </div>
+            <p className="mt-2 font-display text-[22px] font-extrabold leading-tight tracking-[-0.02em]">
+              Lock our best price — forever.
+            </p>
+            <div className="mt-2 flex flex-wrap items-baseline gap-2">
+              <span className="font-amount text-[28px] font-extrabold text-cryola-300">
+                {naira(FOUNDING.foundingAnnualNgn)}
+              </span>
+              <span className="text-[13px] text-paper/70">/year</span>
+              <span className="text-[13px] text-paper/55 line-through">
+                {naira(FOUNDING.normalAnnualNgn)}
+              </span>
+              <span className="rounded-full bg-cryola-300/15 px-2 py-0.5 text-[11.5px] font-semibold text-cryola-300">
+                {FOUNDING.tier} features · save {naira(foundingSaving)}
+              </span>
+            </div>
+            <p className="mt-2 text-[12.5px] text-paper/60">
+              Free done-for-you setup + a Founding Landlord badge. Limited to the
+              first {status.total} landlords.
+            </p>
+          </div>
+          <button
+            onClick={onClaim}
+            disabled={disabled}
+            className="shrink-0 rounded-full bg-cryola-300 px-6 py-3 text-[14px] font-semibold text-foundation-800 transition hover:bg-cryola-200 disabled:opacity-50"
+          >
+            {pending ? "Redirecting to Paystack…" : "Claim founding spot"}
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 

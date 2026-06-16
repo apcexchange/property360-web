@@ -71,8 +71,8 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
   },
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
   },
   robots: {
     index: true,
@@ -95,7 +95,7 @@ const jsonLd = {
       "@id": `${SITE_URL}#organization`,
       name: "Property360",
       url: SITE_URL,
-      logo: `${SITE_URL}/icon.svg`,
+      logo: `${SITE_URL}/icon.png`,
       address: {
         "@type": "PostalAddress",
         addressCountry: "NG",

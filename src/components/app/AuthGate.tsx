@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { api } from "@/lib/api";
 import { session, AdminUser } from "@/lib/session";
+import { BrandLoader } from "@/components/ui/BrandLoader";
 
 /**
  * Auth gate for /app/*. Allows landlords and property managers (role:
@@ -37,13 +38,11 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
           return;
         }
         session.set(token, user);
-        // Email verification is a hard gate. A user who skipped the verify
-        // step (closed the tab, etc.) and deep-links into /app/* gets
-        // bounced back to the OTP screen.
-        if (user.emailVerified === false) {
-          router.replace("/onboarding/verify");
-          return;
-        }
+        // Email verification is enforced only during self-service web
+        // onboarding (see /onboarding/account → /onboarding/verify), not as a
+        // runtime gate here. Hard-blocking on emailVerified locked out every
+        // pre-existing / mobile-registered landlord (the flag defaults false
+        // and was only ever set by the OTP flow). See backfillEmailVerified.
         setState("ok");
       })
       .catch(() => {
@@ -58,11 +57,7 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
   }, [router, pathname]);
 
   if (state !== "ok") {
-    return (
-      <div className="grid min-h-screen place-items-center text-sm text-foundation-500">
-        Checking session…
-      </div>
-    );
+    return <BrandLoader label="Checking your session" />;
   }
 
   return <>{children}</>;
