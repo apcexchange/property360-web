@@ -12,6 +12,7 @@ import {
   Send,
   FileSignature,
   Download,
+  Sparkles,
   X,
 } from "lucide-react";
 import { AxiosError } from "axios";
@@ -25,7 +26,11 @@ import {
   StatusPill,
   formatDate,
 } from "@/components/app/ui";
-import { landlordApi, TenancyAgreement } from "@/lib/landlord-api";
+import {
+  landlordApi,
+  TenancyAgreement,
+  PaymentFrequency,
+} from "@/lib/landlord-api";
 import { session } from "@/lib/session";
 import { SignatureCapture } from "@/components/SignatureCapture";
 import { useToast } from "@/components/ui/Toast";
@@ -78,6 +83,7 @@ export default function AgreementsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["agreements", id] }),
   });
   const [picking, setPicking] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [signingAgreement, setSigningAgreement] =
     useState<TenancyAgreement | null>(null);
 
@@ -129,6 +135,15 @@ export default function AgreementsPage() {
               }
             >
               <Send className="h-4 w-4" /> Send template
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiOpen(true)}
+              disabled={!row}
+              className="inline-flex items-center gap-1.5 rounded-full border border-cryola-400 bg-cryola-200/50 px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-cryola-200 disabled:opacity-40"
+              title="Draft a tenancy agreement with AI, then issue it to this tenant"
+            >
+              <Sparkles className="h-4 w-4" /> Generate with AI
             </button>
             <button
               type="button"
@@ -265,6 +280,25 @@ export default function AgreementsPage() {
           />
         )}
 
+        {aiOpen && row && (
+          <AiAgreementModal
+            leaseId={id}
+            tenantName={`${row.tenant.firstName} ${row.tenant.lastName}`.trim()}
+            rentNgn={row.lease?.rentAmount}
+            paymentFrequency={row.lease?.paymentFrequency}
+            jurisdiction={
+              [row.property.address?.city, row.property.address?.state]
+                .filter(Boolean)
+                .join(", ") || undefined
+            }
+            onClose={() => setAiOpen(false)}
+            onIssued={() => {
+              setAiOpen(false);
+              qc.invalidateQueries({ queryKey: ["agreements", id] });
+            }}
+          />
+        )}
+
         {signingAgreement && (
           <LandlordSignModal
             agreement={signingAgreement}
@@ -277,6 +311,263 @@ export default function AgreementsPage() {
         )}
       </PageContainer>
     </>
+  );
+}
+
+function AiAgreementModal({
+  leaseId,
+  tenantName,
+  rentNgn,
+  paymentFrequency,
+  jurisdiction,
+  onClose,
+  onIssued,
+}: {
+  leaseId: string;
+  tenantName: string;
+  rentNgn?: number;
+  paymentFrequency?: PaymentFrequency;
+  jurisdiction?: string;
+  onClose: () => void;
+  onIssued: () => void;
+}) {
+  const toast = useToast();
+  const [propertyType, setPropertyType] = useState("residential apartment");
+  const [specialClauses, setSpecialClauses] = useState("");
+  const [draft, setDraft] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [title, setTitle] = useState("Tenancy Agreement");
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const errMsg = (err: unknown) => {
+    const ax = err as AxiosError<{ message?: string }>;
+    return (
+      ax.response?.data?.message ??
+      (err as Error).message ??
+      "Something went wrong"
+    );
+  };
+
+  const generate = useMutation({
+    mutationFn: () =>
+      landlordApi.aiGenerateAgreement({
+        propertyType: propertyType.trim() || undefined,
+        rentNgn,
+        paymentFrequency,
+        jurisdiction,
+        specialClauses: specialClauses.trim() || undefined,
+      }),
+    onSuccess: (res) => {
+      setDraft(res.body);
+      setError(null);
+    },
+    onError: (err) => setError(errMsg(err)),
+  });
+
+  const refine = useMutation({
+    mutationFn: () =>
+      landlordApi.aiRefineAgreement({
+        body: draft,
+        instructions: instructions.trim() || undefined,
+      }),
+    onSuccess: (res) => {
+      setDraft(res.body);
+      setInstructions("");
+      setError(null);
+    },
+    onError: (err) => setError(errMsg(err)),
+  });
+
+  const issue = useMutation({
+    mutationFn: () =>
+      landlordApi.issueAgreementFromText({
+        leaseId,
+        body: draft,
+        title: title.trim() || undefined,
+        saveAsTemplate,
+        templateName: saveAsTemplate
+          ? templateName.trim() || undefined
+          : undefined,
+      }),
+    onSuccess: () => {
+      toast.success("Agreement issued to tenant");
+      onIssued();
+    },
+    onError: (err) => setError(errMsg(err)),
+  });
+
+  const busy = generate.isPending || refine.isPending || issue.isPending;
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-foundation-700/40 p-4">
+      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col rounded-2xl bg-paper shadow-xl">
+        <div className="flex items-start justify-between border-b border-foundation-700/10 p-5">
+          <div>
+            <p className="flex items-center gap-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+              <Sparkles className="h-3.5 w-3.5" /> AI agreement
+            </p>
+            <p className="mt-1 font-display text-[18px] font-extrabold text-foundation-700">
+              Draft for {tenantName}
+            </p>
+            <p className="mt-0.5 text-[12px] text-ink-muted">
+              Pre-filled from this lease
+              {rentNgn ? ` · rent ₦${rentNgn.toLocaleString("en-NG")}` : ""}
+              {paymentFrequency ? ` · ${paymentFrequency}` : ""}
+              {jurisdiction ? ` · ${jurisdiction}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-8 w-8 place-items-center rounded-full text-ink-muted transition hover:bg-foundation-700/10"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 space-y-4 overflow-y-auto p-5">
+          {!draft ? (
+            <>
+              <Field label="Property type">
+                <input
+                  value={propertyType}
+                  onChange={(e) => setPropertyType(e.target.value)}
+                  placeholder="e.g. residential apartment, shop, duplex"
+                  className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
+                />
+              </Field>
+              <Field label="Special clauses (optional)">
+                <textarea
+                  value={specialClauses}
+                  onChange={(e) => setSpecialClauses(e.target.value)}
+                  rows={4}
+                  placeholder="e.g. No subletting. Tenant covers electricity. 2 months' notice to quit."
+                  className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[13.5px] text-foundation-700"
+                />
+              </Field>
+              <p className="text-[12px] text-ink-muted">
+                The draft uses Nigerian tenancy conventions and placeholders for
+                names, property and unit. You can edit everything before
+                issuing. Drafting can take 15–40 seconds.
+              </p>
+            </>
+          ) : (
+            <>
+              <Field label="Document title">
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
+                />
+              </Field>
+              <Field label="Agreement draft (editable)">
+                <textarea
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={14}
+                  className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 font-mono text-[12.5px] leading-relaxed text-foundation-700"
+                />
+              </Field>
+              <Field label="Refine with AI (optional)">
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={instructions}
+                    onChange={(e) => setInstructions(e.target.value)}
+                    placeholder="e.g. add a break clause, make the rent annual"
+                    className="flex-1 rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[13.5px] text-foundation-700"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      refine.mutate();
+                    }}
+                    disabled={busy || !draft.trim()}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {refine.isPending ? "Refining…" : "Refine"}
+                  </button>
+                </div>
+              </Field>
+              <label className="flex items-start gap-2.5 rounded-xl bg-foundation-700/5 p-3">
+                <input
+                  type="checkbox"
+                  checked={saveAsTemplate}
+                  onChange={(e) => setSaveAsTemplate(e.target.checked)}
+                  className="mt-0.5 h-4 w-4"
+                />
+                <span className="text-[12.5px] text-foundation-700">
+                  Also save this as a reusable template for the property
+                  {saveAsTemplate && (
+                    <input
+                      value={templateName}
+                      onChange={(e) => setTemplateName(e.target.value)}
+                      placeholder="Template name (defaults to the title)"
+                      className="mt-2 w-full rounded-lg border border-foundation-700/15 bg-paper px-3 py-2 text-[13px] text-foundation-700"
+                    />
+                  )}
+                </span>
+              </label>
+            </>
+          )}
+
+          {error && <p className="text-[12.5px] text-red-700">{error}</p>}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-foundation-700/10 p-5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-foundation-700/15 bg-paper px-5 py-2.5 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+          >
+            Cancel
+          </button>
+          {!draft ? (
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                generate.mutate();
+              }}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
+            >
+              <Sparkles className="h-4 w-4" />
+              {generate.isPending ? "Drafting…" : "Generate draft"}
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  generate.mutate();
+                }}
+                disabled={busy}
+                className="rounded-full border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+              >
+                {generate.isPending ? "Regenerating…" : "Regenerate"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  issue.mutate();
+                }}
+                disabled={busy || !draft.trim()}
+                className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+                {issue.isPending ? "Issuing…" : "Issue to tenant"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -523,6 +814,23 @@ function TemplatePickerModal({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+        {label}
+      </label>
+      {children}
     </div>
   );
 }
