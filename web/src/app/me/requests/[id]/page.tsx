@@ -215,34 +215,30 @@ export default function ProfileRequestPage() {
                   {FIELD_TITLES[f]}
                 </h2>
 
+                {/* Single-input fields: the Card heading already labels them,
+                    so don't repeat a Field label underneath. */}
                 {f === "dateOfBirth" && (
-                  <Field label="Date of birth">
-                    <Input
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={setDateOfBirth}
-                    />
-                  </Field>
+                  <Input
+                    type="date"
+                    value={dateOfBirth}
+                    onChange={setDateOfBirth}
+                  />
                 )}
 
                 {f === "occupation" && (
-                  <Field label="Occupation">
-                    <Input
-                      value={occupation}
-                      onChange={setOccupation}
-                      placeholder="e.g. Software engineer"
-                    />
-                  </Field>
+                  <Input
+                    value={occupation}
+                    onChange={setOccupation}
+                    placeholder="e.g. Software engineer"
+                  />
                 )}
 
                 {f === "nin" && (
-                  <Field label="NIN">
-                    <Input
-                      value={nin}
-                      onChange={setNin}
-                      placeholder="11-digit NIN"
-                    />
-                  </Field>
+                  <Input
+                    value={nin}
+                    onChange={setNin}
+                    placeholder="11-digit NIN"
+                  />
                 )}
 
                 {f === "currentAddress" && (
