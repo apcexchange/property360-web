@@ -346,6 +346,37 @@ function asList<T>(data: unknown): T[] {
   return [];
 }
 
+// The backend returns each invitation as { leaseId, property, unit, landlord,
+// lease: { startDate, rentAmount, ...fees } } — the lease id is `leaseId` and
+// the lease/fee fields are nested under `lease`. Flatten that into the shape the
+// UI consumes so `inv.id` (used to build the accept/decline URL) and the rent /
+// date / fee fields are populated. (Defensive: also accepts an already-flat
+// payload in case the contract ever changes.)
+function mapInvitation(raw: unknown): LeaseInvitation {
+  const r = (raw ?? {}) as Record<string, any>;
+  const lease = (r.lease ?? r) as Record<string, any>;
+  return {
+    id: r.leaseId ?? r.id ?? r._id ?? "",
+    startDate: lease.startDate,
+    endDate: lease.endDate,
+    rentAmount: lease.rentAmount,
+    paymentFrequency: lease.paymentFrequency,
+    status: r.status ?? lease.status ?? "pending",
+    securityDeposit: lease.securityDeposit,
+    cautionFee: lease.cautionFee,
+    agentFee: lease.agentFee,
+    agreementFee: lease.agreementFee,
+    legalFee: lease.legalFee,
+    serviceCharge: lease.serviceCharge,
+    otherFee: lease.otherFee,
+    otherFeeDescription: lease.otherFeeDescription,
+    property: r.property,
+    unit: r.unit,
+    landlord: r.landlord,
+    createdAt: r.createdAt,
+  };
+}
+
 // All tenant-app endpoints are mounted at /tenant/* on the backend
 // (see backend/src/routes/index.ts), not /tenant-app/* as the spec hint says.
 export const tenantApi = {
@@ -431,11 +462,12 @@ export const tenantApi = {
   // ----- Invitations -----
   async listInvitations(): Promise<LeaseInvitation[]> {
     const res = await api.get("/tenant/invitations");
-    return asList<LeaseInvitation>(unwrap(res.data));
+    return asList<unknown>(unwrap(res.data)).map(mapInvitation);
   },
   async getInvitation(leaseId: string): Promise<LeaseInvitation | null> {
     const res = await api.get(`/tenant/invitations/${leaseId}`);
-    return (unwrap(res.data) as LeaseInvitation | null) ?? null;
+    const raw = unwrap(res.data);
+    return raw ? mapInvitation(raw) : null;
   },
   async acceptInvitation(leaseId: string): Promise<void> {
     await api.post(`/tenant/invitations/${leaseId}/accept`);
