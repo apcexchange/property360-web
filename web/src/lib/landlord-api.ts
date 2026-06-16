@@ -59,6 +59,24 @@ export interface UnitFees {
   otherFeeDescription?: string;
 }
 
+export type PaymentMethod =
+  | "cash"
+  | "bank_transfer"
+  | "cheque"
+  | "mobile_money"
+  | "other";
+
+// Fee items a landlord can mark as already paid when adding a tenant.
+export type PaidFeeKey =
+  | "rent"
+  | "securityDeposit"
+  | "cautionFee"
+  | "agentFee"
+  | "agreementFee"
+  | "legalFee"
+  | "serviceCharge"
+  | "otherFee";
+
 export interface Unit {
   _id: string;
   property: string;
@@ -1095,6 +1113,16 @@ export const landlordApi = {
       rentAmount: number;
       paymentFrequency: PaymentFrequency;
       fees?: UnitFees;
+      // When true, the tenant is already moved in / has paid: the lease is
+      // created active and the unit occupied immediately (no accept step).
+      activateImmediately?: boolean;
+      // Upfront payment to record at assign time. Each paidItem becomes a
+      // completed transaction (and emails a receipt) against the new lease.
+      payment?: {
+        method: PaymentMethod;
+        date?: string;
+        paidItems: PaidFeeKey[];
+      };
     }
   ): Promise<unknown> {
     const res = await api.post(`/tenants/unit/${unitId}/assign`, body);

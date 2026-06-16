@@ -14,8 +14,34 @@ import {
   Skeleton,
   formatNgn,
 } from "@/components/app/ui";
-import { landlordApi, PaymentFrequency } from "@/lib/landlord-api";
+import {
+  landlordApi,
+  PaymentFrequency,
+  PaymentMethod,
+  PaidFeeKey,
+} from "@/lib/landlord-api";
 import { useToast } from "@/components/ui/Toast";
+
+// The one-time fee lines a landlord can enter and (optionally) mark paid.
+const FEE_FIELDS: { key: Exclude<PaidFeeKey, "rent">; label: string }[] = [
+  { key: "securityDeposit", label: "Security deposit" },
+  { key: "cautionFee", label: "Caution fee" },
+  { key: "agentFee", label: "Agent fee" },
+  { key: "agreementFee", label: "Agreement fee" },
+  { key: "legalFee", label: "Legal fee" },
+  { key: "serviceCharge", label: "Service charge" },
+  { key: "otherFee", label: "Other fee" },
+];
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: "cash", label: "Cash" },
+  { value: "bank_transfer", label: "Bank transfer" },
+  { value: "mobile_money", label: "Mobile money" },
+  { value: "cheque", label: "Cheque" },
+  { value: "other", label: "Other" },
+];
+
+type FeeKey = Exclude<PaidFeeKey, "rent">;
 
 // Lease end date defaults to one billing period after the start date, keyed
 // off the payment frequency. It's auto-filled whenever the start date or
@@ -71,15 +97,75 @@ export default function NewTenantPage() {
   const [paymentFrequency, setPaymentFrequency] =
     useState<PaymentFrequency>("annually");
 
-  // When the chosen unit changes, prefill rent from the unit.
+  // One-time fees + their "already paid" tracking.
+  const [fees, setFees] = useState<Record<FeeKey, number>>({
+    securityDeposit: 0,
+    cautionFee: 0,
+    agentFee: 0,
+    agreementFee: 0,
+    legalFee: 0,
+    serviceCharge: 0,
+    otherFee: 0,
+  });
+  const [otherFeeDescription, setOtherFeeDescription] = useState("");
+
+  // Payment recorded at assign time.
+  const [activateImmediately, setActivateImmediately] = useState(false);
+  const [paidItems, setPaidItems] = useState<Set<PaidFeeKey>>(new Set());
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentDate, setPaymentDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
+
+  // When the chosen unit changes, prefill rent + any default fees from the unit.
   useEffect(() => {
     const u = vacantUnits.data?.find((x) => x._id === unitId);
-    if (u) setRentAmount(u.rentAmount);
+    if (!u) return;
+    setRentAmount(u.rentAmount);
+    const d = u.defaultFees;
+    if (d) {
+      setFees({
+        securityDeposit: d.securityDeposit ?? 0,
+        cautionFee: d.cautionFee ?? 0,
+        agentFee: d.agentFee ?? 0,
+        agreementFee: d.agreementFee ?? 0,
+        legalFee: d.legalFee ?? 0,
+        serviceCharge: d.serviceCharge ?? 0,
+        otherFee: d.otherFee ?? 0,
+      });
+      if (d.otherFeeDescription) setOtherFeeDescription(d.otherFeeDescription);
+    }
   }, [unitId, vacantUnits.data]);
 
+  // The payable lines (rent + any fee with a positive amount) the landlord can
+  // tick as already paid. A line that drops to zero is removed from the paid set.
+  const payableItems: { key: PaidFeeKey; label: string; amount: number }[] = [
+    { key: "rent" as PaidFeeKey, label: "Rent", amount: rentAmount },
+    ...FEE_FIELDS.map((f) => ({
+      key: f.key as PaidFeeKey,
+      label: f.key === "otherFee" && otherFeeDescription.trim()
+        ? otherFeeDescription.trim()
+        : f.label,
+      amount: fees[f.key],
+    })),
+  ].filter((i) => i.amount > 0);
+
+  const togglePaid = (key: PaidFeeKey, on: boolean) => {
+    setPaidItems((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  };
+
   const assign = useMutation({
-    mutationFn: () =>
-      landlordApi.assignTenant(unitId, {
+    mutationFn: () => {
+      // Only keep paid ticks for lines that still have a positive amount.
+      const paid = payableItems
+        .filter((i) => paidItems.has(i.key))
+        .map((i) => i.key);
+      return landlordApi.assignTenant(unitId, {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
@@ -88,14 +174,24 @@ export default function NewTenantPage() {
         leaseEndDate,
         rentAmount,
         paymentFrequency,
-      }),
+        fees: {
+          ...fees,
+          otherFeeDescription: otherFeeDescription.trim() || undefined,
+        },
+        activateImmediately,
+        payment: paid.length
+          ? { method: paymentMethod, date: paymentDate, paidItems: paid }
+          : undefined,
+      });
+    },
     onSuccess: () => {
-      // Refresh the tenants list (incl. pending) and the now-reserved unit so
-      // the just-invited tenant shows immediately as "Invitation sent".
+      // Refresh the tenants list (incl. pending) and the now-occupied unit.
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
       queryClient.invalidateQueries({ queryKey: ["vacant-units"] });
       toast.success(
-        "Invitation sent — the tenant appears as pending until they accept."
+        activateImmediately
+          ? "Tenant added — their lease is active."
+          : "Invitation sent — the tenant appears as pending until they accept."
       );
       router.push("/app/tenants");
     },
@@ -270,6 +366,140 @@ export default function NewTenantPage() {
                 />
               </Field>
             </div>
+          </Card>
+
+          <Card className="space-y-5 p-5">
+            <div>
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                Fees
+              </h2>
+              <p className="mt-1 text-[12.5px] text-ink-muted">
+                One-time fees for this tenancy. Prefilled from the unit&apos;s
+                defaults where set — leave a fee at 0 if it doesn&apos;t apply.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {FEE_FIELDS.map((f) => (
+                <Field key={f.key} label={`${f.label} (NGN)`}>
+                  <Input
+                    value={
+                      fees[f.key] > 0 ? fees[f.key].toLocaleString("en-NG") : ""
+                    }
+                    onChange={(v) => {
+                      const digits = v.replace(/[^0-9]/g, "");
+                      setFees((prev) => ({
+                        ...prev,
+                        [f.key]: digits === "" ? 0 : Number(digits),
+                      }));
+                    }}
+                    type="text"
+                    placeholder="0"
+                  />
+                </Field>
+              ))}
+              <Field label="Other fee — description">
+                <Input
+                  value={otherFeeDescription}
+                  onChange={setOtherFeeDescription}
+                  placeholder="e.g. Generator levy"
+                />
+              </Field>
+            </div>
+          </Card>
+
+          <Card className="space-y-5 p-5">
+            <div>
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                Payment
+              </h2>
+              <p className="mt-1 text-[12.5px] text-ink-muted">
+                Mark anything the tenant has already paid — we&apos;ll record it
+                and email them a receipt.
+              </p>
+            </div>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-foundation-700/15 bg-foundation-700/[0.03] p-3.5">
+              <input
+                type="checkbox"
+                checked={activateImmediately}
+                onChange={(e) => setActivateImmediately(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-foundation-700/30 accent-foundation-700"
+              />
+              <span>
+                <span className="block text-[13.5px] font-semibold text-foundation-700">
+                  Tenant has already moved in
+                </span>
+                <span className="mt-0.5 block text-[12px] text-ink-muted">
+                  Activate the lease now and mark the unit occupied — skips the
+                  accept-invitation step. Leave unchecked to send an invitation
+                  the tenant must accept.
+                </span>
+              </span>
+            </label>
+
+            {payableItems.length === 0 ? (
+              <p className="text-[12.5px] text-ink-muted">
+                Enter a rent or fee amount above to record a payment here.
+              </p>
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
+                  What has the tenant paid?
+                </p>
+                {payableItems.map((i) => (
+                  <label
+                    key={i.key}
+                    className="flex cursor-pointer items-center justify-between gap-3 rounded-xl border border-foundation-700/10 px-3.5 py-2.5 hover:bg-foundation-700/[0.03]"
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={paidItems.has(i.key)}
+                        onChange={(e) => togglePaid(i.key, e.target.checked)}
+                        className="h-4 w-4 rounded border-foundation-700/30 accent-foundation-700"
+                      />
+                      <span className="text-[13.5px] text-foundation-700">
+                        {i.label}
+                      </span>
+                    </span>
+                    <span className="text-[13px] font-semibold text-foundation-700">
+                      {formatNgn(i.amount)}
+                    </span>
+                  </label>
+                ))}
+
+                {paidItems.size > 0 && (
+                  <>
+                    <div className="grid gap-4 pt-1 sm:grid-cols-2">
+                      <Field label="Payment method">
+                        <Select
+                          value={paymentMethod}
+                          onChange={(v) => setPaymentMethod(v as PaymentMethod)}
+                          options={PAYMENT_METHODS}
+                        />
+                      </Field>
+                      <Field label="Payment date">
+                        <Input
+                          value={paymentDate}
+                          onChange={setPaymentDate}
+                          type="date"
+                        />
+                      </Field>
+                    </div>
+                    <p className="text-[12px] text-ink-muted">
+                      Total recorded:{" "}
+                      <span className="font-semibold text-foundation-700">
+                        {formatNgn(
+                          payableItems
+                            .filter((i) => paidItems.has(i.key))
+                            .reduce((s, i) => s + i.amount, 0)
+                        )}
+                      </span>
+                    </p>
+                  </>
+                )}
+              </div>
+            )}
           </Card>
 
           {formError && <ErrorBox message={formError} />}
