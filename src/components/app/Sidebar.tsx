@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { session } from "@/lib/session";
+import { landlordApi } from "@/lib/landlord-api";
 import { useSidebar } from "./SidebarContext";
+import { NavBadge } from "./NavBadge";
 
 interface NavItem {
   href: string;
@@ -96,6 +99,7 @@ interface NavBodyProps {
   onItemClick?: () => void;
   showClose?: boolean;
   onClose?: () => void;
+  badges?: Record<string, number>;
 }
 
 function SidebarNav({
@@ -105,6 +109,7 @@ function SidebarNav({
   onItemClick,
   showClose,
   onClose,
+  badges,
 }: NavBodyProps) {
   return (
     <>
@@ -167,13 +172,16 @@ function SidebarNav({
                     <Link
                       href={item.href}
                       onClick={onItemClick}
-                      className={`block py-1.5 leading-snug transition-colors ${
+                      className={`flex items-center py-1.5 leading-snug transition-colors ${
                         active
                           ? "font-medium text-paper"
                           : "text-foundation-200 hover:text-paper"
                       }`}
                     >
                       {item.label}
+                      {(badges?.[item.href] ?? 0) > 0 && (
+                        <NavBadge count={badges![item.href]} />
+                      )}
                     </Link>
                   </li>
                 );
@@ -213,10 +221,22 @@ export function AppSidebar() {
   const sections = buildSections(role);
   const deskLabel = role === "agent" ? "Manager desk" : "Landlord desk";
 
+  const chatUnread = useQuery({
+    queryKey: ["app", "chat", "unread-count"],
+    queryFn: () => landlordApi.unreadChatCount(),
+    refetchInterval: 20_000,
+  });
+  const badges = { "/app/chat": chatUnread.data ?? 0 };
+
   return (
     <>
       <aside className="hidden w-64 shrink-0 flex-col bg-foundation-700 text-paper lg:flex">
-        <SidebarNav sections={sections} deskLabel={deskLabel} pathname={pathname} />
+        <SidebarNav
+          sections={sections}
+          deskLabel={deskLabel}
+          pathname={pathname}
+          badges={badges}
+        />
       </aside>
 
       <div
@@ -241,6 +261,7 @@ export function AppSidebar() {
             onItemClick={close}
             showClose
             onClose={close}
+            badges={badges}
           />
         </aside>
       </div>

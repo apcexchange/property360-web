@@ -60,8 +60,12 @@ export default function TenantChatPage() {
 
   useEffect(() => {
     if (!activeId) return;
-    tenantApi.markConversationRead(activeId).catch(() => {});
-  }, [activeId, messages.data?.length]);
+    tenantApi.markConversationRead(activeId).then(
+      () =>
+        qc.invalidateQueries({ queryKey: ["me", "chat", "unread-count"] }),
+      () => {}
+    );
+  }, [activeId, messages.data?.length, qc]);
 
   useEffect(() => {
     if (!scrollRef.current) return;

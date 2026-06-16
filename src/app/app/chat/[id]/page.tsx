@@ -33,8 +33,11 @@ export default function ChatThreadPage() {
   // Mark conversation as read on mount + whenever new messages arrive while open
   useEffect(() => {
     if (!id) return;
-    landlordApi.markConversationRead(id).catch(() => {});
-  }, [id, messages.data?.length]);
+    landlordApi.markConversationRead(id).then(
+      () => qc.invalidateQueries({ queryKey: ["app", "chat", "unread-count"] }),
+      () => {}
+    );
+  }, [id, messages.data?.length, qc]);
 
   // Auto-scroll to bottom on new messages.
   useEffect(() => {

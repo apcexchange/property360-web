@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { tenantApi } from "@/lib/tenant-api";
+import { NavBadge } from "@/components/app/NavBadge";
 
 interface NavItem {
   href: string;
@@ -60,6 +63,11 @@ function isActive(itemHref: string, pathname: string): boolean {
 
 export function TenantSidebar() {
   const pathname = usePathname();
+  const chatUnread = useQuery({
+    queryKey: ["me", "chat", "unread-count"],
+    queryFn: () => tenantApi.unreadChatCount(),
+    refetchInterval: 20_000,
+  });
   return (
     <aside className="hidden w-64 shrink-0 flex-col bg-foundation-700 text-paper lg:flex">
       <div className="border-b border-foundation-600/70 px-6 pb-5 pt-7">
@@ -98,13 +106,16 @@ export function TenantSidebar() {
                     )}
                     <Link
                       href={item.href}
-                      className={`block py-1.5 leading-snug transition-colors ${
+                      className={`flex items-center py-1.5 leading-snug transition-colors ${
                         active
                           ? "font-medium text-paper"
                           : "text-foundation-200 hover:text-paper"
                       }`}
                     >
                       {item.label}
+                      {item.href === "/me/chat" && (
+                        <NavBadge count={chatUnread.data ?? 0} />
+                      )}
                     </Link>
                   </li>
                 );
