@@ -43,6 +43,15 @@ export interface TenantLeaseInfo {
     email: string;
     phone: string;
   };
+  // Property managers (agents) assigned to this lease's property.
+  managers?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    avatar?: string;
+  }[];
 }
 
 export interface FeeItem {
@@ -534,6 +543,14 @@ export const tenantApi = {
   async listConversations(): Promise<Conversation[]> {
     const res = await api.get("/chat/conversations");
     return asList<Conversation>(unwrap(res.data));
+  },
+  // Start (or reopen) an in-app chat with a lease contact — the landlord or a
+  // property manager assigned to the tenant's property. Returns the
+  // conversation; its `id` is used to open the thread.
+  async startLeaseConversation(recipientId: string): Promise<{ id: string }> {
+    const res = await api.post("/chat/conversations/lease", { recipientId });
+    const conv = unwrap(res.data) as { _id?: string; id?: string };
+    return { id: conv.id ?? conv._id ?? "" };
   },
   async listMessages(conversationId: string): Promise<Message[]> {
     const res = await api.get(

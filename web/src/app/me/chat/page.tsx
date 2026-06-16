@@ -27,6 +27,9 @@ export default function TenantChatPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  // A `?c=<conversationId>` param (set when opening a chat from the lease
+  // summary) pre-selects that thread. Read once on mount.
+  const requestedIdRef = useRef<string | null>(null);
 
   const conversations = useQuery({
     queryKey: ["me", "chat", "conversations"],
@@ -35,9 +38,17 @@ export default function TenantChatPage() {
   });
 
   useEffect(() => {
-    if (!activeId && (conversations.data ?? []).length > 0) {
-      setActiveId(conversations.data![0].id);
-    }
+    requestedIdRef.current = new URLSearchParams(window.location.search).get(
+      "c"
+    );
+  }, []);
+
+  useEffect(() => {
+    if (activeId || !(conversations.data ?? []).length) return;
+    const requested = requestedIdRef.current;
+    const match =
+      requested && conversations.data!.some((c) => c.id === requested);
+    setActiveId(match ? requested! : conversations.data![0].id);
   }, [activeId, conversations.data]);
 
   const messages = useQuery({
