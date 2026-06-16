@@ -109,15 +109,21 @@ export default function TenantsPage() {
             ) : (
           <Card className="divide-y divide-foundation-700/10">
             {filtered.map((row) => {
-              const RowEl: React.ElementType = row.lease ? Link : "div";
-              const rowProps = row.lease
-                ? { href: `/app/leases/${row.lease.id}` }
-                : {};
+              // A pending invitation has no active lease to open yet — the
+              // lease detail page is built around an active tenancy — so keep
+              // those rows non-clickable and show the status instead.
+              const isPending = row.lease?.status === "pending";
+              const isClickable = !!row.lease && !isPending;
+              const RowEl: React.ElementType = isClickable ? Link : "div";
+              const rowProps =
+                isClickable && row.lease
+                  ? { href: `/app/leases/${row.lease.id}` }
+                  : {};
               return (
               <RowEl
                 key={row.tenant.id + row.unit.id}
                 {...rowProps}
-                className={`block p-4 ${row.lease ? "transition hover:bg-foundation-700/5" : ""}`}
+                className={`block p-4 ${isClickable ? "transition hover:bg-foundation-700/5" : ""}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -169,6 +175,11 @@ export default function TenantsPage() {
                           {formatDate(row.lease.startDate)} →{" "}
                           {formatDate(row.lease.endDate)}
                         </p>
+                        {isPending && (
+                          <p className="mt-1 text-[11px] font-medium text-amber-600">
+                            Waiting for tenant to accept
+                          </p>
+                        )}
                       </>
                     ) : (
                       <StatusPill label="No active lease" tone="warn" />
