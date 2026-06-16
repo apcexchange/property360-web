@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ── Non-code collateral (kept local, never committed) ─────────────────
+# Presentation/pitch decks, marketing & outreach copy, launch/social
+# content, generated quote-cards & banners, design briefs, planning docs,
+# and AI scratch dirs. Collateral, not product code.
+marketing/
+pitch-deck/
+presentation/
+public/launch/
+docs/launch/
+launch-content/
+.superpowers/
+.playwright-mcp/
+*.pptx
+*.keynote
+DESIGN_BRIEF.md
+REPO_SPLIT_PLAN.md
