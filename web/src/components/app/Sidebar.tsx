@@ -56,6 +56,7 @@ function buildSections(role: string | undefined): NavSection[] {
         { href: "/app/invoices", label: "Invoices" },
         { href: "/app/receipts", label: "Receipts" },
         { href: "/app/wallet", label: "Wallet" },
+        { href: "/app/wallet/bank-accounts", label: "Bank accounts" },
         { href: "/app/transactions", label: "Transactions" },
         { href: "/app/reports", label: "Reports" },
       ],
@@ -89,6 +90,9 @@ export const APP_NAV_SECTIONS: NavSection[] = buildSections(undefined);
 
 function isActive(itemHref: string, pathname: string): boolean {
   if (itemHref === "/app/dashboard") return pathname === "/app" || pathname === "/app/dashboard";
+  // Wallet has a dedicated child item (/app/wallet/bank-accounts), so match it
+  // exactly — otherwise both Wallet and Bank accounts highlight together.
+  if (itemHref === "/app/wallet") return pathname === "/app/wallet";
   return pathname === itemHref || pathname.startsWith(itemHref + "/");
 }
 
