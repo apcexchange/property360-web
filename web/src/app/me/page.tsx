@@ -63,6 +63,11 @@ export default function TenantHomePage() {
   const property = dash.data?.property;
   const unit = dash.data?.unit;
 
+  // The "monthlyRent" figure is really the rent per billing period, so label
+  // it by the lease's actual frequency rather than always saying "Monthly".
+  const rentCardLabel =
+    RENT_LABEL[lease?.paymentFrequency ?? ""] ?? "Rent";
+
   const leaseStatus = lease?.status ?? "";
   const statusTone: "good" | "warn" | "bad" | "neutral" =
     leaseStatus === "active"
@@ -224,6 +229,14 @@ export default function TenantHomePage() {
                   value={formatDate(lease?.endDate)}
                 />
               </div>
+              {lease?.startDate && lease?.endDate && (
+                <div className="px-5 pb-5">
+                  <LeaseProgress
+                    startDate={lease.startDate}
+                    endDate={lease.endDate}
+                  />
+                </div>
+              )}
             </Card>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -237,7 +250,7 @@ export default function TenantHomePage() {
               ) : (
                 <>
                   <StatCard
-                    label="Monthly rent"
+                    label={rentCardLabel}
                     value={formatNgn(summary.data.monthlyRent)}
                     hint={
                       summary.data.nextDueDate
@@ -280,6 +293,56 @@ export default function TenantHomePage() {
         )}
       </PageContainer>
     </>
+  );
+}
+
+const RENT_LABEL: Record<string, string> = {
+  monthly: "Monthly rent",
+  quarterly: "Quarterly rent",
+  annually: "Annual rent",
+};
+
+/**
+ * Lease-term progress bar — mirrors the landlord tenant detail and the mobile
+ * app. Shows how far through the lease window today sits, tinted by how close
+ * the end is: green on track, amber within 30 days, red once expired.
+ */
+function LeaseProgress({
+  startDate,
+  endDate,
+}: {
+  startDate: string;
+  endDate: string;
+}) {
+  const today = Date.now();
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  const totalDays = Math.max(1, Math.ceil((end - start) / 86_400_000));
+  const elapsed = Math.ceil((today - start) / 86_400_000);
+  const daysLeft = Math.ceil((end - today) / 86_400_000);
+  const pct = Math.min(100, Math.max(0, (elapsed / totalDays) * 100));
+
+  const overdue = daysLeft <= 0;
+  const dueSoon = daysLeft > 0 && daysLeft <= 30;
+  const fill = overdue
+    ? "bg-red-500"
+    : dueSoon
+    ? "bg-amber-500"
+    : "bg-emerald-500";
+  const label = overdue
+    ? "Lease ended"
+    : `${daysLeft} day${daysLeft === 1 ? "" : "s"} until lease ends`;
+
+  return (
+    <div>
+      <div className="h-2 overflow-hidden rounded-full bg-foundation-700/10">
+        <div
+          className={`h-full rounded-full ${fill}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1.5 text-[11.5px] text-ink-muted">{label}</p>
+    </div>
   );
 }
 
