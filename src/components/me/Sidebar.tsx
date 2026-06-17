@@ -42,6 +42,7 @@ export const ME_NAV_SECTIONS: NavSection[] = [
   {
     label: "Building",
     items: [
+      { href: "/me/bills", label: "Shared bills" },
       { href: "/me/maintenance", label: "Maintenance" },
       { href: "/me/chat", label: "Chat" },
     ],
