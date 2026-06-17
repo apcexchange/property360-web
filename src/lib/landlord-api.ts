@@ -1323,7 +1323,8 @@ export const landlordApi = {
     return unwrap(res.data) as BankAccount;
   },
   async setPrimaryBankAccount(id: string): Promise<BankAccount> {
-    const res = await api.post(`/bank-accounts/${id}/primary`);
+    // Backend route is PATCH /bank-accounts/:id/primary — POST 404s.
+    const res = await api.patch(`/bank-accounts/${id}/primary`);
     return unwrap(res.data) as BankAccount;
   },
   async deleteBankAccount(id: string): Promise<void> {
