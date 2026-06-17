@@ -426,6 +426,159 @@ function mapProfileRequest(raw: unknown): ProfileRequest {
 
 // All tenant-app endpoints are mounted at /tenant/* on the backend
 // (see backend/src/routes/index.ts), not /tenant-app/* as the spec hint says.
+// ----- Shared bills (building bill-splitting) -----
+export type BillCategory =
+  | "water"
+  | "fuel"
+  | "security"
+  | "cleaning"
+  | "repairs"
+  | "other";
+export type SharedBillStatus = "open" | "settled" | "cancelled";
+export type BillShareStatus =
+  | "unpaid"
+  | "pending_confirmation"
+  | "paid"
+  | "disputed"
+  | "exempt";
+
+export interface UserSummary {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  avatar?: string;
+}
+
+export interface SharedBillSummary {
+  _id: string;
+  property: string;
+  creator: UserSummary;
+  title: string;
+  description?: string;
+  category: BillCategory;
+  totalAmount: number;
+  escrowEnabled?: boolean;
+  status: SharedBillStatus;
+  dueDate?: string;
+  createdAt: string;
+}
+
+export interface BillShare {
+  _id: string;
+  bill: string;
+  tenant: UserSummary;
+  unit?: { _id: string; unitNumber: string };
+  amount: number;
+  status: BillShareStatus;
+  markedPaidAt?: string;
+  confirmedAt?: string;
+  disputedAt?: string;
+  disputeReason?: string;
+  note?: string;
+}
+
+export interface BillDetail {
+  bill: SharedBillSummary & {
+    property: { _id: string; name?: string };
+    creatorIncluded?: boolean;
+    bankDetails?: {
+      accountName: string;
+      accountNumber: string;
+      bankName: string;
+    };
+    participantSnapshot?: { tenant: string; unit: string; unitNumber: string }[];
+  };
+  shares: BillShare[];
+  progress: {
+    paidCount: number;
+    totalCount: number;
+    amountPaid: number;
+    amountTotal: number;
+  };
+}
+
+export type DvaStatus = "pending" | "active" | "failed";
+export interface SharedBillWallet {
+  _id: string;
+  bill: string;
+  balance: number;
+  currency: string;
+  status: "active" | "closed";
+  dvaAccountNumber?: string;
+  dvaBankName?: string;
+  dvaStatus: DvaStatus;
+  dvaFailureReason?: string;
+}
+
+export interface SharedBillWalletTransaction {
+  _id: string;
+  type: "credit" | "debit" | "refund";
+  amount: number;
+  status: "pending" | "completed" | "failed" | "reversed";
+  description: string;
+  attributedTenant?: UserSummary;
+  createdAt: string;
+}
+
+export type WithdrawalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "expired"
+  | "processing"
+  | "completed"
+  | "failed";
+
+export interface SharedBillWithdrawal {
+  _id: string;
+  initiator: UserSummary;
+  amount: number;
+  bankAccount?: {
+    _id: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  };
+  note?: string;
+  status: WithdrawalStatus;
+  participantCount: number;
+  requiredApprovals: number;
+  approvals: {
+    user: UserSummary | string;
+    decision: "approve" | "reject";
+    decidedAt: string;
+  }[];
+  expiresAt: string;
+  executedAt?: string;
+  failureReason?: string;
+  createdAt: string;
+}
+
+export interface TenantBankAccount {
+  _id: string;
+  bankName: string;
+  bankCode: string;
+  accountNumber: string;
+  accountName: string;
+  isPrimary: boolean;
+  isVerified: boolean;
+}
+
+export interface Bank {
+  name: string;
+  code: string;
+}
+
+export interface CreateBillBody {
+  title: string;
+  description?: string;
+  category: BillCategory;
+  totalAmount: number;
+  useEscrow?: boolean;
+  bankDetails?: { accountName: string; accountNumber: string; bankName: string };
+  dueDate?: string;
+}
+
 export const tenantApi = {
   // ----- Dashboard -----
   async getDashboard(): Promise<TenantLeaseInfo | null> {
@@ -754,6 +907,125 @@ export const tenantApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return unwrap(res.data) as KycSummary;
+  },
+
+  // ----- Shared bills -----
+  async listSharedBills(
+    propertyId: string,
+    status?: SharedBillStatus
+  ): Promise<SharedBillSummary[]> {
+    const res = await api.get(`/shared-bills/property/${propertyId}`, {
+      params: status ? { status } : undefined,
+    });
+    return asList<SharedBillSummary>(unwrap(res.data));
+  },
+  async createSharedBill(
+    propertyId: string,
+    body: CreateBillBody
+  ): Promise<BillDetail> {
+    const res = await api.post(`/shared-bills/property/${propertyId}`, body);
+    return unwrap(res.data) as BillDetail;
+  },
+  async getSharedBill(billId: string): Promise<BillDetail> {
+    const res = await api.get(`/shared-bills/${billId}`);
+    return unwrap(res.data) as BillDetail;
+  },
+  async markBillSharePaid(
+    billId: string,
+    shareId: string,
+    note?: string
+  ): Promise<BillShare> {
+    const res = await api.post(
+      `/shared-bills/${billId}/shares/${shareId}/mark-paid`,
+      { note }
+    );
+    return unwrap(res.data) as BillShare;
+  },
+  async confirmBillShare(billId: string, shareId: string): Promise<BillShare> {
+    const res = await api.post(
+      `/shared-bills/${billId}/shares/${shareId}/confirm`
+    );
+    return unwrap(res.data) as BillShare;
+  },
+  async disputeBillShare(
+    billId: string,
+    shareId: string,
+    reason: string
+  ): Promise<BillShare> {
+    const res = await api.post(
+      `/shared-bills/${billId}/shares/${shareId}/dispute`,
+      { reason }
+    );
+    return unwrap(res.data) as BillShare;
+  },
+  async cancelSharedBill(billId: string): Promise<SharedBillSummary> {
+    const res = await api.post(`/shared-bills/${billId}/cancel`);
+    return unwrap(res.data) as SharedBillSummary;
+  },
+
+  // Escrow wallet
+  async getBillWallet(billId: string): Promise<SharedBillWallet> {
+    const res = await api.get(`/shared-bills/${billId}/wallet`);
+    return unwrap(res.data) as SharedBillWallet;
+  },
+  async listBillWalletTransactions(
+    billId: string
+  ): Promise<SharedBillWalletTransaction[]> {
+    const res = await api.get(`/shared-bills/${billId}/wallet/transactions`, {
+      params: { page: 1, limit: 30 },
+    });
+    return asList<SharedBillWalletTransaction>(unwrap(res.data));
+  },
+  async listBillWithdrawals(billId: string): Promise<SharedBillWithdrawal[]> {
+    const res = await api.get(`/shared-bills/${billId}/wallet/withdrawals`);
+    return asList<SharedBillWithdrawal>(unwrap(res.data));
+  },
+  async requestBillWithdrawal(
+    billId: string,
+    body: { amount: number; bankAccountId: string; note?: string }
+  ): Promise<SharedBillWithdrawal> {
+    const res = await api.post(
+      `/shared-bills/${billId}/wallet/withdrawals`,
+      body
+    );
+    return unwrap(res.data) as SharedBillWithdrawal;
+  },
+  async voteBillWithdrawal(
+    billId: string,
+    withdrawalId: string,
+    decision: "approve" | "reject"
+  ): Promise<SharedBillWithdrawal> {
+    const res = await api.post(
+      `/shared-bills/${billId}/wallet/withdrawals/${withdrawalId}/vote`,
+      { decision }
+    );
+    return unwrap(res.data) as SharedBillWithdrawal;
+  },
+
+  // Bank accounts (shared with the payout system; used for escrow withdrawals)
+  async listBanks(): Promise<Bank[]> {
+    const res = await api.get("/bank-accounts/banks");
+    return asList<Bank>(unwrap(res.data));
+  },
+  async verifyBank(body: {
+    accountNumber: string;
+    bankCode: string;
+  }): Promise<{ accountName: string; accountNumber: string }> {
+    const res = await api.post("/bank-accounts/verify", body);
+    return unwrap(res.data) as { accountName: string; accountNumber: string };
+  },
+  async listBankAccounts(): Promise<TenantBankAccount[]> {
+    const res = await api.get("/bank-accounts");
+    return asList<TenantBankAccount>(unwrap(res.data));
+  },
+  async addBankAccount(body: {
+    accountNumber: string;
+    bankCode: string;
+    bankName: string;
+    accountName: string;
+  }): Promise<TenantBankAccount> {
+    const res = await api.post("/bank-accounts", body);
+    return unwrap(res.data) as TenantBankAccount;
   },
 };
 
