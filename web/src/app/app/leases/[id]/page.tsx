@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -13,6 +13,7 @@ import {
   Plus,
   ScrollText,
   ExternalLink,
+  MessageSquare,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -55,6 +56,23 @@ export default function LeaseDetailPage() {
 
 function LeaseDetailInner() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const toast = useToast();
+
+  // Open (or reuse) the direct chat with this tenant, then jump to the thread.
+  const messageTenant = useMutation({
+    mutationFn: () => landlordApi.startTenantConversation(id),
+    onSuccess: ({ id: conversationId }) => {
+      if (conversationId) router.push(`/app/chat/${conversationId}`);
+      else toast.error("Couldn't open the conversation");
+    },
+    onError: (err: unknown) => {
+      const msg =
+        (err as AxiosError<{ message?: string }>).response?.data?.message ??
+        "Couldn't start the conversation";
+      toast.error({ title: "Couldn't message tenant", body: msg });
+    },
+  });
 
   // Lease detail isn't a standalone endpoint — we surface lease info from the
   // occupied-units list (same endpoint /app/tenants uses).
@@ -163,8 +181,28 @@ function LeaseDetailInner() {
                     }
                   />
                 </div>
+                <LeaseProgress
+                  startDate={lease.startDate}
+                  endDate={lease.endDate}
+                />
               </Card>
               <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => messageTenant.mutate()}
+                  disabled={messageTenant.isPending}
+                  className="flex w-full items-start gap-3 rounded-2xl border border-foundation-700/10 bg-paper p-4 text-left transition hover:border-foundation-700/20 disabled:opacity-60"
+                >
+                  <MessageSquare className="mt-0.5 h-4 w-4 text-foundation-700" />
+                  <div>
+                    <p className="text-[13px] font-semibold text-foundation-700">
+                      {messageTenant.isPending ? "Opening…" : "Message tenant"}
+                    </p>
+                    <p className="text-[11.5px] text-ink-muted">
+                      Chat directly in the app
+                    </p>
+                  </div>
+                </button>
                 <Link
                   href={`/app/leases/${id}/renew`}
                   className="flex items-start gap-3 rounded-2xl border border-foundation-700/10 bg-paper p-4 transition hover:border-foundation-700/20"
@@ -265,6 +303,50 @@ function LeaseDetailInner() {
         )}
       </PageContainer>
     </>
+  );
+}
+
+/**
+ * Lease-term progress bar — mirrors the mobile tenant detail screen. Shows how
+ * far through the lease window today sits, tinted by how close the end is:
+ * green on track, amber within 30 days, red once expired.
+ */
+function LeaseProgress({
+  startDate,
+  endDate,
+}: {
+  startDate: string;
+  endDate: string;
+}) {
+  const today = Date.now();
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  const totalDays = Math.max(1, Math.ceil((end - start) / 86_400_000));
+  const elapsed = Math.ceil((today - start) / 86_400_000);
+  const daysLeft = Math.ceil((end - today) / 86_400_000);
+  const pct = Math.min(100, Math.max(0, (elapsed / totalDays) * 100));
+
+  const overdue = daysLeft <= 0;
+  const dueSoon = daysLeft > 0 && daysLeft <= 30;
+  const fill = overdue
+    ? "bg-red-500"
+    : dueSoon
+    ? "bg-amber-500"
+    : "bg-emerald-500";
+  const label = overdue
+    ? `${Math.abs(daysLeft)} day${Math.abs(daysLeft) === 1 ? "" : "s"} overdue`
+    : `${daysLeft} day${daysLeft === 1 ? "" : "s"} until lease ends`;
+
+  return (
+    <div className="mt-4">
+      <div className="h-2 overflow-hidden rounded-full bg-foundation-700/10">
+        <div
+          className={`h-full rounded-full ${fill}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <p className="mt-1.5 text-[11.5px] text-ink-muted">{label}</p>
+    </div>
   );
 }
 
