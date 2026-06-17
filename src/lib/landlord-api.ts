@@ -1771,6 +1771,13 @@ export const landlordApi = {
   async markConversationRead(conversationId: string): Promise<void> {
     await api.patch(`/chat/conversations/${conversationId}/read`);
   },
+  // Open (or reuse) the direct conversation with the tenant on a lease.
+  // Returns the conversation id to navigate to /app/chat/[id].
+  async startTenantConversation(leaseId: string): Promise<{ id: string }> {
+    const res = await api.post("/chat/conversations/tenant", { leaseId });
+    const conv = unwrap(res.data) as { _id?: string; id?: string };
+    return { id: conv.id ?? conv._id ?? "" };
+  },
   async unreadChatCount(): Promise<number> {
     const res = await api.get("/chat/unread-count");
     const data = unwrap(res.data) as { count?: number } | number;
