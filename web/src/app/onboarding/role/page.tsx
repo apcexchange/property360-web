@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Home, Key, Briefcase } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { useOnboardingState } from "@/lib/onboarding-state";
+import { trackMeta } from "@/lib/meta-pixel";
 import type { UserRole } from "@/lib/auth-api";
 
 const ROLES: {
@@ -34,24 +35,36 @@ const ROLES: {
   },
 ];
 
+const VALID_ROLES: UserRole[] = ROLES.map((r) => r.id);
+
 export default function RolePage() {
   const router = useRouter();
   const { state, update, ready } = useOnboardingState();
 
   useEffect(() => {
     if (!ready) return;
-    const ref = new URLSearchParams(window.location.search)
-      .get("ref")
-      ?.trim()
-      .toUpperCase();
+    const params = new URLSearchParams(window.location.search);
+
+    const ref = params.get("ref")?.trim().toUpperCase();
     if (ref && ref !== state.referralCode) {
       update({ referralCode: ref });
+    }
+
+    // Ad landing pages can deep-link a role (e.g. /onboarding?role=agent).
+    // Honor it: pre-pick the role and skip straight to account creation so
+    // the campaign's traffic doesn't pay the friction of an extra step.
+    const preRole = params.get("role")?.trim().toLowerCase();
+    if (preRole && VALID_ROLES.includes(preRole as UserRole)) {
+      pick(preRole as UserRole);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
 
   function pick(role: UserRole) {
     update({ role });
+    // Signal intent to Meta. content_name carries the role so the property-
+    // manager campaign can optimize to a custom conversion (role = "agent").
+    trackMeta("Lead", { content_name: role, content_category: "role_selected" });
     router.push("/onboarding/account");
   }
 

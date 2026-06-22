@@ -5,6 +5,7 @@ import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { PageHero } from "@/components/marketing/PageHero";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
+import { MetaTrack } from "@/components/MetaTrack";
 
 export const metadata: Metadata = {
   title: "For agents — manage landlord portfolios with auditable access",
@@ -50,6 +51,7 @@ const PILLARS = [
 export default function AgentsPage() {
   return (
     <div className="min-h-screen bg-paper text-foundation-700">
+      <MetaTrack event="ViewContent" params={{ content_name: "agents", content_category: "manager_landing" }} />
       <Nav />
       <PageHero
         eyebrow="For agents"
@@ -60,14 +62,14 @@ export default function AgentsPage() {
             <span className="text-cryola-500">With auditable access.</span>
           </>
         }
-        subtitle="Most agents work on trust and WhatsApp. Property360 gives you the access you need, scoped to the property — and proof of every action you take."
+        subtitle="Most agents run other people's money on trust, notebooks, and WhatsApp. Property360 puts every landlord, every unit, and every payment in one place — add the properties you already manage, or accept a landlord's invitation, and prove every action you take."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link
-            href="/onboarding"
+            href="/onboarding?role=agent"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-6 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            Sign up →
+            Start managing free →
           </Link>
           <Link
             href="/for-agencies"
@@ -102,13 +104,20 @@ export default function AgentsPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
         <h2 className="mx-auto max-w-2xl font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-          Sign up as an agent. Wait for a landlord to invite you.
+          Sign up and put your whole book in one place.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-[15px] text-ink-muted">
-          Agents on Property360 only work properties that landlords have invited them to. No
-          self-service portfolios, no scraping.
+          Add the properties you already manage and start tracking rent, receipts, and
+          renewals today. When a landlord invites you to theirs, it lands in the same
+          dashboard. One view across every landlord you work with.
         </p>
-        <div className="mt-8">
+        <div className="mt-8 flex flex-col items-center gap-5">
+          <Link
+            href="/onboarding?role=agent"
+            className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-7 py-3.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
+          >
+            Start managing free →
+          </Link>
           <AppStoreButtons align="center" />
         </div>
       </section>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { useOnboardingState } from "@/lib/onboarding-state";
 import { authApi } from "@/lib/auth-api";
+import { trackMeta } from "@/lib/meta-pixel";
 import { AxiosError } from "axios";
 
 export default function AccountPage() {
@@ -68,6 +69,18 @@ export default function AccountPage() {
         referralCode: trimmedRef || undefined,
         registered: true,
       });
+      // The account now exists — the conversion event. Pass user data so the
+      // server relay can hash it for high match quality on the Conversions API.
+      trackMeta(
+        "CompleteRegistration",
+        { content_name: state.role, content_category: "signup", status: true },
+        {
+          email: email.trim().toLowerCase(),
+          phone: normalizedPhone,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+        }
+      );
       router.push("/onboarding/verify");
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;

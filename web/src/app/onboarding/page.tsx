@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 
 /**
  * Onboarding entry. Server-redirects to the first interactive step,
- * forwarding any query string (notably `?ref=` from referral links) so
- * the role page can stash the code into onboarding state on mount.
+ * forwarding `?ref=` (referral links) and `?role=` (e.g. ad landing pages
+ * that pre-pick "agent") so the role page can act on them on mount.
  *
  * Next 15+: searchParams is a Promise on async server components.
  */
@@ -13,8 +13,14 @@ export default async function OnboardingIndex({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const ref = params?.ref;
-  const refValue = Array.isArray(ref) ? ref[0] : ref;
-  const qs = refValue ? `?ref=${encodeURIComponent(refValue)}` : "";
-  redirect(`/onboarding/role${qs}`);
+  const first = (v: string | string[] | undefined) =>
+    Array.isArray(v) ? v[0] : v;
+
+  const qs = new URLSearchParams();
+  const ref = first(params?.ref);
+  const role = first(params?.role);
+  if (ref) qs.set("ref", ref);
+  if (role) qs.set("role", role);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+  redirect(`/onboarding/role${suffix}`);
 }
