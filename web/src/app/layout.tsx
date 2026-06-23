@@ -43,7 +43,10 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   metadataBase: new URL(SITE_URL),
-  alternates: { canonical: "/" },
+  // Note: no global canonical here on purpose. A root-level `canonical: "/"`
+  // is inherited by any page that doesn't set its own, which wrongly tells
+  // Google those pages are duplicates of the homepage. Each public page sets
+  // its own canonical instead.
   applicationName: "Property360",
   keywords: [
     "Nigeria property management",

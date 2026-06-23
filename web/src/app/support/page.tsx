@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: "Support — Property360",
   description:
     "Get help with the Property360 app. Contact our team, browse common questions, and find guides for landlords, tenants, and agents.",
+  alternates: { canonical: "/support" },
+  openGraph: {
+    title: "Support — Property360",
+    description:
+      "Get help with the Property360 app. Contact our team, browse common questions, and find guides for landlords, tenants, and agents.",
+    url: "https://property360.africa/support",
+    type: "website",
+  },
 };
 
 export default function SupportPage() {
