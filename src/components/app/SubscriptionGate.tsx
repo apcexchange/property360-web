@@ -18,6 +18,10 @@ const ALWAYS_ALLOWED_PREFIXES = [
   "/app/refer",
   "/app/billing",
   "/billing",
+  // Withdrawing already-earned money stays available even when expired (the
+  // backend exempts POST /payouts), so the wallet + withdraw flow must remain
+  // reachable. Bank-account *changes* under here still 402 at the API.
+  "/app/wallet",
 ];
 
 /**
