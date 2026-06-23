@@ -7,9 +7,22 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        // Block the admin surface from search indexing.
+        // Keep public marketing + listing pages indexable, but keep the admin
+        // surface and all authenticated/account-only routes out of the index.
         allow: "/",
-        disallow: ["/admin", "/admin/"],
+        disallow: [
+          "/admin",
+          "/app",
+          "/me",
+          "/login",
+          "/billing/login",
+          "/invite",
+          "/invitations",
+          "/onboarding/account",
+          "/onboarding/verify",
+          "/onboarding/plan",
+          "/onboarding/done",
+        ],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
