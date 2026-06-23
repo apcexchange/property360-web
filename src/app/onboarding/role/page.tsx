@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Home, Key, Briefcase } from "lucide-react";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
 import { useOnboardingState } from "@/lib/onboarding-state";
+import { trackMeta } from "@/lib/meta-pixel";
 import type { UserRole } from "@/lib/auth-api";
 
 const ROLES: {
@@ -52,6 +53,9 @@ export default function RolePage() {
 
   function pick(role: UserRole) {
     update({ role });
+    // Signal intent to Meta. content_name carries the role so the property-
+    // manager campaign can optimize to a custom conversion (role = "agent").
+    trackMeta("Lead", { content_name: role, content_category: "role_selected" });
     router.push("/onboarding/account");
   }
 

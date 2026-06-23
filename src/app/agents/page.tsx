@@ -5,6 +5,7 @@ import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { PageHero } from "@/components/marketing/PageHero";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
+import { MetaTrack } from "@/components/MetaTrack";
 
 export const metadata: Metadata = {
   title: "For agents — manage landlord portfolios with auditable access",
@@ -50,6 +51,7 @@ const PILLARS = [
 export default function AgentsPage() {
   return (
     <div className="min-h-screen bg-paper text-foundation-700">
+      <MetaTrack event="ViewContent" params={{ content_name: "agents", content_category: "manager_landing" }} />
       <Nav />
       <PageHero
         eyebrow="For agents"

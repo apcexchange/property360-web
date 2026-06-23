@@ -3,6 +3,7 @@ import { Nav } from "@/components/landing/Nav";
 import { Hero } from "@/components/landing/Hero";
 import { TrustStrip } from "@/components/landing/TrustStrip";
 import { PainPoints } from "@/components/landing/PainPoints";
+import { VideoTour } from "@/components/landing/VideoTour";
 import { RoleSplit } from "@/components/landing/RoleSplit";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Features } from "@/components/landing/Features";
@@ -36,6 +37,7 @@ export default function Home() {
       <Hero />
       <TrustStrip />
       <PainPoints />
+      <VideoTour />
       <RoleSplit />
       <HowItWorks />
       <Features />
