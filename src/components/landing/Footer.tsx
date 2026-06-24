@@ -24,6 +24,7 @@ export function Footer() {
             <FooterLink href="/landlord">For landlords</FooterLink>
             <FooterLink href="/tenant">For tenants</FooterLink>
             <FooterLink href="/agents">For agents</FooterLink>
+            <FooterLink href="/communities">Estate communities</FooterLink>
             <FooterLink href="/pricing">Pricing</FooterLink>
             <FooterLink href="/onboarding">Get started</FooterLink>
             <FooterLink href="/#download">Download the app</FooterLink>
@@ -31,7 +32,7 @@ export function Footer() {
 
           <FooterCol title="Company">
             <FooterLink href="/about">About</FooterLink>
-            <FooterLink href="/guides">Guides</FooterLink>
+            <FooterLink href="/guides">Blog</FooterLink>
             <FooterLink href="/contact">Contact</FooterLink>
             <FooterLink href="/support">Support</FooterLink>
             <FooterLink href="mailto:partnerships@property360.africa">Partnerships</FooterLink>

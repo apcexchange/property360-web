@@ -6,11 +6,11 @@ import { motion } from "framer-motion";
 import { session } from "@/lib/session";
 
 const links = [
-  { href: "/listings", label: "Browse" },
   { href: "/landlord", label: "Landlords" },
   { href: "/tenant", label: "Tenants" },
   { href: "/agents", label: "Agents" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/guides", label: "Blog" },
 ];
 
 // Map role → in-app landing route. Tenants live under /me/*, landlords

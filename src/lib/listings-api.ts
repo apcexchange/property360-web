@@ -32,6 +32,10 @@ export interface ListingProperty {
     firstName?: string;
     lastName?: string;
     avatar?: string;
+    // Browse endpoint projects a flat kycStatus; the detail endpoint populates
+    // the nested kyc object. isLandlordVerified() handles both shapes.
+    kycStatus?: string;
+    kyc?: { status?: string };
   };
 }
 
@@ -175,4 +179,14 @@ export function listingTitle(listing: Listing): string {
 export function listingImage(listing: Listing): string | null {
   const images = listing.property?.images ?? [];
   return images[0] ?? null;
+}
+
+/**
+ * True when the listing's landlord has passed identity (KYC) verification.
+ * Handles both the browse shape (owner.kycStatus) and the detail shape
+ * (owner.kyc.status). Drives the "Verified landlord" trust badge.
+ */
+export function isLandlordVerified(listing: Listing): boolean {
+  const owner = listing.property?.owner;
+  return owner?.kycStatus === "verified" || owner?.kyc?.status === "verified";
 }
