@@ -71,7 +71,10 @@ function buildSections(role: string | undefined): NavSection[] {
     },
     {
       label: "Communication",
-      items: [{ href: "/app/chat", label: "Messages" }],
+      items: [
+        { href: "/app/chat", label: "Messages" },
+        { href: "/app/assistant", label: "AI Assistant" },
+      ],
     },
     {
       label: "Account",
