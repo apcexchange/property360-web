@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getListings } from "@/lib/listings-api";
 import { guides } from "@/content/guides";
+import { resolveLocationSlug, slugifyLocation } from "@/lib/nigeria-locations";
 
 const SITE_URL = "https://property360.africa";
 
@@ -16,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/tenant`, lastModified, changeFrequency: "monthly", priority: 0.9 },
     { url: `${SITE_URL}/agents`, lastModified, changeFrequency: "monthly", priority: 0.85 },
     { url: `${SITE_URL}/for-agencies`, lastModified, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${SITE_URL}/communities`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/guides`, lastModified, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE_URL}/pricing`, lastModified, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/onboarding`, lastModified, changeFrequency: "monthly", priority: 0.9 },
@@ -40,17 +42,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // in this sitemap shard — acceptable for now; revisit if the marketplace
   // grows past ~500 active listings.
   let listingEntries: MetadataRoute.Sitemap = [];
+  let locationEntries: MetadataRoute.Sitemap = [];
   try {
-    const { listings } = await getListings({ limit: 50 });
+    const { listings } = await getListings({ limit: 200 });
     listingEntries = listings.map((l) => ({
       url: `${SITE_URL}/listings/${l.id}`,
       lastModified: l.listedAt ? new Date(l.listedAt) : lastModified,
       changeFrequency: "daily",
       priority: 0.7,
     }));
+
+    // Only surface location pages that actually have inventory (derived from
+    // the states/cities present in the listings above) so we never publish
+    // thin, empty location pages to the index.
+    const slugs = new Set<string>();
+    for (const l of listings) {
+      const { state, city } = l.property?.address ?? {};
+      if (state) slugs.add(slugifyLocation(state));
+      if (city) slugs.add(slugifyLocation(city));
+    }
+    locationEntries = [...slugs]
+      .filter((slug) => resolveLocationSlug(slug))
+      .map((slug) => ({
+        url: `${SITE_URL}/listings/in/${slug}`,
+        lastModified,
+        changeFrequency: "daily",
+        priority: 0.75,
+      }));
   } catch {
     // Backend down at build/revalidate time — fall back to static entries only.
   }
 
-  return [...staticEntries, ...guideEntries, ...listingEntries];
+  return [...staticEntries, ...guideEntries, ...listingEntries, ...locationEntries];
 }

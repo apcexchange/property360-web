@@ -44,7 +44,9 @@ next-env.d.ts
 # Presentation/pitch decks, marketing & outreach copy, launch/social
 # content, generated quote-cards & banners, design briefs, planning docs,
 # and AI scratch dirs. Collateral, not product code.
-marketing/
+# NOTE: anchored to the web root so it only ignores the top-level collateral
+# folder, not product code under src/components/marketing/.
+/marketing/
 pitch-deck/
 presentation/
 public/launch/

@@ -538,3 +538,92 @@ export function citiesForState(stateName: string): string[] {
   );
   return match?.cities ?? [];
 }
+
+/* ------------------------------------------------------------------ *
+ * Location slugs for the SEO marketplace pages (/listings/in/<slug>).
+ * ------------------------------------------------------------------ */
+
+/** URL-safe slug for a state or city name. "Victoria Island" -> "victoria-island". */
+export function slugifyLocation(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export interface ResolvedLocation {
+  /** Filter dimension on the listings API. */
+  kind: "state" | "city";
+  /** Exact name to filter by (matches Property address.state / address.city). */
+  name: string;
+  /** Human label for headings / titles. */
+  label: string;
+  /** Owning state, for city locations. */
+  state?: string;
+  slug: string;
+}
+
+/**
+ * Slug -> location lookup. States are registered first so a slug that names
+ * both a state and its capital (e.g. "kano") resolves to the broader STATE
+ * page. City slugs only fill gaps, and the first state to claim a city wins.
+ */
+const LOCATION_BY_SLUG: Map<string, ResolvedLocation> = (() => {
+  const map = new Map<string, ResolvedLocation>();
+  for (const s of NIGERIA_STATES) {
+    const slug = slugifyLocation(s.name);
+    map.set(slug, { kind: "state", name: s.name, label: s.name, slug });
+  }
+  for (const s of NIGERIA_STATES) {
+    for (const city of s.cities) {
+      const slug = slugifyLocation(city);
+      if (map.has(slug)) continue;
+      map.set(slug, { kind: "city", name: city, label: city, state: s.name, slug });
+    }
+  }
+  return map;
+})();
+
+/** Resolve a URL slug to a known Nigerian state or city, or undefined. */
+export function resolveLocationSlug(slug: string): ResolvedLocation | undefined {
+  return LOCATION_BY_SLUG.get(slug.toLowerCase());
+}
+
+/**
+ * Curated, high-demand locations to pre-render and surface in "browse by
+ * location" links. Mix of states and major Lagos/Abuja/PH submarkets.
+ */
+export const TOP_LOCATION_SLUGS: string[] = [
+  "lagos",
+  "lekki",
+  "ikeja",
+  "victoria-island",
+  "ikoyi",
+  "ajah",
+  "yaba",
+  "surulere",
+  "fct",
+  "abuja",
+  "wuse",
+  "gwarinpa",
+  "maitama",
+  "rivers",
+  "port-harcourt",
+  "oyo",
+  "ibadan",
+  "edo",
+  "benin-city",
+  "enugu",
+  "ogun",
+  "abeokuta",
+  "kano",
+];
+
+/** TOP_LOCATION_SLUGS resolved to {slug,label}, dropping any that don't map. */
+export const TOP_LOCATIONS: { slug: string; label: string }[] = TOP_LOCATION_SLUGS
+  .map((slug) => {
+    const loc = resolveLocationSlug(slug);
+    return loc ? { slug, label: loc.label } : null;
+  })
+  .filter((x): x is { slug: string; label: string } => x !== null);
