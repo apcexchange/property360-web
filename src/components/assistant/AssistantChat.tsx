@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Send, Sparkles } from "lucide-react";
+import { ArrowRight, Send, Sparkles } from "lucide-react";
 import { Skeleton, ErrorBox } from "@/components/app/ui";
 import { assistantApi, AssistantTurn } from "@/lib/assistant-api";
 
@@ -10,6 +11,7 @@ const HISTORY_KEY = ["assistant", "history"];
 
 export function AssistantChat({ suggestions }: { suggestions: string[] }) {
   const qc = useQueryClient();
+  const router = useRouter();
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -116,23 +118,44 @@ export function AssistantChat({ suggestions }: { suggestions: string[] }) {
                   </span>
                 )}
                 <div
-                  className={`max-w-[75%] rounded-2xl px-3 py-2 text-[13.5px] ${
-                    mine
-                      ? "bg-foundation-700 text-paper"
-                      : "bg-foundation-700/5 text-foundation-700"
+                  className={`flex max-w-[75%] flex-col gap-1.5 ${
+                    mine ? "items-end" : "items-start"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{t.content}</p>
-                  <p
-                    className={`mt-1 text-[10.5px] ${
-                      mine ? "text-paper/70" : "text-ink-muted"
+                  <div
+                    className={`rounded-2xl px-3 py-2 text-[13.5px] ${
+                      mine
+                        ? "bg-foundation-700 text-paper"
+                        : "bg-foundation-700/5 text-foundation-700"
                     }`}
                   >
-                    {new Date(t.createdAt).toLocaleTimeString("en-NG", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                    <p className="whitespace-pre-wrap">{t.content}</p>
+                    <p
+                      className={`mt-1 text-[10.5px] ${
+                        mine ? "text-paper/70" : "text-ink-muted"
+                      }`}
+                    >
+                      {new Date(t.createdAt).toLocaleTimeString("en-NG", {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  {!mine && t.actions && t.actions.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {t.actions.map((a) => (
+                        <button
+                          key={a.key}
+                          type="button"
+                          onClick={() => router.push(a.web)}
+                          className="inline-flex items-center gap-1 rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[12.5px] font-medium text-foundation-700 transition hover:bg-foundation-700/5"
+                        >
+                          {a.label}
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
