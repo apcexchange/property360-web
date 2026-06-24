@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { TawkChat } from "@/components/TawkChat";
+import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -143,6 +144,7 @@ export default function RootLayout({
       className={`${fraunces.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
     >
       <body className="font-sans">
+        <ChunkErrorReloader />
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
         <TawkChat />
