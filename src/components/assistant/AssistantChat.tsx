@@ -9,6 +9,16 @@ import { assistantApi, AssistantTurn } from "@/lib/assistant-api";
 
 const HISTORY_KEY = ["assistant", "history"];
 
+// The thread renders plain text, but the model sometimes slips in Markdown.
+// Strip the common emphasis/heading markers so they don't show literally.
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/(^|\n)\s{0,3}#{1,6}\s+/g, "$1");
+}
+
 export function AssistantChat({ suggestions }: { suggestions: string[] }) {
   const qc = useQueryClient();
   const router = useRouter();
@@ -129,7 +139,9 @@ export function AssistantChat({ suggestions }: { suggestions: string[] }) {
                         : "bg-foundation-700/5 text-foundation-700"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{t.content}</p>
+                    <p className="whitespace-pre-wrap">
+                      {mine ? t.content : stripMarkdown(t.content)}
+                    </p>
                     <p
                       className={`mt-1 text-[10.5px] ${
                         mine ? "text-paper/70" : "text-ink-muted"
