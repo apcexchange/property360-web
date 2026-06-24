@@ -38,7 +38,7 @@ export default function GuidesIndexPage() {
     <div className="min-h-screen bg-paper text-foundation-700">
       <Nav />
       <PageHero
-        eyebrow="Guides"
+        eyebrow="Blog"
         title={
           <>
             Renting in Nigeria,

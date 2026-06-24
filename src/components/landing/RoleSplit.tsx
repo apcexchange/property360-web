@@ -1,135 +1,153 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2, KeyRound, Briefcase, Check, ArrowUpRight } from "lucide-react";
+import { Building2, KeyRound, Briefcase, Check, Clock, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { Reveal } from "./Reveal";
 
-const roles = [
+type Role = {
+  icon: typeof Building2;
+  label: string;
+  promise: string;
+  body: string;
+  bullets: string[];
+  comingSoon: string[];
+  cta: { label: string; href: string };
+};
+
+const roles: Role[] = [
   {
     icon: Building2,
-    label: "For Landlords",
-    title: "Run your portfolio like a property company.",
-    body: "From a single duplex to a 50-unit estate — every property, lease, payment, and expense in one place. Auto-bill rent, collect into your wallet, and pay yourself out to your bank in minutes.",
+    label: "Landlords",
+    promise: "Run your portfolio, not a part-time job.",
+    body: "From a single duplex to a 50-unit estate, every property, lease, and payment lives in one place.",
     bullets: [
-      "Auto-issued invoices on the schedule you pick",
-      "Paystack-powered rent collection (card, bank, USSD)",
-      "Real-time wallet · withdraw to GTBank, Access, Zenith, more",
-      "P&L, balance sheet, cash flow exports",
+      "Paystack rent collection (card, bank, USSD)",
+      "Auto invoices, instant receipts, and late fees",
+      "Wallet with payouts to any Nigerian bank",
+      "Tenancy agreements: upload, OCR, in-app e-signing",
+      "Maintenance tracking and real-time tenant chat",
+      "Agents with per-property permissions and audit trail",
+      "Reports: P&L, balance sheet, cash-flow exports",
     ],
-  },
-  {
-    icon: KeyRound,
-    label: "For Tenants",
-    title: "Your home, your lease, your receipts — all in your pocket.",
-    body: "Pay rent without leaving the app. Get instant receipts. Raise maintenance requests with photos. See exactly when your lease expires so renewal never sneaks up on you.",
-    bullets: [
-      "Pay by card, transfer, or USSD — instant confirmation",
-      "Tap to download every receipt and tenancy agreement",
-      "Maintenance requests with photo evidence",
-      "Chat directly with your landlord or agent",
-    ],
+    comingSoon: ["Advanced analytics and charts", "Yoruba, Igbo & Hausa language"],
+    cta: { label: "Get started", href: "/onboarding" },
   },
   {
     icon: Briefcase,
-    label: "For Agents",
-    title: "Manage other people's properties — with their permission.",
-    body: "Get invited by landlords with the permissions you actually need: collect rent, screen tenants, sign agreements, or just observe. Every action is logged, so trust is never in question.",
+    label: "Property Managers / Agents",
+    promise: "One dashboard for every landlord you serve.",
+    body: "Managing across multiple landlords is messy. Property360 centralises it, with only the access each landlord grants you.",
     bullets: [
-      "Per-property permission flags from the landlord",
-      "Audit trail of every action you take on their behalf",
-      "Manage multiple landlords from one dashboard",
-      "Get notified the moment a unit becomes vacant",
+      "Central dashboard for all your landlords",
+      "Per-property permissions set by the landlord",
+      "Audit trail of every action on their behalf",
+      "Record payments, add tenants, manage maintenance",
+      "Sign and upload tenancy agreements (when permitted)",
+      "Alerts the moment a unit goes vacant",
     ],
+    comingSoon: ["Advanced analytics and charts", "Yoruba, Igbo & Hausa language"],
+    cta: { label: "Get started", href: "/onboarding" },
+  },
+  {
+    icon: KeyRound,
+    label: "Tenants",
+    promise: "Your home, lease, and receipts in your pocket.",
+    body: "Browse verified listings, reserve in two taps, and run your whole tenancy from one place.",
+    bullets: [
+      "Browse verified listings and reserve in two taps",
+      "Pay rent by card, transfer, or USSD",
+      "Instant receipts and downloadable agreements",
+      "Sign your tenancy agreement in-app",
+      "Maintenance requests with photo evidence",
+      "Chat with your landlord; lease-expiry reminders",
+    ],
+    comingSoon: [
+      "Rent savings: set money aside toward rent",
+      "Rent loans to cover rent when cash is tight",
+      "Yoruba, Igbo & Hausa language",
+    ],
+    cta: { label: "Find a home", href: "/listings" },
   },
 ];
 
 export function RoleSplit() {
   return (
-    <section className="relative bg-paper py-28 md:py-36">
+    <section className="relative bg-paper py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
-        <Reveal>
+        <Reveal className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foundation-700">
             Built for everyone in the rental
           </p>
-          <h2 className="mt-4 max-w-3xl text-[clamp(2rem,5vw,3.5rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-foundation-700">
-            One app.
-            <span className="text-cryola-500"> Three sides</span> of the deal.
+          <h2 className="mx-auto mt-4 max-w-3xl text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-foundation-700">
+            One app for <span className="text-cryola-500">every role</span>.
           </h2>
-          <p className="mt-5 max-w-2xl text-[16.5px] leading-[1.55] text-ink-muted">
-            Whether you collect rent, pay it, or manage on someone&apos;s behalf —
-            Property360 has a role-aware experience that fits how you work.
+          <p className="mx-auto mt-5 max-w-2xl text-[16.5px] leading-[1.55] text-ink-muted">
+            Whether you collect rent, manage it, or pay it, Property360 fits the
+            way you work, landlords, property managers, and tenants alike.
           </p>
         </Reveal>
 
-        <div className="mt-20 space-y-20 md:space-y-28">
+        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
           {roles.map((role, i) => {
             const Icon = role.icon;
-            const reverse = i % 2 === 1;
             return (
               <motion.div
                 key={role.label}
-                initial={{ opacity: 0, y: 36 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-120px" }}
-                transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-                className={`grid grid-cols-1 items-center gap-12 md:grid-cols-2 ${
-                  reverse ? "md:[&>div:first-child]:order-last" : ""
-                }`}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col rounded-3xl border border-foundation-700/10 bg-surface p-8 transition-shadow hover:shadow-[0_30px_60px_-30px_rgb(15_39_44_/_0.22)]"
               >
-                {/* Visual block */}
-                <div className="relative">
-                  <div className="relative aspect-square w-full max-w-md overflow-hidden rounded-3xl bg-foundation-700 p-10 text-paper">
-                    {/* Subtle grid backdrop */}
-                    <div
-                      aria-hidden
-                      className="absolute inset-0 opacity-[0.06] [background-image:linear-gradient(to_right,#BFFF84_1px,transparent_1px),linear-gradient(to_bottom,#BFFF84_1px,transparent_1px)] [background-size:48px_48px]"
-                    />
-                    <div className="relative">
-                      <div className="grid h-14 w-14 place-items-center rounded-2xl bg-cryola-300 text-foundation-700">
-                        <Icon className="h-7 w-7" />
-                      </div>
-                      <p className="mt-10 text-[10.5px] font-semibold uppercase tracking-[0.22em] text-cryola-300">
-                        {role.label}
-                      </p>
-                      <p className="mt-4 text-[26px] font-extrabold leading-[1.15] tracking-[-0.025em] text-paper">
-                        {role.title}
-                      </p>
-                    </div>
-                    {/* Lime corner accent */}
-                    <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-cryola-400/30 blur-2xl" />
-                  </div>
-                  {/* Decorative offset block */}
-                  <div className="absolute -bottom-3 -right-3 -z-10 h-24 w-24 rounded-2xl bg-cryola-300/70" />
+                <div className="grid h-14 w-14 place-items-center rounded-2xl bg-foundation-700 text-cryola-300">
+                  <Icon className="h-7 w-7" />
                 </div>
 
-                {/* Bullets */}
-                <div>
-                  <p className="text-[16px] leading-[1.6] text-ink-muted">{role.body}</p>
-                  <ul className="mt-7 space-y-3.5">
-                    {role.bullets.map((b, j) => (
-                      <motion.li
-                        key={b}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.5, delay: 0.15 + j * 0.06 }}
-                        className="flex items-start gap-3"
-                      >
-                        <span className="mt-1 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-cryola-300">
-                          <Check className="h-3 w-3 text-foundation-700" strokeWidth={3} />
+                <h3 className="mt-6 text-[22px] font-bold leading-snug tracking-[-0.01em] text-foundation-700">
+                  {role.label}
+                </h3>
+                <p className="mt-2 text-[16px] font-semibold leading-snug text-foundation-700">
+                  {role.promise}
+                </p>
+                <p className="mt-3 text-[14.5px] leading-[1.6] text-ink-muted">
+                  {role.body}
+                </p>
+
+                <ul className="mt-6 flex-1 space-y-3">
+                  {role.bullets.map((b) => (
+                    <li key={b} className="flex items-start gap-3">
+                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-cryola-300">
+                        <Check className="h-3 w-3 text-foundation-700" strokeWidth={3} />
+                      </span>
+                      <span className="text-[14px] leading-snug text-foundation-700">
+                        {b}
+                      </span>
+                    </li>
+                  ))}
+
+                  {role.comingSoon.map((b) => (
+                    <li key={b} className="flex items-start gap-3">
+                      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-foundation-700/10">
+                        <Clock className="h-3 w-3 text-foundation-700/70" strokeWidth={2.5} />
+                      </span>
+                      <span className="text-[14px] leading-snug text-ink-muted">
+                        {b}
+                        <span className="ml-2 inline-flex items-center rounded-full bg-foundation-700/8 px-2 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-[0.08em] text-foundation-700/60">
+                          Soon
                         </span>
-                        <span className="text-[14.5px] text-foundation-700">{b}</span>
-                      </motion.li>
-                    ))}
-                  </ul>
-                  <a
-                    href="#download"
-                    className="group mt-9 inline-flex items-center gap-1.5 text-sm font-semibold text-foundation-700 transition hover:text-foundation-900"
-                  >
-                    Try it as a {role.label.replace("For ", "").toLowerCase()}
-                    <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
-                </div>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href={role.cta.href}
+                  className="group mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-sm font-semibold text-paper transition hover:bg-foundation-800"
+                >
+                  {role.cta.label}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
               </motion.div>
             );
           })}

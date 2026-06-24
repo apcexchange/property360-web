@@ -44,7 +44,7 @@ next-env.d.ts
 # Presentation/pitch decks, marketing & outreach copy, launch/social
 # content, generated quote-cards & banners, design briefs, planning docs,
 # and AI scratch dirs. Collateral, not product code.
-marketing/
+/marketing/
 pitch-deck/
 presentation/
 public/launch/

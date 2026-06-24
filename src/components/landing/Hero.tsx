@@ -1,178 +1,128 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, MapPin, Search, Play, CalendarDays } from "lucide-react";
 import Link from "next/link";
-import { useRef } from "react";
-import { PhoneMockup } from "./PhoneMockup";
-import { Magnetic } from "./Magnetic";
+import type { Transition } from "framer-motion";
 
-const HEADLINE_LINE_1 = "Stop chasing rent.";
-const HEADLINE_LINE_2 = ["Start", "collecting", "it."];
+const EASE: Transition["ease"] = [0.22, 1, 0.36, 1];
+
+// TODO(property360): replace with the real product walkthrough video.
+// "Watch Demo" opens this in a new tab (YouTube/Vimeo).
+const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=REPLACE_WITH_DEMO_VIDEO";
 
 export function Hero() {
   const reduce = useReducedMotion();
-  const sectionRef = useRef<HTMLElement | null>(null);
 
-  // Subtle scroll-driven parallax on the visual side. Springless so the
-  // motion is tied directly to the scrollbar — feels physical, not floaty.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-  const phoneY = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const meshY = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  // One simple fade-up, staggered by delay. Calm, not busy.
+  const fade = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 14 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.6, delay, ease: EASE },
+        };
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative isolate overflow-hidden pt-12 pb-24 md:pt-20 md:pb-32"
-    >
-      {/* Gradient-mesh atmosphere — three slowly-drifting blobs of brand color */}
-      <motion.div
-        aria-hidden
-        style={reduce ? undefined : { y: meshY }}
-        className="pointer-events-none absolute inset-0 -z-10"
-      >
-        <div className="drift-slow absolute -top-32 left-[15%] h-[34rem] w-[34rem] rounded-full bg-cryola-300/45 blur-3xl" />
-        <div className="drift-fast absolute -top-10 right-[5%] h-[28rem] w-[28rem] rounded-full bg-foundation-300/25 blur-3xl" />
-        <div className="drift-slow absolute top-40 left-[40%] h-[22rem] w-[22rem] rounded-full bg-cryola-200/50 blur-3xl" style={{ animationDelay: "-7s" }} />
-        {/* Hairline grid for editorial structure */}
-        <div className="absolute inset-0 opacity-[0.04] [background-image:linear-gradient(to_right,#0B171A_1px,transparent_1px),linear-gradient(to_bottom,#0B171A_1px,transparent_1px)] [background-size:88px_88px]" />
-      </motion.div>
+    <section className="relative isolate overflow-hidden px-6 pt-16 pb-20 md:pt-24 md:pb-28">
+      {/* Soft brand wash — two faint drifting blobs, very light grid */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="drift-slow absolute -top-32 left-[12%] h-[34rem] w-[34rem] rounded-full bg-cryola-300/25 blur-3xl" />
+        <div
+          className="drift-slow absolute top-28 right-[10%] h-[26rem] w-[26rem] rounded-full bg-cryola-200/25 blur-3xl"
+          style={{ animationDelay: "-7s" }}
+        />
+        <div className="absolute inset-0 opacity-[0.02] [background-image:linear-gradient(to_right,#0B171A_1px,transparent_1px),linear-gradient(to_bottom,#0B171A_1px,transparent_1px)] [background-size:88px_88px]" />
+      </div>
 
-      <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8">
-        {/* Copy column */}
-        <div>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/70 px-3 py-1 text-[11px] font-medium tracking-tight text-foundation-700 backdrop-blur-md"
-          >
-            <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-500" />
-            Built in Nigeria · for landlords nationwide
-          </motion.div>
-
-          <h1 className="mt-7 text-[clamp(2.5rem,7vw,4.75rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700">
-            <WordRevealLine words={[HEADLINE_LINE_1]} baseDelay={0.05} reduced={reduce} />
-            <br />
-            <WordRevealLine
-              words={HEADLINE_LINE_2}
-              baseDelay={0.55}
-              reduced={reduce}
-              underlineLast
-            />
-          </h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.05, ease: "easeOut" }}
-            className="mt-7 max-w-xl text-[17.5px] leading-[1.55] text-ink-muted"
-          >
-            Property360 is the all-in-one app for Nigerian landlords, agents,
-            and tenants — from leasing and rent collection to maintenance and
-            payouts. No spreadsheets. No endless WhatsApp threads. Just rent
-            that arrives on time, every time.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
-            className="mt-10 flex flex-wrap items-center gap-5"
-          >
-            <Magnetic>
-              <Link
-                href="/onboarding"
-                className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-foundation-700 px-7 py-3.5 text-sm font-semibold text-paper shadow-[0_18px_40px_-22px_rgb(15_39_44_/_0.5)] transition-colors hover:bg-foundation-800"
-              >
-                {/* Lime sweep on hover */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 left-0 -translate-x-full bg-cryola-400/25 transition-transform duration-500 ease-out group-hover:translate-x-0"
-                  style={{ width: "120%" }}
-                />
-                <span className="relative">Start managing your property</span>
-                <ArrowRight className="relative h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </Magnetic>
-
-            <a
-              href="#how"
-              className="group inline-flex items-center gap-1.5 text-sm font-semibold text-foundation-700 transition hover:text-foundation-900"
-            >
-              See how it works
-              <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-            </a>
-          </motion.div>
-
-          {/* Sub-CTA reassurance — kept honest until real social proof exists. */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 1.45 }}
-            className="mt-8 max-w-xl text-sm text-ink-muted"
-          >
-            Free for your first property. No card required. Web, iOS and
-            Android — pick the one that fits.
-          </motion.p>
-        </div>
-
-        {/* Visual column */}
+      <div className="mx-auto max-w-4xl text-center">
         <motion.div
-          style={reduce ? undefined : { y: phoneY }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.0, delay: 0.3 }}
-          className="relative hidden h-[600px] items-center justify-center lg:flex"
+          {...fade(0)}
+          className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/70 px-3 py-1 text-[11px] font-medium tracking-tight text-foundation-700 backdrop-blur-md"
         >
-          <PhoneMockup />
+          <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-500" />
+          Built in Nigeria · for landlords, tenants &amp; agents
         </motion.div>
+
+        <motion.h1
+          {...fade(0.08)}
+          className="mt-7 text-[clamp(2.6rem,7vw,5rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700"
+        >
+          Everything your rental needs.
+          <br />
+          <span className="text-cryola-500">In one app.</span>
+        </motion.h1>
+
+        <motion.p
+          {...fade(0.18)}
+          className="mx-auto mt-6 max-w-2xl text-[17px] leading-[1.55] text-ink-muted md:text-[18px]"
+        >
+          Collect rent online, automate invoices and receipts, manage leases and
+          maintenance, and fill vacant units. One platform for landlords,
+          tenants, and agents across Nigeria.
+        </motion.p>
+
+        {/* Tenant front-door: location search routes to the listings marketplace */}
+        <motion.form
+          {...fade(0.26)}
+          action="/listings"
+          method="get"
+          className="mx-auto mt-9 flex max-w-2xl items-center gap-2 rounded-full border border-foundation-700/12 bg-paper/90 p-2 pl-5 shadow-[0_18px_44px_-26px_rgb(15_39_44_/_0.35)] backdrop-blur"
+        >
+          <MapPin aria-hidden className="h-5 w-5 shrink-0 text-ink-muted" />
+          <label htmlFor="hero-search" className="sr-only">
+            Search homes for rent by location
+          </label>
+          <input
+            id="hero-search"
+            name="search"
+            type="text"
+            placeholder="Find your next home: try an area like Lekki, Ikeja or Wuse"
+            className="min-w-0 flex-1 bg-transparent text-[14.5px] text-foundation-700 placeholder:text-ink-muted/70 focus:outline-none"
+          />
+          <button
+            type="submit"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-sm font-semibold text-paper transition hover:bg-foundation-800"
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden sm:inline">Search</span>
+          </button>
+        </motion.form>
+
+        <motion.div
+          {...fade(0.34)}
+          className="mt-8 flex flex-wrap items-center justify-center gap-3"
+        >
+          <Link
+            href="/onboarding"
+            className="group inline-flex items-center gap-2 rounded-full bg-foundation-700 px-7 py-3.5 text-sm font-semibold text-paper shadow-[0_18px_40px_-22px_rgb(15_39_44_/_0.5)] transition-colors hover:bg-foundation-800"
+          >
+            Get started
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+          <a
+            href={DEMO_VIDEO_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/80 px-6 py-3.5 text-sm font-semibold text-foundation-700 backdrop-blur transition hover:border-foundation-700/30 hover:bg-paper"
+          >
+            <Play className="h-4 w-4" />
+            Watch demo
+          </a>
+          <Link
+            href="/request-demo"
+            className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/80 px-6 py-3.5 text-sm font-semibold text-foundation-700 backdrop-blur transition hover:border-foundation-700/30 hover:bg-paper"
+          >
+            <CalendarDays className="h-4 w-4" />
+            Request demo
+          </Link>
+        </motion.div>
+
+        <motion.p {...fade(0.42)} className="mt-6 text-sm text-ink-muted">
+          Free for your first property. No card required.
+        </motion.p>
       </div>
     </section>
-  );
-}
-
-/**
- * Renders a line of words with a staggered upward reveal — the words rise
- * out of an invisible mask in sequence. The last word in the line can opt
- * into the lime "draw underline" highlight.
- */
-function WordRevealLine({
-  words,
-  baseDelay,
-  reduced,
-  underlineLast = false,
-}: {
-  words: string[];
-  baseDelay: number;
-  reduced: boolean | null;
-  underlineLast?: boolean;
-}) {
-  return (
-    <span className="inline">
-      {words.map((word, i) => {
-        const isLast = underlineLast && i === words.length - 1;
-        return (
-          <span key={`${word}-${i}`} className="inline-block overflow-hidden align-bottom">
-            <motion.span
-              className="inline-block"
-              initial={reduced ? { y: 0 } : { y: "100%" }}
-              animate={{ y: 0 }}
-              transition={{
-                duration: 0.7,
-                delay: reduced ? 0 : baseDelay + i * 0.085,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-            >
-              {isLast ? <span className="draw-underline">{word}</span> : word}
-              {i < words.length - 1 && " "}
-            </motion.span>
-          </span>
-        );
-      })}
-    </span>
   );
 }

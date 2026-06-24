@@ -7,6 +7,7 @@ import { ListingCard } from "@/components/marketing/ListingCard";
 import { ListingFilters } from "@/components/marketing/ListingFilters";
 import { Pagination } from "@/components/marketing/Pagination";
 import { getListings } from "@/lib/listings-api";
+import { TOP_LOCATIONS } from "@/lib/nigeria-locations";
 
 export const revalidate = 60;
 
@@ -113,6 +114,26 @@ export default async function ListingsPage({
           totalPages={result.meta.totalPages}
           baseQuery={baseQuery}
         />
+      </section>
+
+      <section className="border-t border-foundation-700/10 bg-paper-deep/40 py-14">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="eyebrow">Browse by location</p>
+          <h2 className="mt-2 font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
+            Find a home in your city.
+          </h2>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            {TOP_LOCATIONS.map((o) => (
+              <Link
+                key={o.slug}
+                href={`/listings/in/${o.slug}`}
+                className="rounded-full border border-foundation-700/12 bg-surface px-4 py-2 text-[13.5px] font-medium text-foundation-700 transition hover:border-foundation-700/30"
+              >
+                {o.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </section>
 
       <Footer />

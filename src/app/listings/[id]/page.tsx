@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Square, MapPin, Calendar, Check } from "lucide-react";
+import { BedDouble, Bath, Square, MapPin, Calendar, Check, BadgeCheck } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
@@ -13,8 +13,10 @@ import {
   formatNairaFull,
   listingTitle,
   locationLabel,
+  isLandlordVerified,
 } from "@/lib/listings-api";
 import { ensureCoverImages } from "@/lib/propertyImage";
+import { slugifyLocation, resolveLocationSlug } from "@/lib/nigeria-locations";
 
 export const revalidate = 60;
 
@@ -64,6 +66,17 @@ export default async function ListingDetailPage({
   const amenities = listing.property?.amenities ?? [];
   const fees = listing.defaultFees ?? {};
   const reserved = listing.listingStatus === "reserved";
+  const verified = isLandlordVerified(listing);
+
+  // Link the location label to its SEO landing page (prefer state, then city)
+  // when the place is one we recognise, to tighten the internal link cluster.
+  const addr = listing.property?.address;
+  const stateSlug = addr?.state ? slugifyLocation(addr.state) : null;
+  const citySlug = addr?.city ? slugifyLocation(addr.city) : null;
+  const locationHref =
+    (stateSlug && resolveLocationSlug(stateSlug) && `/listings/in/${stateSlug}`) ||
+    (citySlug && resolveLocationSlug(citySlug) && `/listings/in/${citySlug}`) ||
+    null;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -112,11 +125,28 @@ export default async function ListingDetailPage({
           {listingTitle(listing)}
         </h1>
         <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-ink-muted">
-          <MapPin className="h-3.5 w-3.5" /> {locationLabel(listing.property?.address)}
-          {listing.property?.address?.street && (
-            <span className="text-ink-faint"> · {listing.property.address.street}</span>
+          <MapPin className="h-3.5 w-3.5" />
+          {locationHref ? (
+            <Link
+              href={locationHref}
+              className="underline-offset-2 transition hover:text-foundation-700 hover:underline"
+            >
+              {locationLabel(addr)}
+            </Link>
+          ) : (
+            locationLabel(addr)
+          )}
+          {addr?.street && (
+            <span className="text-ink-faint"> · {addr.street}</span>
           )}
         </p>
+
+        {verified && (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-[12.5px] font-semibold text-emerald-700">
+            <BadgeCheck className="h-3.5 w-3.5" />
+            Verified landlord
+          </p>
+        )}
 
         <Gallery images={images} alt={listingTitle(listing)} />
 
@@ -249,7 +279,14 @@ export default async function ListingDetailPage({
             <div className="mt-5 rounded-2xl border border-foundation-700/10 bg-paper-deep/60 p-5 text-[13px] leading-relaxed text-ink-muted">
               <p className="font-semibold text-foundation-700">Why Property360?</p>
               <ul className="mt-2 space-y-1.5">
-                <li>· Every landlord is identity-verified.</li>
+                {verified ? (
+                  <li className="flex items-center gap-1.5 font-medium text-emerald-700">
+                    <BadgeCheck className="h-3.5 w-3.5" /> This landlord&apos;s
+                    identity is verified.
+                  </li>
+                ) : (
+                  <li>· Identity (KYC) verification built into every account.</li>
+                )}
                 <li>· Pay through Paystack — no cash to strangers.</li>
                 <li>· Tenancy agreement signed in-app.</li>
               </ul>
