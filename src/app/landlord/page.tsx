@@ -8,14 +8,14 @@ import { PricingTableWithToggle } from "@/components/marketing/PricingTableWithT
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 
 export const metadata: Metadata = {
-  title: "For landlords — collect rent on time, manage every unit",
+  title: "For landlords, collect rent on time, manage every unit",
   description:
-    "Property360 helps Nigerian landlords lease units, collect rent through Paystack, generate tenancy agreements, and manage maintenance — all from one app.",
+    "Property360 helps Nigerian landlords lease units, collect rent through Paystack, generate tenancy agreements, and manage maintenance, all from one app.",
   alternates: { canonical: "/landlord" },
   openGraph: {
-    title: "Property360 for landlords — collect rent on time",
+    title: "Property360 for landlords, collect rent on time",
     description:
-      "Lease units, collect rent through Paystack, manage maintenance — all from one app.",
+      "Lease units, collect rent through Paystack, manage maintenance, all from one app.",
     url: "https://property360.africa/landlord",
     type: "website",
   },
@@ -26,31 +26,31 @@ const BENEFITS = [
     icon: Wallet,
     title: "Rent that arrives, not chases.",
     body:
-      "Tenants pay through Paystack — card, bank transfer, or USSD. Your wallet credits instantly and pays out to your bank account on demand.",
+      "Tenants pay through Paystack, card, bank transfer, or USSD. Your wallet credits instantly and pays out to your bank account on demand.",
   },
   {
     icon: Receipt,
     title: "Receipts and invoices, automated.",
     body:
-      "Recurring rent invoices generate on the schedule you choose. Receipts are issued the moment a tenant pays — no chasing, no paperwork.",
+      "Recurring rent invoices generate on the schedule you choose. Receipts are issued the moment a tenant pays, no chasing, no paperwork.",
   },
   {
     icon: FileSignature,
     title: "Tenancy agreements signed in-app.",
     body:
-      "Upload your template once. Tenants sign electronically in-app — typed name plus optional signature image, with timestamp, IP, and document hash captured as evidence. Stored against the lease and downloadable as PDF.",
+      "Upload your template once. Tenants sign electronically in-app, typed name plus optional signature image, with timestamp, IP, and document hash captured as evidence. Stored against the lease and downloadable as PDF.",
   },
   {
     icon: Wrench,
     title: "Maintenance triaged, not lost.",
     body:
-      "Tenants report issues with photos and priority. You assign, track, and close — with a paper trail for every unit.",
+      "Tenants report issues with photos and priority. You assign, track, and close, with a paper trail for every unit.",
   },
   {
     icon: Users,
     title: "Agents who work for you, not around you.",
     body:
-      "Give an agent access to specific permissions per property — add tenants, record payments, manage maintenance. Revoke any time.",
+      "Give an agent access to specific permissions per property, add tenants, record payments, manage maintenance. Revoke any time.",
   },
   {
     icon: MessageSquare,
@@ -73,7 +73,7 @@ export default function LandlordPage() {
             <span className="text-cryola-500">Start collecting it.</span>
           </>
         }
-        subtitle="Property360 turns your portfolio — one flat or a hundred — into something you actually run instead of firefight. Built for the way Nigeria rents."
+        subtitle="Property360 turns your portfolio, one flat or a hundred, into something you actually run instead of firefight. Built for the way Nigeria rents."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link

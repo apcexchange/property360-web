@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { Mail, MessageCircle, LifeBuoy, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Support — Property360",
+  title: "Support, Property360",
   description:
     "Get help with the Property360 app. Contact our team, browse common questions, and find guides for landlords, tenants, and agents.",
   alternates: { canonical: "/support" },
   openGraph: {
-    title: "Support — Property360",
+    title: "Support, Property360",
     description:
       "Get help with the Property360 app. Contact our team, browse common questions, and find guides for landlords, tenants, and agents.",
     url: "https://property360.africa/support",
@@ -90,7 +90,7 @@ export default function SupportPage() {
           <div className="mt-6 space-y-4">
             <details className="group rounded-2xl border border-border bg-surface p-5 shadow-card">
               <summary className="cursor-pointer list-none text-sm font-semibold text-foundation-700">
-                I&apos;m a tenant — how do I pay my rent?
+                I&apos;m a tenant, how do I pay my rent?
               </summary>
               <p className="mt-3 text-sm leading-6 text-ink-muted">
                 Open the Property360 app, tap <strong>Payments</strong>, and choose the
@@ -102,7 +102,7 @@ export default function SupportPage() {
 
             <details className="group rounded-2xl border border-border bg-surface p-5 shadow-card">
               <summary className="cursor-pointer list-none text-sm font-semibold text-foundation-700">
-                I&apos;m a landlord — how do I get my collected rent into my bank account?
+                I&apos;m a landlord, how do I get my collected rent into my bank account?
               </summary>
               <p className="mt-3 text-sm leading-6 text-ink-muted">
                 Collected rent lands in your in-app <strong>Wallet</strong>. From there,

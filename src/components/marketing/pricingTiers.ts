@@ -1,6 +1,5 @@
 // Pricing tier catalogue. Kept in its own (non-"use client") module so
-// server components (e.g. /pricing/page.tsx) can import it directly —
-// importing a plain data constant from a "use client" file turns it
+// server components (e.g. /pricing/page.tsx) can import it directly, // importing a plain data constant from a "use client" file turns it
 // into a client reference and crashes during SSR prerender.
 //
 // Keep this in sync with backend SubscriptionService.TIER_CONFIG.

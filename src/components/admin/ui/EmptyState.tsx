@@ -10,7 +10,7 @@ interface Props {
 export function EmptyState({ title, description, action }: Props) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
-      {/* Editorial dingbat — a printer's flourish, not an icon */}
+      {/* Editorial dingbat, a printer's flourish, not an icon */}
       <div className="font-display text-[28px] leading-none text-ink-faint">
         ⁂
       </div>

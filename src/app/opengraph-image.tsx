@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 // Twitter image automatically, so a single file fixes share previews
 // site-wide (WhatsApp, X/Twitter, LinkedIn, Facebook).
 export const alt =
-  "Property360 — Property management for Nigerian landlords, tenants, and agents";
+  "Property360, Property management for Nigerian landlords, tenants, and agents";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

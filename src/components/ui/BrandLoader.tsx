@@ -1,5 +1,5 @@
 /**
- * BrandLoader — the app's branded loading state.
+ * BrandLoader, the app's branded loading state.
  *
  * The Property360 wordmark gently breathes while a cryola segment sweeps a
  * hairline track beneath it. Replaces bare "Checking session…" / "Loading…"

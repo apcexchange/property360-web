@@ -16,7 +16,7 @@ import {
  * only mounted when a landlord is in their app.
  *
  * We keep the prompt informational + a single big "Manage plan" link to
- * /billing — no in-modal Paystack call. The actual upgrade happens on
+ * /billing, no in-modal Paystack call. The actual upgrade happens on
  * /billing where the user picks a tier and goes through checkout.
  */
 export function SubscriptionLimitModal() {
@@ -160,6 +160,6 @@ const META_FOR_REASON: Record<SubscriptionLimitReason, ReasonMeta> = {
     Icon: Wand2,
     title: "AI drafting is on Pro and above",
     body: () =>
-      "AI-drafted tenancy agreements are included on the Pro plan and up. You can keep using the manual editor on your current plan — or upgrade to draft and refine with one click.",
+      "AI-drafted tenancy agreements are included on the Pro plan and up. You can keep using the manual editor on your current plan, or upgrade to draft and refine with one click.",
   },
 };

@@ -41,7 +41,7 @@ function PaymentsInner() {
   const router = useRouter();
   const reference = params?.get("reference") ?? null;
 
-  // After a Paystack redirect we land back with ?reference= — verify it and
+  // After a Paystack redirect we land back with ?reference=, verify it and
   // strip it from the URL once we've refetched payment state.
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   useEffect(() => {
@@ -60,7 +60,7 @@ function PaymentsInner() {
         const ax = err as AxiosError<{ message?: string }>;
         setVerifyMsg(
           ax.response?.data?.message ??
-            "We couldn't verify the payment yet. It may take a few moments — check back shortly."
+            "We couldn't verify the payment yet. It may take a few moments, check back shortly."
         );
       })
       .finally(() => {

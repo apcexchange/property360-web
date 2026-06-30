@@ -13,8 +13,7 @@ export default function DonePage() {
   const { state, reset, ready } = useOnboardingState();
 
   // The session state is cleared after we mount, so anything we want to
-  // *display* (name, email, phone) we have to copy into local state first —
-  // otherwise the page re-renders with "there" / blank fields right after
+  // *display* (name, email, phone) we have to copy into local state first,   // otherwise the page re-renders with "there" / blank fields right after
   // the reset fires.
   const [snapshot, setSnapshot] = useState<OnboardingState | null>(null);
 
@@ -22,7 +21,7 @@ export default function DonePage() {
     if (!ready) return;
     if (snapshot === null) setSnapshot(state);
     reset();
-    // Intentionally one-shot — depending on `reset` / `state` would re-fire
+    // Intentionally one-shot, depending on `reset` / `state` would re-fire
     // after the reset empties them and trigger a loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready]);
@@ -66,11 +65,11 @@ export default function DonePage() {
         {role === "landlord"
           ? "Your trial is active. Download the Property360 app to add your first property, invite tenants, and start collecting rent through Paystack."
           : role === "tenant"
-          ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord — all in one place."
+          ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord, all in one place."
           : "Download the Property360 app. Once a landlord invites you to manage their property, you'll see it under My properties."}
       </p>
 
-      {/* Primary "continue" CTA — registration already created a session, so
+      {/* Primary "continue" CTA, registration already created a session, so
           they're effectively logged in. Send each role straight into the
           surface they use. */}
       <div className="mt-7 flex flex-wrap items-center gap-3">

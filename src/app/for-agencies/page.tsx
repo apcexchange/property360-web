@@ -52,7 +52,7 @@ export default function ForAgenciesPage() {
         </div>
 
         <article className="mx-auto max-w-4xl px-6 py-10 print:max-w-none print:px-10 print:py-6">
-          {/* Header — kept compact for print */}
+          {/* Header, kept compact for print */}
           <header className="flex items-start justify-between gap-4 border-b border-foundation-700/15 pb-5">
             <div>
               <div className="flex items-baseline">
@@ -94,14 +94,14 @@ export default function ForAgenciesPage() {
             <p className="mt-3 max-w-3xl text-[14px] leading-[1.55] text-ink-muted">
               Property360 lets a property management agency run rent collection,
               lease signing, maintenance, and payouts across many landlords
-              from one workspace — while each landlord keeps their own account
+              from one workspace, while each landlord keeps their own account
               and sees their own financials. Built in Nigeria for the way
               hostels, residential blocks, and short-let portfolios actually
               get managed.
             </p>
           </section>
 
-          {/* 3 columns — agency / landlord / tenant */}
+          {/* 3 columns, agency / landlord / tenant */}
           <section className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Column
               icon={Briefcase}
@@ -109,7 +109,7 @@ export default function ForAgenciesPage() {
               bullets={[
                 "One Manager desk across every landlord you act for.",
                 "Granular permission flags per property (record payments, send leases, manage maintenance, view reports).",
-                "Every action attributed — disputes resolved with one line in the audit log.",
+                "Every action attributed, disputes resolved with one line in the audit log.",
                 "Charge what you already charge. The platform doesn't take a cut of rent.",
               ]}
             />
@@ -129,7 +129,7 @@ export default function ForAgenciesPage() {
               bullets={[
                 "Pay rent online via card, bank transfer, or USSD (Paystack).",
                 "Auto-issued receipts on every payment.",
-                "Lease and payment history in one app — no more lost agreements.",
+                "Lease and payment history in one app, no more lost agreements.",
                 "Maintenance requests with photos, threaded with you or the landlord.",
               ]}
             />
@@ -154,7 +154,7 @@ export default function ForAgenciesPage() {
               <Step
                 n={3}
                 title="Run the work"
-                body="Add tenants, send agreements, collect rent, manage maintenance — all from one app. Each landlord gets their own dashboard."
+                body="Add tenants, send agreements, collect rent, manage maintenance, all from one app. Each landlord gets their own dashboard."
               />
             </ol>
           </section>
@@ -204,8 +204,7 @@ export default function ForAgenciesPage() {
             <p className="mt-4 text-[12px] leading-[1.55] text-paper/75">
               Each landlord you manage carries their own plan. Your agency's
               own plan covers properties you onboard under your own account.
-              No per-tenant, per-receipt, or per-transaction fees from us —
-              Paystack's standard processing fees apply on tenant payments.
+              No per-tenant, per-receipt, or per-transaction fees from us,               Paystack's standard processing fees apply on tenant payments.
             </p>
           </section>
 
@@ -253,7 +252,7 @@ export default function ForAgenciesPage() {
         <Footer />
       </div>
 
-      {/* Print-tuned CSS — keep changes here so the on-screen view stays
+      {/* Print-tuned CSS, keep changes here so the on-screen view stays
           unchanged and we don't proliferate Tailwind print: utilities. */}
       <style jsx global>{`
         @media print {

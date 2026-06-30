@@ -81,7 +81,7 @@ export default function NewPropertyPage() {
   // we store {url, publicId} client-side so the X button can remove the
   // right item without re-uploading. Videos follow the same pattern via
   // POST /properties/upload-video. Both arrays are sent in the create
-  // payload — landlord can also add media post-create on the detail page.
+  // payload, landlord can also add media post-create on the detail page.
   const [images, setImages] = useState<PropertyImage[]>([]);
   const [videos, setVideos] = useState<string[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -283,7 +283,7 @@ export default function NewPropertyPage() {
                   value={state}
                   onChange={(v) => {
                     setState(v);
-                    // Reset city when state changes — city list depends on state.
+                    // Reset city when state changes, city list depends on state.
                     setCity("");
                   }}
                   placeholder="Select state"
@@ -340,7 +340,7 @@ export default function NewPropertyPage() {
               </button>
             </div>
 
-            {/* Quick setup — generate N units with the same rent in one shot.
+            {/* Quick setup, generate N units with the same rent in one shot.
                 Best for hostels / mass-rental buildings; replaces the existing
                 unit list. */}
             <div className="rounded-2xl border border-cryola-400/40 bg-cryola-50/60">
@@ -352,7 +352,7 @@ export default function NewPropertyPage() {
                 <span className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-foundation-700">
                   <Zap className="h-4 w-4 text-cryola-500" /> Quick setup
                   <span className="text-[11.5px] font-normal text-ink-muted">
-                    — same rent for several units
+, same rent for several units
                   </span>
                 </span>
                 {showQuickSetup ? (
@@ -536,7 +536,7 @@ export default function NewPropertyPage() {
                     </Field>
                   </div>
 
-                  {/* Optional default fees — security deposit, caution
+                  {/* Optional default fees, security deposit, caution
                       fee, agent fee, etc. Collapsed by default. */}
                   <UnitFeesPanel
                     unit={u}
@@ -680,7 +680,7 @@ function updateUnit(
 }
 
 // Numeric fee fields on UnitFees. Used to detect whether the landlord
-// actually entered any fee for the unit — if not we drop the object from
+// actually entered any fee for the unit, if not we drop the object from
 // the payload entirely so the backend doesn't persist a hollow record.
 const FEE_FIELDS = [
   "securityDeposit",
@@ -798,7 +798,7 @@ function Textarea({
 }
 
 // Property media card. Mirrors the visual weight of the Amenities card
-// — landlord uploads photos one-at-a-time, sees a thumbnail grid, can
+//, landlord uploads photos one-at-a-time, sees a thumbnail grid, can
 // remove or re-elect a primary image, and (optionally) attaches one or
 // more walk-around videos. Uploads hit Cloudinary directly via the
 // backend, so by the time the property is created the URLs are
@@ -1091,7 +1091,7 @@ function UnitFeesPanel({
             </span>
           )}
           <span className="text-[11.5px] font-normal text-ink-muted">
-            — optional, applied when adding a tenant
+, optional, applied when adding a tenant
           </span>
         </span>
         {expanded ? (

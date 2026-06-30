@@ -14,8 +14,7 @@ export function Pagination({ page, total, limit, onChange }: Props) {
   return (
     <div className="mt-5 flex items-center justify-between border-t border-rule pt-4 text-[12.5px] text-ink-muted">
       <span className="font-mono tabular text-[12px]">
-        <strong className="font-medium text-ink">{start}</strong>–
-        <strong className="font-medium text-ink">{end}</strong>
+        <strong className="font-medium text-ink">{start}</strong>,         <strong className="font-medium text-ink">{end}</strong>
         <span className="px-1.5 text-ink-faint">of</span>
         <strong className="font-medium text-ink">{total}</strong>
       </span>

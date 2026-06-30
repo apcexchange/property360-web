@@ -109,7 +109,7 @@ function Inner() {
         ) : (templates.data ?? []).length === 0 && !creating && !editing ? (
           <EmptyState
             title="No templates yet"
-            body="Save a template once per property — then send a copy to a tenant in one click. Property360's AI can generate a sample for you or polish one you've typed."
+            body="Save a template once per property, then send a copy to a tenant in one click. Property360's AI can generate a sample for you or polish one you've typed."
           />
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
@@ -228,7 +228,7 @@ function TemplateEditor({
     staleTime: 60_000,
   });
   const sub = subQuery.data;
-  // Default to allowed when we don't yet know — the server will 402 if we're wrong.
+  // Default to allowed when we don't yet know, the server will 402 if we're wrong.
   const aiAllowed =
     !sub || !sub.applicable
       ? true
@@ -255,7 +255,7 @@ function TemplateEditor({
   const [aiSpecialClauses, setAiSpecialClauses] = useState("");
   const [aiInstructions, setAiInstructions] = useState("");
 
-  // Inline error state — toast is easy to miss, especially on long pages.
+  // Inline error state, toast is easy to miss, especially on long pages.
   const [aiError, setAiError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -572,8 +572,8 @@ function TemplateEditor({
                   {aiRefine.isPending ? "Refining…" : "Refine current body"}
                 </button>
                 <p className="ml-1 self-center text-[11px] text-ink-muted">
-                  Uses Claude. Drafts can take 20–60 seconds. Review the
-                  output before saving — it's a starting point, not legal
+                  Uses Claude. Drafts can take 20-60 seconds. Review the
+                  output before saving, it's a starting point, not legal
                   advice.
                 </p>
               </div>
@@ -713,7 +713,7 @@ function Field({
 function errMsg(err: unknown): string {
   const ax = err as AxiosError<{ message?: string }>;
   if (ax?.code === "ECONNABORTED") {
-    return "The request timed out. Claude can take 30+ seconds for a full draft — please try again.";
+    return "The request timed out. Claude can take 30+ seconds for a full draft, please try again.";
   }
   return (
     ax.response?.data?.message ?? (err as Error).message ?? "Something went wrong"

@@ -9,7 +9,7 @@ import { session } from "@/lib/session";
 
 /**
  * Paths inside /app/* the user can still visit when their subscription
- * has lapsed — so they can pay, manage their account, or sign out.
+ * has lapsed, so they can pay, manage their account, or sign out.
  * Includes the legacy top-level `/billing` thin-redirect for mobile
  * handoff users; the real billing UI lives at `/app/billing`.
  */
@@ -30,7 +30,7 @@ const ALWAYS_ALLOWED_PREFIXES = [
  * for a full-page "Subscription ended" view. The sidebar stays mounted
  * (so the user can still reach Subscription / Profile / Sign out).
  *
- * Tenants and admins fall straight through — they don't carry a paid
+ * Tenants and admins fall straight through, they don't carry a paid
  * subscription.
  */
 export function SubscriptionGate({ children }: { children: React.ReactNode }) {
@@ -50,7 +50,7 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
   // server-side enforcement is the safety net.
   if (q.isLoading || !q.data) return <>{children}</>;
 
-  // Tenants / admins / anyone not on a subscriptionable role — pass through.
+  // Tenants / admins / anyone not on a subscriptionable role, pass through.
   if (!q.data.applicable) return <>{children}</>;
 
   const view: SubscriptionView = q.data;
@@ -99,7 +99,7 @@ function LockedView({ view }: { view: SubscriptionView }) {
           <p className="mt-3 text-[14px] leading-[1.55] text-paper/80">
             {wasTrial
               ? "Pick a plan to keep collecting rent, managing tenants, and getting paid into your wallet."
-              : `Your ${tierLabel} plan is no longer active. Reactivate it to keep using Property360 — your properties, tenants, and rent records are all safely waiting.`}
+              : `Your ${tierLabel} plan is no longer active. Reactivate it to keep using Property360, your properties, tenants, and rent records are all safely waiting.`}
           </p>
           {endedOn && (
             <p className="mt-2 text-[12px] text-paper/65">

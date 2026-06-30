@@ -39,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Pull as many listings as one page allows so each detail page gets indexed.
   // If the backend returns more than `limit`, the rest will simply not appear
-  // in this sitemap shard — acceptable for now; revisit if the marketplace
+  // in this sitemap shard, acceptable for now; revisit if the marketplace
   // grows past ~500 active listings.
   let listingEntries: MetadataRoute.Sitemap = [];
   let locationEntries: MetadataRoute.Sitemap = [];
@@ -70,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.75,
       }));
   } catch {
-    // Backend down at build/revalidate time — fall back to static entries only.
+    // Backend down at build/revalidate time, fall back to static entries only.
   }
 
   return [...staticEntries, ...guideEntries, ...listingEntries, ...locationEntries];

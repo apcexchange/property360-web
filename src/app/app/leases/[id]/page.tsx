@@ -74,7 +74,7 @@ function LeaseDetailInner() {
     },
   });
 
-  // Lease detail isn't a standalone endpoint — we surface lease info from the
+  // Lease detail isn't a standalone endpoint, we surface lease info from the
   // occupied-units list (same endpoint /app/tenants uses).
   const occupied = useQuery({
     queryKey: ["tenants", "occupied-units"],
@@ -307,7 +307,7 @@ function LeaseDetailInner() {
 }
 
 /**
- * Lease-term progress bar — mirrors the mobile tenant detail screen. Shows how
+ * Lease-term progress bar, mirrors the mobile tenant detail screen. Shows how
  * far through the lease window today sits, tinted by how close the end is:
  * green on track, amber within 30 days, red once expired.
  */
@@ -626,8 +626,8 @@ function AutoInvoiceCard({
           </p>
           <p className="mt-1.5 text-[15px] font-semibold text-foundation-700">
             {enabled
-              ? "On — invoices draft and email automatically"
-              : "Off — invoices are created manually"}
+              ? "On, invoices draft and email automatically"
+              : "Off, invoices are created manually"}
           </p>
           <p className="mt-1 text-[12.5px] text-ink-muted">
             {enabled

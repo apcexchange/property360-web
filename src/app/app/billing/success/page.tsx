@@ -11,7 +11,7 @@ import { session } from "@/lib/session";
  * Paystack callback target. Paystack appends ?reference=… and ?trxref=… here.
  * We call /subscriptions/verify with that reference so the backend verifies
  * the transaction directly with Paystack and activates the plan in one round
- * trip — no waiting on the webhook. Verify is idempotent with the webhook,
+ * trip, no waiting on the webhook. Verify is idempotent with the webhook,
  * so they can race safely.
  *
  * If the user came from the onboarding wizard (sessionStorage flag set in
@@ -101,11 +101,11 @@ function SuccessInner() {
           <CheckCircle2 className="h-6 w-6" />
         </div>
         <h1 className="mt-6 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-          Thanks — your payment is in.
+          Thanks, your payment is in.
         </h1>
         <p className="mt-3 text-[15px] leading-[1.55] text-ink-muted">
           Paystack confirmed your payment. Your subscription updates as soon as
-          Paystack notifies our backend — usually within a few seconds.
+          Paystack notifies our backend, usually within a few seconds.
           {reference && (
             <>
               {" "}

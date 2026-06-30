@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Practical guides on renting in Nigeria: tenancy agreements, caution fees, collecting rent online, eviction and quit notices, rent increases, and more.",
   alternates: { canonical: "/guides" },
   openGraph: {
-    title: "Property360 Guides — renting in Nigeria, explained",
+    title: "Property360 Guides, renting in Nigeria, explained",
     description:
       "Practical, plain-English guides for Nigerian landlords, tenants, and agents.",
     url: `${SITE_URL}/guides`,

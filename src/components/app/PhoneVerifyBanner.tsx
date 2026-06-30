@@ -33,7 +33,7 @@ export function PhoneVerifyBanner() {
   if (!mounted) return null;
 
   const user = session.getUser();
-  // Tenants don't need a phone verify prompt — they're added by landlords
+  // Tenants don't need a phone verify prompt, they're added by landlords
   // and the phone field isn't load-bearing for tenant-side features yet.
   if (!user || user.role === "tenant") return null;
   if (user.phoneVerified) return null;

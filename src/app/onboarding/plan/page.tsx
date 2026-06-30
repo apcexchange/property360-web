@@ -78,11 +78,11 @@ export default function PlanPage() {
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       const status = axErr.response?.status;
-      // Founding sold out between landing here and clicking — flip the card
+      // Founding sold out between landing here and clicking, flip the card
       // to its closed state instead of showing a raw error.
       if (tier === "founding" && status === 409) {
         setFoundingStatus((s) => (s ? { ...s, remaining: 0, claimed: s.total } : s));
-        setError("The Founding 50 just filled up — pick a standard plan below, or start your free trial.");
+        setError("The Founding 50 just filled up, pick a standard plan below, or start your free trial.");
         setPending(null);
         return;
       }
@@ -92,7 +92,7 @@ export default function PlanPage() {
       // Append the URL the request actually hit so we can diagnose
       // misconfigured NEXT_PUBLIC_API_URL at a glance.
       setError(
-        `${body}${status ? ` (HTTP ${status})` : ""} — API: ${API_BASE_URL}`
+        `${body}${status ? ` (HTTP ${status})` : ""}, API: ${API_BASE_URL}`
       );
       setPending(null);
     }
@@ -141,7 +141,7 @@ export default function PlanPage() {
             disabled={pending !== null}
             className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-cryola-300 px-6 py-3 text-[14px] font-semibold text-foundation-800 transition hover:bg-cryola-200 disabled:opacity-60 sm:w-auto"
           >
-            {pending === "founding" ? "Redirecting…" : "Claim founding spot — pay yearly"}
+            {pending === "founding" ? "Redirecting…" : "Claim founding spot, pay yearly"}
           </button>
           <p className="mt-3 text-[12px] text-paper/55">
             Or pick a standard plan / start your free trial below.

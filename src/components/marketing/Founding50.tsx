@@ -11,7 +11,7 @@ import { billingApi } from "@/lib/billing-api";
 import { session } from "@/lib/session";
 
 /**
- * "The Founding 50" launch section — the irresistible offer as a dark,
+ * "The Founding 50" launch section, the irresistible offer as a dark,
  * high-contrast block. Reads the LIVE slot count from the backend, drives the
  * founding checkout, and flips to a waitlist once all slots are claimed.
  * Anchored at #founding so the FoundingBar can deep-link to it.
@@ -46,7 +46,7 @@ export function Founding50() {
       } catch (err) {
         const ax = err as AxiosError<{ message?: string }>;
         if (ax.response?.status === 409) {
-          // Slots filled between page load and click — refresh to sold-out.
+          // Slots filled between page load and click, refresh to sold-out.
           setStatus((s) => (s ? { ...s, remaining: 0, claimed: s.total } : s));
         } else {
           setError(ax.response?.data?.message ?? "Could not start checkout. Try again.");
@@ -93,7 +93,7 @@ export function Founding50() {
           <p className="mt-6 max-w-xl text-[16.5px] leading-[1.55] text-paper/75">
             {soldOut ? (
               <>
-                The founding cohort is full — thank you to everyone who joined.
+                The founding cohort is full, thank you to everyone who joined.
                 Leave your email and you&apos;ll be first to hear about the next
                 landlord offer.
               </>
@@ -101,7 +101,7 @@ export function Founding50() {
               <>
                 The first {total} landlords to join become{" "}
                 <span className="font-semibold text-paper">Founding Landlords</span>{" "}
-                — locked into our best price forever, with white-glove setup and a
+, locked into our best price forever, with white-glove setup and a
                 direct line to the team. When the {total} slots are gone, the
                 founding price is gone.
               </>
@@ -226,7 +226,7 @@ function WaitlistCard() {
       setState("done");
     } else {
       setState("error");
-      setMsg(message ?? "Something went wrong — try again.");
+      setMsg(message ?? "Something went wrong, try again.");
     }
   }
 

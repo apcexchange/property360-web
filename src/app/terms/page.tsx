@@ -57,7 +57,7 @@ export default function TermsPage() {
       <h3>4.2 Tenants</h3>
       <ul>
         <li>You are responsible for the accuracy of the information and identity documents you submit.</li>
-        <li>Payments made through the Service settle your obligation to your landlord on the date funds are confirmed received by Paystack — not the date you initiate the payment.</li>
+        <li>Payments made through the Service settle your obligation to your landlord on the date funds are confirmed received by Paystack, not the date you initiate the payment.</li>
       </ul>
       <h3>4.3 Agents</h3>
       <ul>
@@ -140,7 +140,7 @@ export default function TermsPage() {
       <ul>
         <li>You may stop using the Service and delete your account at any time from within the app.</li>
         <li>We may suspend or terminate your account, with or without notice, if we reasonably believe you have breached these Terms, exposed us to legal liability, or used the Service to harm other users.</li>
-        <li>Sections 5–14 survive termination.</li>
+        <li>Sections 5-14 survive termination.</li>
       </ul>
 
       <h2>14. Changes to the Service or Terms</h2>

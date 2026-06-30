@@ -303,7 +303,7 @@ const RENT_LABEL: Record<string, string> = {
 };
 
 /**
- * Lease-term progress bar — mirrors the landlord tenant detail and the mobile
+ * Lease-term progress bar, mirrors the landlord tenant detail and the mobile
  * app. Shows how far through the lease window today sits, tinted by how close
  * the end is: green on track, amber within 30 days, red once expired.
  */

@@ -65,7 +65,7 @@ export default function RolePage() {
         Which one are you?
       </h1>
       <p className="mt-3 text-[15px] text-ink-muted">
-        Your account is set up around your role. You can&apos;t switch later — but you
+        Your account is set up around your role. You can&apos;t switch later, but you
         can sign up again from a different email if you wear two hats.
       </p>
 

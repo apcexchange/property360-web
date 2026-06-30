@@ -13,7 +13,7 @@ export interface DemoRequestPayload {
 
 /**
  * Submit a "Request a Demo" lead. Public endpoint (no auth), so a plain
- * fetch keeps it independent of the axios/session stack — same pattern as
+ * fetch keeps it independent of the axios/session stack, same pattern as
  * the Founding 50 waitlist. Never throws: resolves { ok: false } on any
  * failure so the form can fall back to the WhatsApp quick-chat path.
  */
@@ -29,6 +29,6 @@ export async function requestDemo(
     const body = (await res.json().catch(() => ({}))) as { message?: string };
     return { ok: res.ok, message: body.message };
   } catch {
-    return { ok: false, message: "Network error — please try again." };
+    return { ok: false, message: "Network error, please try again." };
   }
 }

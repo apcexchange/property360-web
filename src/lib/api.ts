@@ -47,13 +47,13 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (typeof window === "undefined") return Promise.reject(error);
 
-    // Auth lapsed — drop the session and route the user to the appropriate
+    // Auth lapsed, drop the session and route the user to the appropriate
     // login page based on what they were trying to do. /admin keeps its
     // separate login; everything else (including /app, /billing, /login,
     // /onboarding, and the marketing site) uses /login.
     //
     // Skip the redirect when the failing request IS the sign-in call
-    // itself — a 401 there just means "wrong credentials", and the page
+    // itself, a 401 there just means "wrong credentials", and the page
     // already shows the error. Same for the password-change endpoint.
     if (error.response?.status === 401) {
       const reqUrl = error.config?.url ?? "";
@@ -76,7 +76,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Subscription limit / expiry — backend uses HTTP 402 with an `error`
+    // Subscription limit / expiry, backend uses HTTP 402 with an `error`
     // code so the client can route. We broadcast a window event so the
     // modal mounted in /app/layout can react without us needing a global
     // store. The promise still rejects so React Query / form state can

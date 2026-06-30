@@ -22,7 +22,7 @@ export default function VerifyPage() {
   const [resentNotice, setResentNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Don't allow arriving here without a session — the user must have just
+  // Don't allow arriving here without a session, the user must have just
   // registered (or be re-routed here post-login because emailVerified=false).
   useEffect(() => {
     if (!ready) return;

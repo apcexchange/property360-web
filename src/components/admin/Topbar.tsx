@@ -54,7 +54,7 @@ export function Topbar({ title, trail }: Props = {}) {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-foundation-700/15 bg-paper/85 backdrop-blur-md">
-        {/* Brand bar — thin foundation rule with lime tip */}
+        {/* Brand bar, thin foundation rule with lime tip */}
         <div className="h-[3px] w-full bg-foundation-700">
           <div className="h-full w-[180px] bg-cryola-400" />
         </div>
@@ -88,7 +88,7 @@ export function Topbar({ title, trail }: Props = {}) {
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            {/* Live data chip — brand-forward, communicates production state */}
+            {/* Live data chip, brand-forward, communicates production state */}
             <span className="hidden items-center gap-1.5 rounded-full border border-foundation-700/20 bg-foundation-700 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-paper sm:inline-flex">
               <span aria-hidden className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-400" />
               Live · production

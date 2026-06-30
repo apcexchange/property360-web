@@ -125,12 +125,12 @@ export default function BillingPage() {
       );
       window.location.href = authorizationUrl;
     } catch (err) {
-      // Founding filled up between page load and click — flip the banner to
+      // Founding filled up between page load and click, flip the banner to
       // sold-out instead of a raw error, and nudge to the standard plans.
       const ax = err as AxiosError;
       if (tier === "founding" && ax.response?.status === 409) {
         setFoundingStatus((s) => (s ? { ...s, remaining: 0, claimed: s.total } : s));
-        setActionError("The Founding 50 just sold out — choose a standard plan below.");
+        setActionError("The Founding 50 just sold out, choose a standard plan below.");
       } else {
         setActionError(classifyError(err).message);
       }
@@ -157,7 +157,7 @@ export default function BillingPage() {
     return <BrandLoader />;
   }
 
-  // Tenants end up here if they somehow logged in — show a polite block.
+  // Tenants end up here if they somehow logged in, show a polite block.
   // (Landlords and property managers both have plans; only tenants don't.)
   if (sub && !sub.applicable) {
     return (
@@ -328,7 +328,7 @@ function LoadErrorScreen({
               <code className="rounded bg-amber-100 px-1.5 py-0.5">
                 NEXT_PUBLIC_API_URL=http://localhost:5001/api/v1
               </code>
-              {" "}— then restart <code className="rounded bg-amber-100 px-1.5 py-0.5">npm run dev</code>.
+              {" "}, then restart <code className="rounded bg-amber-100 px-1.5 py-0.5">npm run dev</code>.
             </p>
           )}
         </div>
@@ -615,7 +615,7 @@ function FoundingOfferCard({
               {showCounter && <span>· {status.remaining} of {status.total} left</span>}
             </div>
             <p className="mt-2 font-display text-[22px] font-extrabold leading-tight tracking-[-0.02em]">
-              Lock our best price — forever.
+              Lock our best price, forever.
             </p>
             <div className="mt-2 flex flex-wrap items-baseline gap-2">
               <span className="font-amount text-[28px] font-extrabold text-cryola-300">

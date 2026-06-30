@@ -13,8 +13,7 @@ interface Props {
 }
 
 /**
- * Top bar shown on every /me/* page. Tenants have no subscription menu —
- * the dropdown links to their profile and sign-out only.
+ * Top bar shown on every /me/* page. Tenants have no subscription menu,  * the dropdown links to their profile and sign-out only.
  */
 export function TenantTopbar({ title, subtitle, actions }: Props) {
   const router = useRouter();

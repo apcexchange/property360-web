@@ -106,13 +106,13 @@ export default function DeleteAccountPage() {
                 are two ways:
               </p>
 
-              <h2>Option 1 — From inside the app (fastest)</h2>
+              <h2>Option 1, From inside the app (fastest)</h2>
               <p>
                 Open the Property360 mobile app → <strong>Profile</strong> → <strong>Delete account</strong>.
                 Your request is logged immediately and we begin processing it the same day.
               </p>
 
-              <h2>Option 2 — From this page (use if you can&apos;t access the app)</h2>
+              <h2>Option 2, From this page (use if you can&apos;t access the app)</h2>
               <p>
                 Fill out the form below. We&apos;ll email you a confirmation and our team will
                 verify and complete the request within <strong>30 days</strong>.
@@ -122,7 +122,7 @@ export default function DeleteAccountPage() {
               <ul>
                 <li>Your name, email address, phone number, and profile photo</li>
                 <li>Your in-app messages, maintenance requests, and notifications</li>
-                <li>Your KYC selfie and ID document image (after the AML retention period — see below)</li>
+                <li>Your KYC selfie and ID document image (after the AML retention period, see below)</li>
                 <li>Your authentication credentials and session tokens</li>
               </ul>
 
@@ -206,7 +206,7 @@ export default function DeleteAccountPage() {
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     className="mt-1.5 block w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-foundation-700 outline-none transition focus:border-foundation-500 focus:ring-2 focus:ring-cryola-200"
-                    placeholder="Tell us why if you'd like — it helps us improve."
+                    placeholder="Tell us why if you'd like, it helps us improve."
                   />
                 </div>
 

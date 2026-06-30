@@ -131,7 +131,7 @@ export default function SharedBillDetailPage() {
               )}
             </Card>
             <p className="mt-4 text-center text-[11px] text-ink-muted">
-              Read-only — only tenants of this building can create or settle
+              Read-only, only tenants of this building can create or settle
               shared bills.
             </p>
           </>

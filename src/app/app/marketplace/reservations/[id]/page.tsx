@@ -32,7 +32,7 @@ export default function ReservationDetailPage() {
   const [declineReason, setDeclineReason] = useState("");
   const [showDecline, setShowDecline] = useState(false);
 
-  // Reservation detail isn't a standalone endpoint — pull from the list.
+  // Reservation detail isn't a standalone endpoint, pull from the list.
   const list = useQuery({
     queryKey: ["marketplace", "reservations"],
     queryFn: () => landlordApi.landlordReservationRequests(),
@@ -187,7 +187,7 @@ export default function ReservationDetailPage() {
                   value={declineReason}
                   onChange={(e) => setDeclineReason(e.target.value)}
                   rows={3}
-                  placeholder="Reason (optional) — shown to the prospect"
+                  placeholder="Reason (optional), shown to the prospect"
                   className="mt-3 w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
                 />
                 <div className="mt-4 flex items-center justify-end gap-3">

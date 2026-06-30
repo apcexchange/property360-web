@@ -23,7 +23,7 @@ const ALL_FIELDS: TenantProfileField[] = [
 
 interface Props {
   leaseId: string;
-  /** Fields already on file — pre-unchecked so the landlord asks only for what's missing. */
+  /** Fields already on file, pre-unchecked so the landlord asks only for what's missing. */
   filledFields?: TenantProfileField[];
   onClose: () => void;
 }
@@ -145,7 +145,7 @@ export function RequestTenantProfileModal({
                     </span>
                     {alreadyFilled && (
                       <span className="text-[11px] text-ink-muted">
-                        On file — re-request to overwrite
+                        On file, re-request to overwrite
                       </span>
                     )}
                   </span>

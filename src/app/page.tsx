@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Property360 is the all-in-one app for Nigerian landlords, tenants, and agents. Collect rent online with Paystack, automate invoices and receipts, manage leases and maintenance, and list vacant units. Start free.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Property360 — Property management for Nigerian landlords",
+    title: "Property360, Property management for Nigerian landlords",
     description:
       "Collect rent online, automate invoices and receipts, manage leases, and fill vacant units. The all-in-one property platform built for Nigeria.",
     url: "https://property360.africa/",

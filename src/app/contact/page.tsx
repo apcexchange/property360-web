@@ -7,7 +7,7 @@ import { PageHero } from "@/components/marketing/PageHero";
 export const metadata: Metadata = {
   title: "Contact Property360",
   description:
-    "Get in touch with Property360 — support, sales, partnerships, and press inquiries.",
+    "Get in touch with Property360, support, sales, partnerships, and press inquiries.",
   alternates: { canonical: "/contact" },
   openGraph: {
     title: "Contact Property360",

@@ -20,7 +20,7 @@ export interface AdminUser {
 
 // Cache the parsed user keyed by the raw localStorage string. React's
 // useSyncExternalStore requires getSnapshot to return a stable reference when
-// nothing has changed — re-parsing JSON on every call produces a fresh object
+// nothing has changed, re-parsing JSON on every call produces a fresh object
 // each time and triggers an "infinite loop" error.
 let cachedRaw: string | null = null;
 let cachedUser: AdminUser | null = null;

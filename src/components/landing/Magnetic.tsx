@@ -11,8 +11,7 @@ interface Props {
 }
 
 /**
- * Wraps a child element so it leans subtly toward the cursor on hover —
- * the kind of refined micro-interaction you find on Linear, Stripe, Vercel.
+ * Wraps a child element so it leans subtly toward the cursor on hover,  * the kind of refined micro-interaction you find on Linear, Stripe, Vercel.
  * Spring-damped so it returns smoothly when the cursor leaves.
  */
 export function Magnetic({ children, strength = 14, className }: Props) {

@@ -3,7 +3,7 @@
 import { Reveal } from "./Reveal";
 import { CountUp } from "./CountUp";
 
-// Aspirational, market-grounded copy — no fabricated user counts.
+// Aspirational, market-grounded copy, no fabricated user counts.
 const stats: Array<{
   value: number | string;
   suffix?: string;
@@ -11,7 +11,7 @@ const stats: Array<{
   static?: boolean;
 }> = [
   { value: 60, suffix: "s", label: "From signup to first invoice" },
-  { value: 3, label: "Roles in one app — landlord, tenant, agent" },
+  { value: 3, label: "Roles in one app, landlord, tenant, agent" },
   { value: "0", label: "Spreadsheets required", static: true },
   { value: 100, suffix: "%", label: "Of your rent records, in one place" },
 ];

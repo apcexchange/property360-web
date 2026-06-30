@@ -2,7 +2,7 @@
  * Server-only API client for the public listings endpoints.
  *
  * Uses native fetch so Next can apply ISR via `next: { revalidate }`.
- * Listings change frequently but not by the second — 60s revalidate balances
+ * Listings change frequently but not by the second, 60s revalidate balances
  * freshness against backend load and gives Google a cacheable page.
  */
 

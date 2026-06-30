@@ -15,7 +15,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-[13.5px] leading-[1.6] text-ink-muted">
-              Property management for the way Nigeria rents — built in Lagos.
+              Property management for the way Nigeria rents, built in Lagos.
             </p>
           </div>
 

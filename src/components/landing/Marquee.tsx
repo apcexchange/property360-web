@@ -13,7 +13,7 @@ interface Props {
 
 /**
  * CSS-driven endless marquee. Renders the children twice back-to-back and
- * translates the track by -50% — giving a seamless loop. Pauses on hover and
+ * translates the track by -50%, giving a seamless loop. Pauses on hover and
  * respects prefers-reduced-motion via globals.css.
  */
 export function Marquee({

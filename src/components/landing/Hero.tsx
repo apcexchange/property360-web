@@ -26,7 +26,7 @@ export function Hero() {
 
   return (
     <section className="relative isolate overflow-hidden px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-      {/* Soft brand wash — two faint drifting blobs, very light grid */}
+      {/* Soft brand wash, two faint drifting blobs, very light grid */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="drift-slow absolute -top-32 left-[12%] h-[34rem] w-[34rem] rounded-full bg-cryola-300/25 blur-3xl" />
         <div

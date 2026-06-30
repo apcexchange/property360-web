@@ -192,7 +192,7 @@ export default function AdminDeletionRequestsPage() {
                     className="accent-foundation-700"
                   />
                   <span className="text-sm text-foundation-700">
-                    Complete — anonymise the matched account
+                    Complete, anonymise the matched account
                   </span>
                 </label>
                 <label className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 ${action === "rejected" ? "border-foundation-700 bg-canvas" : "border-border"}`}>
@@ -203,7 +203,7 @@ export default function AdminDeletionRequestsPage() {
                     className="accent-foundation-700"
                   />
                   <span className="text-sm text-foundation-700">
-                    Reject — no action taken
+                    Reject, no action taken
                   </span>
                 </label>
               </div>

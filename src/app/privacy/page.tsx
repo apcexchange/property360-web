@@ -31,7 +31,7 @@ export default function PrivacyPage() {
         <li><strong>Account details:</strong> full name, email address, Nigerian mobile number (+234 format), password, role (landlord, tenant, or property manager), and profile photo.</li>
         <li><strong>Identity verification (KYC):</strong> one of National Identification Number (NIN), Driver&apos;s Licence, International Passport, or Voter&apos;s Card, plus a photo of the document. We use this to verify identity and reduce fraud on the platform.</li>
         <li><strong>Property &amp; lease data:</strong> property addresses, unit details, lease terms, fee structure (security deposit, caution fee, agent fee, agreement fee, legal fee, service charge), and tenancy agreements.</li>
-        <li><strong>Payment &amp; payout details:</strong> bank account details for landlord payouts; payment instrument data is collected and stored by our payment processor (see §3) — we do not store full card numbers.</li>
+        <li><strong>Payment &amp; payout details:</strong> bank account details for landlord payouts; payment instrument data is collected and stored by our payment processor (see §3), we do not store full card numbers.</li>
         <li><strong>Documents you upload:</strong> tenancy agreements, maintenance request photos, and other files you choose to share.</li>
         <li><strong>Communications:</strong> in-app chat messages, maintenance requests, and support correspondence.</li>
       </ul>
@@ -68,13 +68,13 @@ export default function PrivacyPage() {
         data necessary for the purpose listed and is contractually bound to safeguard it.
       </p>
       <ul>
-        <li><strong>Paystack Payments Limited</strong> — card, bank transfer, and USSD payment processing; landlord payouts via the Paystack Transfer API. (Nigeria)</li>
-        <li><strong>Cloudinary Ltd.</strong> — storage and delivery of images and PDF documents you upload (profile photos, tenancy agreements, maintenance photos). (Israel / EU / US)</li>
-        <li><strong>Google LLC — Document AI</strong> — OCR processing of uploaded tenancy agreements to extract structured fields. Documents are processed in transit and not retained by Google for model training. (US / EU)</li>
-        <li><strong>Resend, Inc.</strong> — delivery of transactional email (e.g. password reset, invoice notifications, signed agreements). (US)</li>
-        <li><strong>MongoDB, Inc. — Atlas (Frankfurt region)</strong> — primary database hosting. (Germany / EU)</li>
-        <li><strong>Render Services, Inc.</strong> — application hosting for the API. (Germany / EU)</li>
-        <li><strong>Apple Inc.</strong> and <strong>Google LLC</strong> — mobile push notification delivery via APNs and FCM respectively.</li>
+        <li><strong>Paystack Payments Limited</strong>, card, bank transfer, and USSD payment processing; landlord payouts via the Paystack Transfer API. (Nigeria)</li>
+        <li><strong>Cloudinary Ltd.</strong>, storage and delivery of images and PDF documents you upload (profile photos, tenancy agreements, maintenance photos). (Israel / EU / US)</li>
+        <li><strong>Google LLC, Document AI</strong>, OCR processing of uploaded tenancy agreements to extract structured fields. Documents are processed in transit and not retained by Google for model training. (US / EU)</li>
+        <li><strong>Resend, Inc.</strong>, delivery of transactional email (e.g. password reset, invoice notifications, signed agreements). (US)</li>
+        <li><strong>MongoDB, Inc., Atlas (Frankfurt region)</strong>, primary database hosting. (Germany / EU)</li>
+        <li><strong>Render Services, Inc.</strong>, application hosting for the API. (Germany / EU)</li>
+        <li><strong>Apple Inc.</strong> and <strong>Google LLC</strong>, mobile push notification delivery via APNs and FCM respectively.</li>
       </ul>
       <p>We do not sell your personal data and we do not share it with advertisers.</p>
 
@@ -88,8 +88,8 @@ export default function PrivacyPage() {
 
       <h2>5. International Data Transfers</h2>
       <p>
-        Your data may be processed outside Nigeria — primarily in the European Union
-        (Germany) and the United States — by the providers named in §3. Where required by
+        Your data may be processed outside Nigeria, primarily in the European Union
+        (Germany) and the United States, by the providers named in §3. Where required by
         the NDPA, we rely on adequacy decisions, standard contractual clauses, or your
         informed consent for these transfers.
       </p>
@@ -118,7 +118,7 @@ export default function PrivacyPage() {
         To exercise any of these rights, email{" "}
         <a href="mailto:privacy@property360.africa">privacy@property360.africa</a>. To
         delete your account specifically, you can use our self-service form at{" "}
-        <a href="/delete-account">property360.africa/delete-account</a> — no login required.
+        <a href="/delete-account">property360.africa/delete-account</a>, no login required.
         We respond within 30 days.
       </p>
 
@@ -127,7 +127,7 @@ export default function PrivacyPage() {
         <li>All traffic between the app and our servers is encrypted with TLS 1.2+.</li>
         <li>Passwords are hashed (never stored in plaintext) and authentication tokens are short-lived.</li>
         <li>Access to production data is restricted to authorised personnel and audited.</li>
-        <li>Payment card details are never transmitted to or stored on our servers — they go directly to Paystack.</li>
+        <li>Payment card details are never transmitted to or stored on our servers, they go directly to Paystack.</li>
       </ul>
       <p>
         No system is perfectly secure. If you believe your account has been compromised,

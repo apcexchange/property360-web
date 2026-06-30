@@ -3,7 +3,7 @@
  *
  * Coverage: 36 states + Federal Capital Territory. Each entry lists the
  * state capital first followed by other widely-used city / LGA names.
- * This is not exhaustive (Nigeria has 774 LGAs) — it's a curated set
+ * This is not exhaustive (Nigeria has 774 LGAs), it's a curated set
  * that covers the cities tenants and landlords typically transact in.
  * Cities are stored as plain strings so they round-trip through the
  * existing free-text `address.city` field on Property.

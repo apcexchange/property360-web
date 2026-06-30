@@ -16,7 +16,7 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 
 export const metadata: Metadata = {
-  title: "Estate communities — shared bills & building chat | Property360",
+  title: "Estate communities, shared bills & building chat | Property360",
   description:
     "Bring everyone in your building together. Split communal costs like diesel, security, and waste transparently, collect contributions into a secure wallet, and coordinate in a building group chat.",
   alternates: { canonical: "/communities" },
@@ -95,7 +95,7 @@ export default function CommunitiesPage() {
             <span className="text-cryola-500">on the same page.</span>
           </>
         }
-        subtitle="Diesel, security, waste, repairs — the costs a building shares are usually chased in cash and endless WhatsApp threads. Property360 turns them into transparent shared bills everyone can see and settle, plus a group chat for the whole building."
+        subtitle="Diesel, security, waste, repairs, the costs a building shares are usually chased in cash and endless WhatsApp threads. Property360 turns them into transparent shared bills everyone can see and settle, plus a group chat for the whole building."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link

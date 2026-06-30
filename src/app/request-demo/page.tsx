@@ -13,12 +13,12 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { RequestDemoForm } from "@/components/marketing/RequestDemoForm";
 
 export const metadata: Metadata = {
-  title: "Request a demo — Property360",
+  title: "Request a demo, Property360",
   description:
     "See Property360 in action. Book a personalised walkthrough and learn how to collect rent, manage leases, and fill vacant units across your Nigerian portfolio.",
   alternates: { canonical: "/request-demo" },
   openGraph: {
-    title: "Request a demo — Property360",
+    title: "Request a demo, Property360",
     description:
       "Book a personalised walkthrough of Property360 for landlords, agents, and tenants.",
     url: "https://property360.africa/request-demo",

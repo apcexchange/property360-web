@@ -69,7 +69,7 @@ export default function AgreementsPage() {
   });
 
   // Templates the landlord has saved for this property (or any of their
-  // properties — the picker shows them all so they can grab a sister
+  // properties, the picker shows them all so they can grab a sister
   // property's template if needed).
   const propertyId = row?.property?.id;
   const templates = useQuery({
@@ -450,7 +450,7 @@ function AiAgreementModal({
               <p className="text-[12px] text-ink-muted">
                 The draft uses Nigerian tenancy conventions and placeholders for
                 names, property and unit. You can edit everything before
-                issuing. Drafting can take 15–40 seconds.
+                issuing. Drafting can take 15-40 seconds.
               </p>
             </>
           ) : (

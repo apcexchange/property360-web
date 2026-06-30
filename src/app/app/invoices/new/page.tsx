@@ -75,13 +75,13 @@ export default function NewInvoicePage() {
       (l) => l.description.trim().length > 0 && l.quantity > 0 && l.rate > 0
     );
 
-  // Tenants in occupied units may not all have leases — only show those that do.
+  // Tenants in occupied units may not all have leases, only show those that do.
   const tenantOptions =
     tenantsQ.data
       ?.filter((r) => r.lease)
       .map((r) => ({
         value: r.lease!.id,
-        label: `${r.tenant.firstName} ${r.tenant.lastName} — ${r.property.name}, Unit ${r.unit.unitNumber}`,
+        label: `${r.tenant.firstName} ${r.tenant.lastName}, ${r.property.name}, Unit ${r.unit.unitNumber}`,
       })) ?? [];
 
   return (

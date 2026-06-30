@@ -14,7 +14,7 @@ export function StatCard({ label, value, loading, delta, hint }: Props) {
   const positive = (delta ?? 0) >= 0;
   return (
     <div className="group relative border border-rule bg-surface px-5 pb-5 pt-5 transition-colors hover:bg-cryola-50/60">
-      {/* Brand accent rule — the KPI's "spine" */}
+      {/* Brand accent rule, the KPI's "spine" */}
       <span aria-hidden className="absolute left-0 top-0 h-[3px] w-14 bg-foundation-700" />
       <span aria-hidden className="absolute left-14 top-0 h-[3px] w-3 bg-cryola-400" />
 

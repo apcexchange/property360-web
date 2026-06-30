@@ -178,7 +178,7 @@ function InviteForm({
       <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-10 text-center">
         <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
         <h1 className="mt-3 font-display text-[24px] font-extrabold text-emerald-800">
-          Thank you — submitted.
+          Thank you, submitted.
         </h1>
         <p className="mt-2 text-[14px] text-emerald-800">
           The information has been sent to {preview.landlord.firstName}{" "}

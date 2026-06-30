@@ -66,7 +66,7 @@ export default function InvoicesPage() {
         ) : (q.data ?? []).length === 0 ? (
           <EmptyState
             title="No invoices yet"
-            body="Create an invoice for a tenant — they'll be notified and can pay via Paystack."
+            body="Create an invoice for a tenant, they'll be notified and can pay via Paystack."
             cta={{ label: "New invoice", href: "/app/invoices/new" }}
           />
         ) : (

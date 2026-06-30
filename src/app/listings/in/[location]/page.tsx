@@ -54,7 +54,7 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: `/listings/in/${loc.slug}` },
-    // Empty location pages add no value to the index — keep them out until
+    // Empty location pages add no value to the index, keep them out until
     // there's inventory, while still serving a helpful page to direct visitors.
     robots: meta.total === 0 ? { index: false, follow: true } : undefined,
     openGraph: {
@@ -136,7 +136,7 @@ export default async function LocationListingsPage({
         }
         subtitle={`Verified rentals in ${loc.label}${
           loc.kind === "city" && loc.state ? `, ${loc.state}` : ""
-        } — every unit tied to an identity-verified landlord. Browse without signing in; reserve in the app when you're ready.`}
+        }, every unit tied to an identity-verified landlord. Browse without signing in; reserve in the app when you're ready.`}
       />
 
       <section className="mx-auto max-w-6xl px-6 pb-16">

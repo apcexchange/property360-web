@@ -15,11 +15,11 @@ const REMINDER_DAYS = 7;
 /**
  * Top-of-app banner that warns when a paid subscription is approaching
  * `renewsAt` (yellow, dismissible for the session) or already past it
- * (red, non-dismissible — the user can't do anything else until they
+ * (red, non-dismissible, the user can't do anything else until they
  * renew anyway). Hidden for trial / cancelled / non-applicable users.
  *
  * Replaces the visibility into renewal state that Paystack auto-debit
- * used to provide implicitly — now that subscriptions are pay-as-you-go,
+ * used to provide implicitly, now that subscriptions are pay-as-you-go,
  * the user needs an in-app nudge to come back.
  */
 export function SubscriptionRenewalBanner() {
@@ -36,7 +36,7 @@ export function SubscriptionRenewalBanner() {
   const { data } = useQuery<SubscriptionResponse>({
     queryKey: ["subscription", "renewal-banner"],
     queryFn: () => billingApi.getSubscription(),
-    // Don't refetch obsessively — the banner only changes when renewsAt
+    // Don't refetch obsessively, the banner only changes when renewsAt
     // crosses a day boundary. Once an hour is plenty.
     staleTime: 60 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -62,7 +62,7 @@ export function SubscriptionRenewalBanner() {
     daysUntil <= REMINDER_DAYS;
 
   if (!isExpired && !isExpiringSoon) return null;
-  // Expired banner is non-dismissible — read-only mode is a hard block
+  // Expired banner is non-dismissible, read-only mode is a hard block
   // and the banner is the user's only path back to billing.
   if (isExpiringSoon && dismissed) return null;
 

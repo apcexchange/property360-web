@@ -5,7 +5,7 @@ import { CheckCircle2, BellRing, Wallet } from "lucide-react";
 
 /**
  * CSS-built phone frame showing a mock app screen, with floating UI cards
- * that drift in and bob gently. No image assets — everything is divs + SVG.
+ * that drift in and bob gently. No image assets, everything is divs + SVG.
  */
 export function PhoneMockup() {
   return (

@@ -143,7 +143,7 @@ function NoticeCard({ notice }: { notice: QuitNotice }) {
           ) : isActive ? (
             <p className="text-[13px] font-semibold text-foundation-700">
               {daysRemaining} day{daysRemaining === 1 ? "" : "s"} left to vacate
-              the premises — expires {formatDate(notice.expiresAt)}.
+              the premises, expires {formatDate(notice.expiresAt)}.
             </p>
           ) : notice.status === "acknowledged" ? (
             <p className="text-[13px] font-semibold text-foundation-700">

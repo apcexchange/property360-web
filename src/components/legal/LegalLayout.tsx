@@ -11,7 +11,7 @@ export function LegalLayout({
 }) {
   return (
     <div className="min-h-screen bg-canvas text-foundation-700">
-      {/* Lightweight header — no full Nav so legal pages stay focused */}
+      {/* Lightweight header, no full Nav so legal pages stay focused */}
       <header className="border-b border-border bg-canvas/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">

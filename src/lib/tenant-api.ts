@@ -182,8 +182,7 @@ export interface ConversationParticipant {
 }
 
 /**
- * Backend ChatService.getConversations builds a hand-shaped object —
- * `id`, `otherParty`, and an optional listing/property summary — so
+ * Backend ChatService.getConversations builds a hand-shaped object,  * `id`, `otherParty`, and an optional listing/property summary, so
  * mirror that exactly. There is no `participants` array.
  */
 export interface Conversation {
@@ -356,7 +355,7 @@ function asList<T>(data: unknown): T[] {
 }
 
 // The backend returns each invitation as { leaseId, property, unit, landlord,
-// lease: { startDate, rentAmount, ...fees } } — the lease id is `leaseId` and
+// lease: { startDate, rentAmount, ...fees } }, the lease id is `leaseId` and
 // the lease/fee fields are nested under `lease`. Flatten that into the shape the
 // UI consumes so `inv.id` (used to build the accept/decline URL) and the rent /
 // date / fee fields are populated. (Defensive: also accepts an already-flat
@@ -757,7 +756,7 @@ export const tenantApi = {
     const res = await api.get("/chat/conversations");
     return asList<Conversation>(unwrap(res.data));
   },
-  // Start (or reopen) an in-app chat with a lease contact — the landlord or a
+  // Start (or reopen) an in-app chat with a lease contact, the landlord or a
   // property manager assigned to the tenant's property. Returns the
   // conversation; its `id` is used to open the thread.
   async startLeaseConversation(recipientId: string): Promise<{ id: string }> {
@@ -804,7 +803,7 @@ export const tenantApi = {
    * the file the tenant just reviewed so a signed record is verifiable.
    * We use the same shape mobile uses: `${_id}|${documentPublicId}|${fileSize}`.
    *
-   * Optionally accepts a signature image (PNG/JPEG Blob) — when present
+   * Optionally accepts a signature image (PNG/JPEG Blob), when present
    * we post multipart so the backend can stash the image alongside the
    * typed-name evidence.
    */

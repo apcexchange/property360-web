@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Find verified rental homes across Lagos, Abuja, Port Harcourt and beyond. Filter by location, bedrooms, and price. Powered by Property360.",
   alternates: { canonical: "/listings" },
   openGraph: {
-    title: "Browse homes for rent in Nigeria — Property360",
+    title: "Browse homes for rent in Nigeria, Property360",
     description:
       "Find verified rental homes across Nigeria. Filter by location, bedrooms, and price.",
     url: "https://property360.africa/listings",
@@ -80,7 +80,7 @@ export default async function ListingsPage({
             <span className="text-cryola-500">Real listings, verified landlords.</span>
           </>
         }
-        subtitle="Every unit on Property360 is tied to a real landlord or agent — no ghost listings, no surprise fees. Browse without signing in; reserve in the app when you're ready."
+        subtitle="Every unit on Property360 is tied to a real landlord or agent, no ghost listings, no surprise fees. Browse without signing in; reserve in the app when you're ready."
       >
         <ListingFilters
           defaultSearch={sp.search ?? ""}

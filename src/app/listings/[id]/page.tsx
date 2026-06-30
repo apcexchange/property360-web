@@ -287,7 +287,7 @@ export default async function ListingDetailPage({
                 ) : (
                   <li>· Identity (KYC) verification built into every account.</li>
                 )}
-                <li>· Pay through Paystack — no cash to strangers.</li>
+                <li>· Pay through Paystack, no cash to strangers.</li>
                 <li>· Tenancy agreement signed in-app.</li>
               </ul>
             </div>
@@ -326,7 +326,7 @@ function Gallery({ images, alt }: { images: string[]; alt: string }) {
             >
               <Image
                 src={src}
-                alt={`${alt} – photo ${i + 2}`}
+                alt={`${alt}, photo ${i + 2}`}
                 fill
                 sizes="(min-width: 640px) 30vw, 100vw"
                 className="object-cover"

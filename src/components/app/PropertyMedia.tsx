@@ -17,7 +17,7 @@ import { DEFAULT_PROPERTY_IMAGE } from "@/lib/propertyImage";
 import { useToast } from "@/components/ui/Toast";
 
 // Property media (images + videos) are stored on the backend as flat arrays
-// of Cloudinary secure_url strings — see backend Property model. Coerce
+// of Cloudinary secure_url strings, see backend Property model. Coerce
 // defensively: legacy rows / failed uploads can leave null or "" entries,
 // and a stray non-string would crash the gallery.
 function cleanUrls(arr: unknown): string[] {
@@ -36,8 +36,7 @@ type Lightbox = { type: "image" | "video"; url: string } | null;
  *    full-size in a lightbox,
  *  - remove anything.
  *
- * Every change persists the full desired array via PUT /properties/:id —
- * the backend replaces the stored array wholesale, so we always send the
+ * Every change persists the full desired array via PUT /properties/:id,  * the backend replaces the stored array wholesale, so we always send the
  * complete next state.
  */
 export function PropertyMediaCard({
@@ -171,7 +170,7 @@ export function PropertyMediaCard({
         )}
       </div>
 
-      {/* Upload controls — both accept multiple files. */}
+      {/* Upload controls, both accept multiple files. */}
       <div className="grid gap-3 sm:grid-cols-2">
         <UploadButton
           label="Add photos"
@@ -383,7 +382,7 @@ function VideoTile({
           className="h-full w-full object-cover"
         />
       </button>
-      {/* Play affordance — fades out while the preview is playing on hover. */}
+      {/* Play affordance, fades out while the preview is playing on hover. */}
       <span className="pointer-events-none absolute inset-0 grid place-items-center transition group-hover:opacity-0">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-foundation-900/55 text-paper backdrop-blur-sm">
           <Play className="ml-0.5 h-4 w-4 fill-current" />

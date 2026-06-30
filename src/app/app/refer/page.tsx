@@ -118,7 +118,7 @@ export default function ReferPage() {
                   <span className="font-mono font-semibold text-foundation-700">
                     {q.data.referralCode}
                   </span>{" "}
-                  — anyone signing up at property360.africa/onboarding can
+, anyone signing up at property360.africa/onboarding can
                   paste it.
                 </p>
 
@@ -136,7 +136,7 @@ export default function ReferPage() {
                       if (q.data && navigator.share) {
                         navigator
                           .share({
-                            title: "Property360 — try it",
+                            title: "Property360, try it",
                             text:
                               "I've been using Property360 to manage rent and tenants. Sign up with my link and we both get 1 month free.",
                             url: q.data.shareUrl,
@@ -156,13 +156,13 @@ export default function ReferPage() {
               </div>
             </Card>
 
-            {/* Stats — paid invitees count toward the reward; pending = signed up but haven't paid yet */}
+            {/* Stats, paid invitees count toward the reward; pending = signed up but haven't paid yet */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <StatCard
                 icon={Sparkles}
                 label="Paid invitees"
                 value={q.data.totalPaid}
-                hint="Picked a plan — bonus credited"
+                hint="Picked a plan, bonus credited"
               />
               <StatCard
                 icon={Clock}
@@ -203,7 +203,7 @@ export default function ReferPage() {
               <p className="mt-5 text-[11.5px] leading-[1.55] text-ink-muted">
                 Fine print: one credit per referee. If you self-refer or
                 refer a tenant account, the credit won't fire. The credit
-                lands on your next renewal — if your plan has fully expired
+                lands on your next renewal, if your plan has fully expired
                 you'll see it on the plan you pick next.
               </p>
             </Card>

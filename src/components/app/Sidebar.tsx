@@ -87,14 +87,14 @@ function buildSections(role: string | undefined): NavSection[] {
   ];
 }
 
-// Default sections (landlord view) — used during SSR before localStorage is
+// Default sections (landlord view), used during SSR before localStorage is
 // available so the markup is stable.
 export const APP_NAV_SECTIONS: NavSection[] = buildSections(undefined);
 
 function isActive(itemHref: string, pathname: string): boolean {
   if (itemHref === "/app/dashboard") return pathname === "/app" || pathname === "/app/dashboard";
   // Wallet has a dedicated child item (/app/wallet/bank-accounts), so match it
-  // exactly — otherwise both Wallet and Bank accounts highlight together.
+  // exactly, otherwise both Wallet and Bank accounts highlight together.
   if (itemHref === "/app/wallet") return pathname === "/app/wallet";
   return pathname === itemHref || pathname.startsWith(itemHref + "/");
 }

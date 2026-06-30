@@ -6,7 +6,7 @@ export const meta: GuideMeta = {
   title: "Agent and Agency Fees in Nigeria: What's Normal and What's Legal",
   heading: "Agent and agency fees in Nigeria, explained",
   description:
-    "Agent fee, agency fee, legal fee, agreement fee — what each one means in a Nigerian rental, how much is typical, and what the law says.",
+    "Agent fee, agency fee, legal fee, agreement fee, what each one means in a Nigerian rental, how much is typical, and what the law says.",
   keywords: [
     "agent fee Nigeria",
     "agency fee Nigeria",
