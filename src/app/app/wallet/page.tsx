@@ -13,12 +13,14 @@ import {
   formatNgn,
   formatDate,
 } from "@/components/app/ui";
+import { WalletFundCard } from "@/components/app/WalletFundCard";
 import { landlordApi } from "@/lib/landlord-api";
 
 export default function WalletPage() {
   const wallet = useQuery({
     queryKey: ["wallet"],
     queryFn: () => landlordApi.wallet(),
+    refetchInterval: (q) => (q.state.data?.dvaStatus === "pending" ? 12_000 : false),
   });
   const tx = useQuery({
     queryKey: ["wallet", "transactions"],
@@ -95,6 +97,10 @@ export default function WalletPage() {
               </Card>
             </>
           )}
+        </div>
+
+        <div className="mt-6">
+          <WalletFundCard wallet={wallet.data} />
         </div>
 
         <div className="mt-8">
