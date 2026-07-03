@@ -1,260 +1,249 @@
 # User-Fundable Wallet (Paystack DVA) — Design
 
 Date: 2026-07-03
-Status: Approved design, pending spec review
-Scope: Backend (property360.git) + light mobile/web surfacing
+Status: Approved design (revised for unified wallet), pending spec review
+Scope: Backend (property360.git) + web + mobile
 
 ## 1. Goal
 
-Let any user (tenant, landlord, agent) fund a personal wallet by bank transfer to a
-Dedicated Virtual Account (DVA), then spend that balance inside the app instead of
-re-entering card details for every charge. First spend target is **rent / invoices**.
-VAS (airtime, data, bills) is designed for but deferred to Phase B.
+Give every user (tenant, landlord, agent) **one wallet** they can fund by bank transfer
+to a Dedicated Virtual Account (DVA), then spend inside the app instead of re-entering
+card details for every charge.
 
-Withdrawal to a bank account is restricted to **landlords only**. Tenants and agents
-can fund and spend, but not cash out.
+Decisions locked in with the user:
+- **Unified wallet.** We evolve the existing landlord `Wallet` into a single per-user
+  wallet. A landlord's rent earnings and their funded balance live in one balance, not
+  two. Tenants and agents get the same wallet type.
+- **Payment-method choice.** Wherever a user pays in-app (rent invoice in Phase A; VAS
+  and subscription later), they choose a method: **Wallet balance** or **Paystack**
+  (card / transfer / USSD).
+- **Withdrawal is landlord-only** and reuses the existing `/payouts` flow unchanged.
+- **Web and mobile** both get wallet UI.
+
+First spend target is rent / invoices. VAS (airtime, data, bills) is designed-for but
+deferred to Phase B.
 
 ## 2. Scope
 
 ### Phase A (this spec)
-- New `UserWallet` (one per user, any role) with an NGN balance.
+- Evolve `Wallet` + `WalletTransaction` into a per-user wallet with a fundable DVA.
 - Per-user Paystack DVA provisioning, reusing the existing `PaystackDVAService`.
 - Inbound funding: `charge.success` webhook credits the wallet, idempotently.
-- Spend: **pay an invoice / rent from wallet balance** (no card, no Paystack fee).
-- Withdraw: **landlord-only** cash-out to a verified bank account.
-- Append-only `UserWalletTransaction` ledger.
+- Spend with method choice: **pay an invoice from wallet balance** (no card, no gateway
+  fee) as an alternative to the existing Paystack checkout.
+- Withdraw: **landlord-only**, via the existing `/payouts` path (now drawing on the
+  unified balance).
+- Web + mobile wallet screens: balance, DVA fund-in details, transaction history, and
+  "pay from wallet" at checkout.
 
 ### Phase B (deferred, designed-for not built)
 - VAS recharge (airtime / data / bills) via the VTpass `VasService` engine
-  (see `docs/superpowers/plans/2026-06-26-bills-payment-vas-v1.md`). The wallet is
-  built so VAS drops in later as just another `debit` source.
+  (`docs/superpowers/plans/2026-06-26-bills-payment-vas-v1.md`) as another wallet spend
+  source.
+- Landlord **subscription paid from wallet** (touches the web/Paystack subscription
+  subsystem; flagged as a Phase A candidate in Section 16).
+- Card-to-wallet top-up (see the fraud note in Section 3 for why it is deferred).
 - Consolidating shared-bill escrow and the personal wallet onto a single per-user DVA
   (see the constraint in Section 6).
-- Wallet-to-wallet transfers, auto-pay / standing orders, interest.
+- Wallet-to-wallet transfers, auto top-up, spending limits, interest.
 
-### Explicitly out of scope (YAGNI)
-- Any non-Paystack custody provider migration (see Section 3).
-- Auto top-up, low-balance reminders, spending limits.
-- Multi-currency.
+## 3. Compliance and fraud gates (go-live blocker)
 
-## 3. Compliance gate (go-live blocker)
-
-Paystack DVA sweeps inbound funds to our settlement account, so **we hold the balance
-as an e-money liability**. Under CBN rules, holding customer e-money generally requires
-an MMO licence; a PSSP/Paystack integration does not confer that. This is acceptable
-for building and sandbox testing now, but:
+Paystack DVA sweeps inbound funds to our settlement account, so **we hold the balance as
+an e-money liability**. Under CBN rules, holding customer e-money generally requires an
+MMO licence; a PSSP/Paystack integration does not confer that.
 
 > **Do not enable real-money wallet funding in production at scale without either a
 > licensed-custody partner (e.g. Safe Haven / Anchor) holding the float, or written
 > sign-off from a Nigerian fintech lawyer.**
 
-The implementation ships behind a config flag (`WALLET_FUNDING_ENABLED`, default
-`false`) so the code can land and be tested while the compliance decision is pending.
-Provisioning, funding, and spend endpoints all short-circuit to a 403 "coming soon"
-when the flag is off.
+Everything ships behind a config flag (`WALLET_FUNDING_ENABLED`, default `false`) so the
+code can land and be sandbox-tested while compliance is pending. Provisioning, funding,
+and wallet-spend endpoints short-circuit to a 403 "coming soon" when the flag is off.
 
-## 4. Data model
+**Fraud note — why funding is bank-transfer-only in Phase A:** card-to-wallet top-up
+followed by a landlord withdrawal is a card-cash-advance / chargeback vector (and eats a
+gateway fee on the way in). Phase A therefore allows funding **only** by bank transfer to
+the DVA. Card top-up is deferred until it can ship with guardrails (e.g. non-withdrawable
+card-funded balance).
 
-Two new models, both mirroring the shape and conventions of the proven
-`SharedBillWallet` / `SharedBillWalletTransaction` pair.
+## 4. Data model — evolve, don't duplicate
 
-### `UserWallet` (`backend/src/models/UserWallet.ts`)
-| Field | Type | Notes |
+We extend the two existing models rather than introduce `UserWallet`.
+
+### `Wallet` (`backend/src/models/Wallet.ts`) — widen to per-user
+- **Owner semantics:** keep the existing `landlord` field (ObjectId → User, `unique`).
+  It becomes "the owner user, any role." This mirrors the existing overload of
+  `BankAccount.landlord` (already used as a generic owner id in
+  `SharedBillWalletService`). Keeping the field name avoids a data migration on existing
+  landlord rows; the semantic widening is documented on the model. (Rename to `owner` is
+  the clean alternative but needs a migration — flagged in Section 16.)
+- **New DVA fields** (same shape as `SharedBillWallet`): `paystackCustomerCode`,
+  `paystackCustomerId`, `dvaAccountNumber`, `dvaBankName`, `dvaProvider`,
+  `dvaProvisionedAt`, `dvaStatus` (`'pending' | 'active' | 'failed'`, default
+  `'pending'` but only set once provisioning starts), `dvaFailureReason`.
+- **New index:** `{ dvaAccountNumber: 1 }` (webhook match key).
+- Existing landlord-only fields (`totalEarnings`, `autoSettlement`, `autoPayoutEnabled`,
+  `autoPayoutThreshold`, `defaultBankAccount`) stay; they are simply unused defaults for
+  tenant/agent wallets. Harmless.
+
+### `WalletTransaction` (`backend/src/models/WalletTransaction.ts`) — add dedupe + source
+- **New `paystackReference` field**, indexed `{ unique: true, sparse: true }` — the DVA
+  charge-dedupe key. The model has no such field today; this is the one gap versus
+  `SharedBillWalletTransaction`.
+- **New optional `source` field** for reporting/attribution:
+  `'rent-earning' | 'dva-topup' | 'rent-payment' | 'vas' | 'withdrawal'`. Optional so
+  existing rows remain valid.
+- Existing `type` enum (`'credit' | 'debit' | 'withdrawal' | 'refund' | 'fee'`) and the
+  internal unique `reference` (`WT-*`) are unchanged.
+
+Mapping of the new flows onto the ledger:
+| Flow | `type` | `source` |
 |---|---|---|
-| `user` | ObjectId → User | required, **unique** |
-| `balance` | Number | default 0, min 0 |
-| `currency` | 'NGN' | default 'NGN' |
-| `status` | 'active' \| 'frozen' \| 'closed' | default 'active' |
-| `paystackCustomerCode` | String | cached; mirrors `User.paystackCustomerCode` |
-| `paystackCustomerId` | String | |
-| `dvaAccountNumber` | String | funding NUBAN; webhook match key |
-| `dvaBankName` | String | |
-| `dvaProvider` | String | e.g. `wema-bank` |
-| `dvaProvisionedAt` | Date | |
-| `dvaStatus` | 'pending' \| 'active' \| 'failed' | default 'pending' |
-| `dvaFailureReason` | String | |
-
-Indexes: `{ user: 1 }` unique, `{ dvaAccountNumber: 1 }`.
-
-### `UserWalletTransaction` (`backend/src/models/UserWalletTransaction.ts`)
-Append-only ledger.
-| Field | Type | Notes |
-|---|---|---|
-| `wallet` | ObjectId → UserWallet | required |
-| `user` | ObjectId → User | denormalized for direct history queries |
-| `type` | 'credit' \| 'debit' \| 'withdrawal' \| 'refund' | required |
-| `source` | 'dva-topup' \| 'rent' \| 'vas' \| 'withdrawal' \| 'reversal' | required |
-| `amount` | Number | min 0 |
-| `balanceBefore` / `balanceAfter` | Number | required |
-| `status` | 'pending' \| 'completed' \| 'failed' \| 'reversed' | default 'completed' |
-| `description` | String | required |
-| `reference` | String | required, **unique** (`UW-*` prefixes) |
-| `paystackReference` | String | **unique sparse** — dedupes webhook deliveries |
-| `relatedInvoice` | ObjectId → Invoice | set on `rent` debits |
-| `metadata` | Mixed | |
-
-Indexes: `{ wallet: 1, createdAt: -1 }`, `{ user: 1, createdAt: -1 }`,
-`{ paystackReference: 1 }` unique sparse.
-
-Reference prefixes: `UW-CR-` (top-up credit), `UW-DR-` (spend debit),
-`UW-OUT-` (withdrawal), `UW-RF-` (refund). Generated exactly like
-`SharedBillWalletService.generateTxReference`.
-
-`UserWallet` is **separate from the existing landlord `Wallet`** (rent earnings +
-existing payout flow). The landlord `Wallet` is untouched, so the working rent/payout
-path keeps functioning. A landlord therefore has two wallets: rent-earnings `Wallet`
-(withdrawable today) and this fundable `UserWallet`. Unifying them is a Phase B option,
-flagged for the spec review.
+| DVA top-up (any user) | `credit` | `dva-topup` |
+| Rent received (landlord) | `credit` | `rent-earning` (existing credit path) |
+| Pay invoice from wallet (payer) | `debit` | `rent-payment` |
+| Landlord withdrawal | `withdrawal` | `withdrawal` (existing payout path) |
 
 ## 5. DVA provisioning
 
-Reuses `PaystackDVAService` unchanged. New `UserWalletService.provisionDVA(userId)`
-follows `SharedBillWalletService.provisionDVA` almost line-for-line:
-
-1. Load/create the wallet row (`dvaStatus: 'pending'`).
+Reuses `PaystackDVAService` unchanged. New `WalletService.provisionDVA(ownerId)` follows
+`SharedBillWalletService.provisionDVA` closely:
+1. `getOrCreateWallet(ownerId)` (already exists); if `dvaStatus === 'active'`, return.
 2. Reuse `User.paystackCustomerCode` if present; else
    `PaystackDVAService.createOrFetchCustomer(...)` and cache back onto the `User`.
-3. `PaystackDVAService.assignDedicatedAccount(customerCode)`.
-   - Sync provider (Wema): account number returned → set `dvaStatus: 'active'`.
-   - Async provider (Titan/Providus): stays `pending`; the
-     `dedicatedaccount.assign.success` webhook fills it in later.
+3. `PaystackDVAService.assignDedicatedAccount(customerCode)` — sync provider (Wema) fills
+   the NUBAN immediately (`dvaStatus: 'active'`); async providers stay `pending` until
+   the `dedicatedaccount.assign.success` webhook.
 4. On error: `dvaStatus: 'failed'` + `dvaFailureReason`.
 
-Provisioning is triggered **lazily and fire-and-forget** the first time the user opens
-their wallet (`GET /wallet-account/me`): if no wallet row exists we create one in the
-request, return `dvaStatus: 'pending'`, and kick `provisionDVA` after the response so a
-Paystack outage never blocks the page. The client polls / listens for the DVA to go
+Triggered **lazily and fire-and-forget** the first time the user opens their wallet: the
+`GET /wallet` read creates the row if missing and kicks `provisionDVA` after the response,
+so a Paystack outage never blocks the page. Client polls / listens for `dvaStatus` to go
 active (same UX as shared bills).
 
 ## 6. Constraint: one DVA per Paystack customer
 
 **Paystack binds a single dedicated account to a customer.** The shared-bill escrow flow
-already provisions a DVA under the **bill creator's** `User.paystackCustomerCode`
-(`SharedBillWalletService.provisionDVA`). So a user who is *both* a shared-bill creator
-*and* a personal-wallet holder cannot get two independent DVAs under one customer —
-Paystack will return the same NUBAN, and inbound funds could not be disambiguated
-between "top up my wallet" and "pay my bill share."
+already provisions a DVA under the bill creator's `User.paystackCustomerCode`. So a user
+who is *both* a shared-bill creator *and* a wallet holder cannot get two independent DVAs
+under one customer — Paystack returns the same NUBAN, and inbound funds could not be
+disambiguated between "top up my wallet" and "pay my bill share."
 
 **Chosen resolution for Phase A (pragmatic, reversible):**
-- The receiving account number is treated as a **globally unique key**: it is recorded
-  on at most one wallet across both `SharedBillWallet` and `UserWallet`.
-- During `UserWallet` provisioning, after `assignDedicatedAccount` returns a NUBAN, we
-  check whether that number is already bound to an active `SharedBillWallet`. If it is,
-  we do **not** bind it to the `UserWallet`; we set `dvaStatus: 'failed'` with reason
-  `dva-conflict-shared-bill` and surface a wallet-unavailable state to that user.
-- The overlap is small in practice: personal-wallet users are overwhelmingly tenants and
-  landlords, while shared-bill *creators* are a narrow subset. Phase B consolidates both
-  onto one per-user DVA and removes this limitation.
+- The receiving account number is a **globally unique key**: recorded on at most one
+  wallet across `SharedBillWallet` and the unified `Wallet`.
+- During `Wallet` DVA provisioning, if the returned NUBAN is already bound to an active
+  `SharedBillWallet`, do **not** bind it to the `Wallet`; set `dvaStatus: 'failed'`,
+  reason `dva-conflict-shared-bill`, and surface a wallet-unavailable state.
+- The overlap is small (personal-wallet users are overwhelmingly non-creators). Phase B
+  consolidates both onto one per-user DVA and removes this limit.
 
-This is the single most important design decision to confirm during spec review; the
-alternative (per-purpose Paystack customers via email aliasing) is messier and pollutes
-customer records, so it is rejected for the MVP.
+This is the single most important item to confirm at spec review.
 
 ## 7. Funding flow (inbound credit)
 
-The existing `POST /webhooks/paystack/dva` handler
-(`SharedBillWalletController.handleDVAWebhook`) already verifies the signature and
-dispatches on `event`. We extend the dispatch to fall through to the user wallet when
-the shared-bill lookup misses:
+The existing `POST /webhooks/paystack/dva` handler already verifies the signature and
+dispatches on `event`. We extend the dispatch to fall through to the wallet when the
+shared-bill lookup misses — the same "shared-bill first, then X" pattern already used in
+`PayoutController.handleTransferWebhook`:
 
-- `dedicatedaccount.assign.success`: after
-  `SharedBillWalletService.handleDVAAssignedWebhook`, if no shared-bill wallet matched
-  the customer code, call `UserWalletService.handleDVAAssignedWebhook` (fills the NUBAN
-  by `paystackCustomerCode`).
-- `charge.success`: after `SharedBillWalletService.handleInboundCharge` finds no wallet
-  by receiving account number, call `UserWalletService.handleInboundCharge`, which:
-  1. Extracts `reference`, `amount` (kobo), and the receiving account number using the
-     same field fallbacks as `handleInboundCharge`.
-  2. `findOne({ dvaAccountNumber, status: 'active' })` on `UserWallet`; no-op on miss.
-  3. Inside a Mongo transaction: insert a `UserWalletTransaction` (`type: 'credit'`,
-     `source: 'dva-topup'`, `paystackReference`) — the unique sparse index makes a
-     duplicate delivery throw `11000`, which we catch and treat as already-processed —
-     then credit `wallet.balance`.
+- `dedicatedaccount.assign.success`: after `SharedBillWalletService.handleDVAAssignedWebhook`,
+  if no shared-bill wallet matched the customer code, call
+  `WalletService.handleDVAAssignedWebhook` (fills the NUBAN by `paystackCustomerCode`).
+- `charge.success`: after `SharedBillWalletService.handleInboundCharge` finds no wallet by
+  receiving account number, call `WalletService.handleInboundCharge`, which:
+  1. Extracts `reference`, `amount` (kobo), and the receiving account number with the
+     same field fallbacks as the shared-bill handler.
+  2. `findOne({ dvaAccountNumber, ... })` on `Wallet`; no-op on miss.
+  3. Inside `session.withTransaction`: insert a `WalletTransaction`
+     (`type: 'credit'`, `source: 'dva-topup'`, `paystackReference`) — the unique sparse
+     index makes a duplicate delivery throw `11000`, caught and treated as processed —
+     then credit `wallet.balance` (reusing/extending `creditWallet`).
   4. Notify the user + socket-broadcast the new balance.
 
-To keep the dispatch clean and avoid a growing `if/else` in the controller, the
-resolution order is encoded once: **shared-bill wallet first, then user wallet.** Both
-match by account number, and an account number is unique to one wallet (Section 6), so
-order only matters for the no-op fall-through.
+## 8. Spend with payment-method choice
 
-## 8. Spend: pay invoice / rent from wallet
+Today there is one payment choke point (`PaymentGatewayService.processSuccessfulPayment`,
+`src/services/PaymentGatewayService.ts:333-393`) that marks an invoice paid, records the
+`Transaction`, and credits the landlord wallet — reached only via a successful Paystack
+charge. We make it method-agnostic.
 
-New `POST /wallet-account/pay-invoice` (tenant or landlord/agent acting for the tenant):
-1. Load the invoice; authorize that the caller may pay it (same rules the existing
-   invoice-payment path uses).
-2. Load the caller's `UserWallet`; require `status: 'active'` and
-   `balance >= amountDue`.
-3. Inside a Mongo transaction: debit the wallet, write a `UserWalletTransaction`
-   (`type: 'debit'`, `source: 'rent'`, `relatedInvoice`), and mark the invoice paid
-   through the **same InvoiceService path a successful Paystack charge uses**, so
-   receipt generation, lease bookkeeping, and notifications stay identical to a card
-   payment.
-4. Return the updated wallet + invoice.
+**Refactor:** extract the settlement core of `processSuccessfulPayment` (invoice
+`amountPaid`/status update + `Transaction` create + landlord `creditWallet` + best-effort
+receipt) into a reusable method taking primitives — `settleInvoicePayment({ invoiceId,
+amount, payerId, paymentMethod, session })`. Both flows call it:
+- **Paystack path (existing):** `verifyPayment` → `settleInvoicePayment(..., method: 'card')`.
+- **Wallet path (new):** a `POST /wallet/pay-invoice` endpoint that, inside one
+  transaction, debits the payer's wallet (`debitWallet`, made session-aware — see
+  Section 11) then calls `settleInvoicePayment(..., method: 'wallet')`.
 
-No new money movement leaves Paystack here — it is an internal ledger transfer from the
-user's wallet balance to the invoice. (The landlord's rent-earnings `Wallet` credit, if
-any, follows whatever the existing successful-payment path already does; this spec does
-not change that path, only adds wallet as a funding source into it.)
+**Method selection** is introduced at the client + at `TenantPaymentController.initiatePayment`:
+the pay action takes `method: 'wallet' | 'paystack'`. `'paystack'` keeps the current
+hosted-checkout behavior (all channels). `'wallet'` routes to `/wallet/pay-invoice` and
+settles synchronously. So a wallet-paid rent invoice: payer's wallet −X, invoice paid,
+landlord's wallet +X (rent earning) — identical downstream bookkeeping to a card payment,
+just a different funding source, with `Transaction.paymentMethod = 'wallet'`.
 
-## 9. Withdraw: landlord-only
+**Targeted hardening (in scope):** the rent-credit choke point currently uses
+`getWalletByLandlord` (non-creating), so a landlord who never opened their wallet screen
+silently misses the credit. Switch it to `getOrCreateWallet` so the unified wallet is
+always credited.
 
-Mirrors the shared-bill withdrawal execution (direct Paystack transfer, own ledger,
-no `Payout` record), not the landlord rent-wallet `PayoutService`, to keep `UserWallet`
-self-contained.
+## 9. Withdraw — landlord-only, via the existing payout path
 
-New `POST /wallet-account/withdraw`, route-gated `authorize(UserRole.LANDLORD)`:
-1. Validate amount (min ₦100), verified `BankAccount` owned by the caller, sufficient
-   balance, `status: 'active'`.
-2. Inside a transaction: debit the wallet, write a `UserWalletTransaction`
-   (`type: 'withdrawal'`, `source: 'withdrawal'`, `status: 'pending'`, ref `UW-OUT-*`).
-3. Outside the transaction: `PaystackTransferService.initiateTransfer(...)` with that
-   reference.
-4. The transfer webhook (`PayoutController.handleTransferWebhook`) gains a third
-   delegation: after `SharedBillWalletService.handleTransferWebhook` returns false, call
-   `UserWalletService.handleTransferWebhook(event, data)` which resolves the `UW-OUT-*`
-   reference, flips the debit to `completed` on `transfer.success`, or refunds the
-   balance (`type: 'refund'`) on `transfer.failed` / `transfer.reversed`.
+**No new withdrawal code.** The `/payouts` router is already `authorize(UserRole.LANDLORD)`
+and `PayoutService.requestPayout` already debits the `Wallet`, creates a `Payout`, fires
+`PaystackTransferService`, and closes the loop via `PayoutController.handleTransferWebhook`
+(which already tries `SharedBillWalletService` first, then `PayoutService`). Because the
+unified wallet *is* the `Wallet`, landlords withdraw from the combined balance through
+this proven flow, and tenants/agents are blocked by the existing role gate.
 
-There is no multi-party voting (unlike shared bills) — a landlord withdrawing their own
-wallet is a single-party action, so execution is immediate.
+The only change here is consequential, not code: the withdrawable balance now includes
+DVA-funded money. Since Phase A funding is bank-transfer-only (Section 3), transfer-in
+then withdraw is low-risk (just moving money), so no extra guard is needed for the MVP.
 
 ## 10. API surface
 
-All under a new router `backend/src/routes/userWallet.ts`, mounted at
-`/wallet-account` (the name `/wallet` is already taken by the landlord rent wallet).
-All behind `protect`.
+Wallet routes (`backend/src/routes/wallet.ts`) — **drop the router-wide
+`authorize(UserRole.LANDLORD)`** and gate per-endpoint so tenants/agents can hold and
+spend a wallet. All behind `protect`.
 
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| GET | `/wallet-account/me` | any | Balance, DVA details, `dvaStatus`; lazy-provisions |
-| GET | `/wallet-account/transactions` | any | Paginated ledger |
-| POST | `/wallet-account/pay-invoice` | tenant / landlord / agent | Pay an invoice from balance |
-| POST | `/wallet-account/withdraw` | landlord only | Cash out to a verified bank account |
+| GET | `/wallet` | any | Balance, DVA details, `dvaStatus`; lazy-provisions |
+| GET | `/wallet/transactions` | any | Paginated ledger |
+| GET | `/wallet/stats` | any | Existing stats |
+| POST | `/wallet/pay-invoice` | any | Pay an invoice from wallet balance |
+| PATCH | `/wallet/settings` | landlord | Existing payout settings (keep landlord-gated) |
 
-Controller: `UserWalletController` (thin, mirrors `SharedBillWalletController`).
-Service: `UserWalletService` (all logic + webhook handlers).
+Withdrawal stays on the existing `/payouts` router (unchanged, landlord-only). The DVA
+webhook stays on `/webhooks/paystack/dva` (dispatch extended per Section 7).
 
 ## 11. Idempotency, concurrency, money-safety
 
-- Every balance mutation runs inside `session.withTransaction`.
-- Inbound credits dedupe on the unique sparse `paystackReference` index; a duplicate
-  insert throws `11000` and is swallowed (proven pattern).
-- Withdrawals debit first, transfer second; a failed/aborted transfer refunds via a
-  compensating `refund` ledger row (proven pattern).
-- `balance` has `min: 0` at the schema level as a backstop; spend/withdraw pre-check
-  balance inside the transaction.
+- Inbound credits dedupe on the new unique sparse `WalletTransaction.paystackReference`;
+  a duplicate insert throws `11000` and is swallowed (proven pattern).
+- **Make `WalletService.debitWallet` session-aware** (it is not today) so the
+  wallet-spend flow debits and settles the invoice in one atomic transaction. This is a
+  backward-compatible addition of an optional `session`.
+- Withdrawals keep the existing debit-then-transfer-then-reverse-on-failure machinery in
+  `PayoutService` (unchanged).
+- `Wallet.balance` keeps its schema `min: 0` backstop; spend/withdraw pre-check inside
+  the transaction.
 - The DVA webhook always responds `200` so Paystack stops retrying, even on internal
-  error (matches current handler).
+  error (matches the current handler).
 
-## 12. Client surfacing (light, Phase A)
+## 12. Client surfacing — web + mobile
 
-- **Mobile:** a "Wallet" screen showing balance, the fund-by-transfer DVA details
-  (account number + bank, copyable), and the transaction list; a "Pay from wallet"
-  option on the invoice-pay screen; a "Withdraw" action for landlords. Reuses React
-  Query + the socket balance-update event.
-- **Web:** deferred unless the user asks — the wallet is a mobile-first surface.
-
-Exact screen wiring is left to the implementation plan.
+- **Mobile:** a Wallet screen (balance, copyable DVA fund-in details, transaction list);
+  a "Pay from wallet vs card" method toggle on the invoice-pay screen; landlords keep the
+  existing withdraw action, now on the unified balance. Reuses React Query + the socket
+  balance-update event.
+- **Web:** a matching wallet page in the Next.js dashboard (balance, DVA fund-in details,
+  transactions) and the same method toggle at invoice checkout. The web app already has
+  billing/subscription pages to sit alongside.
+- Exact screen wiring is left to the implementation plan.
 
 ## 13. Config
 
@@ -265,12 +254,15 @@ Exact screen wiring is left to the implementation plan.
 ## 14. Testing (no test runner)
 
 Manual verification, matching repo convention:
-- Sandbox Paystack: provision a DVA, simulate `charge.success` → assert one credit row,
-  correct balance; re-send the same webhook → assert no double credit.
-- `pay-invoice`: assert invoice flips to paid via the normal path (receipt generated),
-  wallet debited once, insufficient-balance rejected.
-- `withdraw` (landlord): assert debit + transfer initiated; simulate `transfer.failed`
-  → assert refund row and restored balance; assert tenant/agent gets 403.
+- Sandbox Paystack: provision a DVA, simulate `charge.success` → assert one `dva-topup`
+  credit row, correct balance; re-send the same webhook → assert no double credit.
+- `pay-invoice`: assert invoice flips to paid via `settleInvoicePayment` (receipt
+  generated, landlord credited), payer wallet debited once, insufficient-balance rejected,
+  `Transaction.paymentMethod === 'wallet'`.
+- Method choice: `initiatePayment` with `method: 'paystack'` still opens hosted checkout
+  unchanged.
+- Withdraw (landlord): existing `/payouts` still works on the unified balance; simulate
+  `transfer.failed` → balance restored; tenant/agent gets 403 on `/payouts`.
 - DVA-conflict path (Section 6): a shared-bill creator opening their wallet →
   `dvaStatus: 'failed'`, reason `dva-conflict-shared-bill`, no crash.
 
@@ -280,15 +272,16 @@ Manual verification, matching repo convention:
 2. Sandbox-test end to end.
 3. Resolve the compliance gate (Section 3).
 4. Flip the flag in production when custody is sorted.
-5. Phase B: VAS spend source + single-per-user-DVA consolidation.
+5. Phase B: VAS + subscription spend sources, single-per-user-DVA consolidation.
 
 ## 16. Open questions for spec review
 
-1. **DVA-per-customer resolution (Section 6):** accept the "wallet unavailable for
-   active shared-bill creators" limitation for the MVP, or invest now in per-purpose
-   Paystack customers?
-2. **Two wallets for landlords (Section 4):** keep the fundable `UserWallet` separate
-   from the rent-earnings `Wallet`, or unify (larger change, touches the working payout
-   path)?
-3. **Web surfacing (Section 12):** mobile-only for Phase A, or also add a web wallet
-   page now?
+1. **DVA-per-customer resolution (Section 6):** accept the "wallet unavailable for active
+   shared-bill creators" limitation for the MVP, or invest now in per-purpose Paystack
+   customers?
+2. **Owner field (Section 4):** keep the `Wallet.landlord` field and widen its meaning
+   (zero migration, slightly misleading name), or rename to `owner` now (clean name, data
+   migration on existing landlord rows)?
+3. **Subscription-from-wallet (Section 2/8):** the "pay from wallet" mechanism is general.
+   Pull landlord subscription payment into Phase A as a concrete landlord method-choice,
+   or leave it for Phase B with VAS?
