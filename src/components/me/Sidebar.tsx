@@ -36,6 +36,7 @@ export const ME_NAV_SECTIONS: NavSection[] = [
     label: "Payments",
     items: [
       { href: "/me/payments", label: "Payments" },
+      { href: "/me/wallet", label: "Wallet" },
       { href: "/me/invitations", label: "Invitations" },
     ],
   },
