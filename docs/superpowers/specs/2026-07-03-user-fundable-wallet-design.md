@@ -18,6 +18,11 @@ Decisions locked in with the user:
   and subscription later), they choose a method: **Wallet balance** or **Paystack**
   (card / transfer / USSD).
 - **Withdrawal is landlord-only** and reuses the existing `/payouts` flow unchanged.
+- **Agents delegate onto the landlord's wallet.** Landlords and agents are treated
+  almost identically across the app: an agent has no business wallet of their own; they
+  view and act on the assigned landlord's wallet through `checkAgentPermission` (which
+  resolves `req.landlordId`). Every landlord-side wallet query scopes by the resolved
+  owner, never the agent's own id.
 - **Web and mobile** both get wallet UI.
 
 First spend target is rent / invoices. VAS (airtime, data, bills) is designed-for but
@@ -104,6 +109,20 @@ Mapping of the new flows onto the ledger:
 | Rent received (landlord) | `credit` | `rent-earning` (existing credit path) |
 | Pay invoice from wallet (payer) | `debit` | `rent-payment` |
 | Landlord withdrawal | `withdrawal` | `withdrawal` (existing payout path) |
+
+### Ownership and access (landlord/agent parity)
+- Wallet documents are owned per-user, but only **tenants and landlords are owners**. A
+  tenant owns a personal wallet (fund + pay rent); a landlord owns their business wallet
+  (rent earnings + fund + withdraw).
+- **Agents are delegated operators, not owners.** Per the app-wide invariant (CLAUDE.md),
+  an agent acting in a landlord's context resolves the landlord via `checkAgentPermission`,
+  which sets `req.landlordId`. Landlord-side wallet reads/actions scope by the resolved
+  owner id: `req.user._id` when a user acts on their own wallet, `req.landlordId` when an
+  agent acts on a landlord's wallet. The two are never mixed, so an agent never sees or
+  accrues a personal balance.
+- Consequence: rent still credits the property-owning landlord's wallet, unchanged — the
+  existing credit path keys on `paymentGateway.landlord`. Agents operate the landlord's
+  wallet; they never earn into one.
 
 ## 5. DVA provisioning
 
@@ -203,22 +222,36 @@ The only change here is consequential, not code: the withdrawable balance now in
 DVA-funded money. Since Phase A funding is bank-transfer-only (Section 3), transfer-in
 then withdraw is low-risk (just moving money), so no extra guard is needed for the MVP.
 
+**Agent parity:** because landlords and agents are treated alike, an agent may later be
+permitted to *initiate* a payout on the landlord's behalf, resolved via
+`checkAgentPermission` — but funds always route to the **landlord's** verified bank
+account, never the agent's. Default stays landlord-only per the earlier decision; enabling
+agent-initiated payout is a permission-flag toggle (e.g. a new `canRequestPayout` flag on
+`LandlordAgent`) rather than opening `/payouts` to the agent role wholesale. Flagged in
+Section 16.
+
 ## 10. API surface
 
 Wallet routes (`backend/src/routes/wallet.ts`) — **drop the router-wide
-`authorize(UserRole.LANDLORD)`** and gate per-endpoint so tenants/agents can hold and
-spend a wallet. All behind `protect`.
+`authorize(UserRole.LANDLORD)`**. Owner resolution replaces it: an **owner-resolver
+middleware** sets the wallet owner id to `req.user._id` for a user acting on their own
+wallet, or, when the caller is an agent supplying a `landlordId`, runs
+`checkAgentPermission('canViewPayments')` so `req.landlordId` becomes the owner. All wallet
+queries scope by that resolved id (Section 4, Ownership and access). All behind `protect`.
 
-| Method | Path | Role | Purpose |
+| Method | Path | Owner (who) | Purpose |
 |---|---|---|---|
-| GET | `/wallet` | any | Balance, DVA details, `dvaStatus`; lazy-provisions |
-| GET | `/wallet/transactions` | any | Paginated ledger |
-| GET | `/wallet/stats` | any | Existing stats |
-| POST | `/wallet/pay-invoice` | any | Pay an invoice from wallet balance |
-| PATCH | `/wallet/settings` | landlord | Existing payout settings (keep landlord-gated) |
+| GET | `/wallet` | self, or agent→landlord | Balance, DVA details, `dvaStatus`; lazy-provisions |
+| GET | `/wallet/transactions` | self, or agent→landlord | Paginated ledger |
+| GET | `/wallet/stats` | self, or agent→landlord | Existing stats |
+| POST | `/wallet/pay-invoice` | payer (self) | Pay an invoice from wallet balance |
+| PATCH | `/wallet/settings` | landlord, or agent→landlord | Existing payout settings |
 
-Withdrawal stays on the existing `/payouts` router (unchanged, landlord-only). The DVA
-webhook stays on `/webhooks/paystack/dva` (dispatch extended per Section 7).
+`pay-invoice` is a self-service action (the payer spends their own balance), so it always
+scopes to `req.user._id`. The read/stats/settings endpoints accept agent-delegated access.
+Withdrawal stays on the existing `/payouts` router (landlord-only in Phase A; agent-initiated
+payout is a Section 16 toggle). The DVA webhook stays on `/webhooks/paystack/dva` (dispatch
+extended per Section 7).
 
 ## 11. Idempotency, concurrency, money-safety
 
@@ -238,8 +271,9 @@ webhook stays on `/webhooks/paystack/dva` (dispatch extended per Section 7).
 
 - **Mobile:** a Wallet screen (balance, copyable DVA fund-in details, transaction list);
   a "Pay from wallet vs card" method toggle on the invoice-pay screen; landlords keep the
-  existing withdraw action, now on the unified balance. Reuses React Query + the socket
-  balance-update event.
+  existing withdraw action, now on the unified balance. In the landlord/agent app
+  (`MainNavigator`), an agent sees the assigned landlord's wallet, not a personal one
+  (owner-resolved per Section 4). Reuses React Query + the socket balance-update event.
 - **Web:** a matching wallet page in the Next.js dashboard (balance, DVA fund-in details,
   transactions) and the same method toggle at invoice checkout. The web app already has
   billing/subscription pages to sit alongside.
@@ -285,3 +319,6 @@ Manual verification, matching repo convention:
 3. **Subscription-from-wallet (Section 2/8):** the "pay from wallet" mechanism is general.
    Pull landlord subscription payment into Phase A as a concrete landlord method-choice,
    or leave it for Phase B with VAS?
+4. **Agent-initiated payout (Section 9):** keep withdrawal strictly landlord-only for
+   Phase A, or add a `canRequestPayout` permission flag so an assigned agent can request a
+   payout to the landlord's own bank account (never the agent's)?
