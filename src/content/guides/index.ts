@@ -19,9 +19,29 @@ import {
   meta as rentIncreaseMeta,
   Body as RentIncreaseBody,
 } from "./rent-increase-rules-nigeria";
+import {
+  meta as scamsMeta,
+  Body as ScamsBody,
+} from "./how-to-avoid-rental-scams-nigeria";
+import {
+  meta as lagosCostMeta,
+  Body as LagosCostBody,
+} from "./cost-of-renting-in-lagos";
+import {
+  meta as agentFeesMeta,
+  Body as AgentFeesBody,
+} from "./agent-fees-in-nigeria-explained";
+import {
+  meta as docsMeta,
+  Body as DocsBody,
+} from "./documents-to-rent-an-apartment-nigeria";
 
 // Newest first. Order here is the order shown on /guides.
 export const guides: Guide[] = [
+  { meta: scamsMeta, Body: ScamsBody },
+  { meta: lagosCostMeta, Body: LagosCostBody },
+  { meta: agentFeesMeta, Body: AgentFeesBody },
+  { meta: docsMeta, Body: DocsBody },
   { meta: tenancyMeta, Body: TenancyBody },
   { meta: collectRentMeta, Body: CollectRentBody },
   { meta: evictMeta, Body: EvictBody },

@@ -39,7 +39,7 @@ export default function AboutPage() {
           <p>
             Property360 is one product with three sides: an app for landlords to
             manage portfolios, an app for tenants to pay rent and live in their home,
-            and an app for agents to work for landlords with proper access — all on the
+            and an app for agents to work for landlords with proper access, all on the
             same backbone.
           </p>
           <p>
@@ -47,12 +47,12 @@ export default function AboutPage() {
             agreements, issuing receipts, sending rent reminders, recording
             payments, paying out to bank accounts, triaging maintenance, and keeping
             chat with tenants attributable. We don&apos;t try to replace estate management
-            companies — we give them and the landlords they work with the same tool.
+            companies, we give them and the landlords they work with the same tool.
           </p>
 
           <h2>Why we built it</h2>
           <p>
-            Renting in Nigeria has unique mechanics — annual rent paid up-front, a
+            Renting in Nigeria has unique mechanics, annual rent paid up-front, a
             stack of fees that includes agreement and caution, agents who work on
             commission, and tenants who are often paying through informal channels.
             International software doesn&apos;t fit, and what local options exist are

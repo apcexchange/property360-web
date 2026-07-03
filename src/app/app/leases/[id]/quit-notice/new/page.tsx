@@ -56,7 +56,7 @@ function NewQuitNoticeInner() {
   const [reasonDetail, setReasonDetail] = useState("");
   const [period, setPeriod] = useState<number | "">("");
   const [body, setBody] = useState("");
-  // Goes true the moment the user types into the body textarea — once
+  // Goes true the moment the user types into the body textarea, once
   // they've made custom edits we stop overwriting them.
   const [bodyManuallyEdited, setBodyManuallyEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);

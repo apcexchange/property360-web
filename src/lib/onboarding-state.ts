@@ -7,7 +7,7 @@ import { UserRole } from "./auth-api";
  * Wizard scratch state. Lives in sessionStorage so it survives page navigation
  * and refresh within the tab, but doesn't leak across browser sessions or to
  * other tabs. The access token, once registration succeeds, lives in the
- * regular `session` module (localStorage) — not here.
+ * regular `session` module (localStorage), not here.
  */
 export interface OnboardingState {
   role?: UserRole;
@@ -54,7 +54,7 @@ export function useOnboardingState(): {
   reset: () => void;
   ready: boolean;
 } {
-  // Hydrate from sessionStorage on mount only — server render uses {} so
+  // Hydrate from sessionStorage on mount only, server render uses {} so
   // the hook is SSR-safe even though pages are "use client".
   const [state, setState] = useState<OnboardingState>({});
   const [ready, setReady] = useState(false);

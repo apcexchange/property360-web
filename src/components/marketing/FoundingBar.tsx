@@ -31,13 +31,13 @@ export function FoundingBar() {
         <span className="font-semibold text-cryola-300">The Founding 50</span>
         {soldOut ? (
           <span className="text-paper/85">
-            is full — <span className="underline-offset-2 group-hover:underline">join the waitlist</span>
+            is full, <span className="underline-offset-2 group-hover:underline">join the waitlist</span>
           </span>
         ) : (
           <>
             <span className="hidden text-paper/85 sm:inline">
               First {total} landlords lock {FOUNDING.tier} at{" "}
-              {naira(FOUNDING.foundingAnnualNgn)}/yr — forever.
+              {naira(FOUNDING.foundingAnnualNgn)}/yr, forever.
             </span>
             <span className="text-paper/85 sm:hidden">
               {FOUNDING.tier} at {naira(FOUNDING.foundingAnnualNgn)}/yr forever

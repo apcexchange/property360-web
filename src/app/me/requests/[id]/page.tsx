@@ -47,7 +47,7 @@ export default function ProfileRequestPage() {
     enabled: !!id,
   });
 
-  // Field state — only the requested ones are shown, but we keep all here.
+  // Field state, only the requested ones are shown, but we keep all here.
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [occupation, setOccupation] = useState("");
   const [nin, setNin] = useState("");

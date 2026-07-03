@@ -107,7 +107,7 @@ export default function RenewLeasePage() {
               </div>
               <div>
                 <label className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
-                  New rent (NGN) — optional
+                  New rent (NGN), optional
                 </label>
                 <input
                   type="number"

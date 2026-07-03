@@ -44,7 +44,7 @@ export default function ReceiptsPage() {
         ) : (q.data ?? []).length === 0 ? (
           <EmptyState
             title="No receipts yet"
-            body="Receipts are generated and emailed automatically when a payment is recorded — manual or Paystack."
+            body="Receipts are generated and emailed automatically when a payment is recorded, manual or Paystack."
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">

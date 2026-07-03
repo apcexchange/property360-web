@@ -190,8 +190,8 @@ export default function NewTenantPage() {
       queryClient.invalidateQueries({ queryKey: ["vacant-units"] });
       toast.success(
         activateImmediately
-          ? "Tenant added — their lease is active."
-          : "Invitation sent — the tenant appears as pending until they accept."
+          ? "Tenant added, their lease is active."
+          : "Invitation sent, the tenant appears as pending until they accept."
       );
       router.push("/app/tenants");
     },
@@ -375,7 +375,7 @@ export default function NewTenantPage() {
               </h2>
               <p className="mt-1 text-[12.5px] text-ink-muted">
                 One-time fees for this tenancy. Prefilled from the unit&apos;s
-                defaults where set — leave a fee at 0 if it doesn&apos;t apply.
+                defaults where set, leave a fee at 0 if it doesn&apos;t apply.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -397,7 +397,7 @@ export default function NewTenantPage() {
                   />
                 </Field>
               ))}
-              <Field label="Other fee — description">
+              <Field label="Other fee, description">
                 <Input
                   value={otherFeeDescription}
                   onChange={setOtherFeeDescription}
@@ -413,7 +413,7 @@ export default function NewTenantPage() {
                 Payment
               </h2>
               <p className="mt-1 text-[12.5px] text-ink-muted">
-                Mark anything the tenant has already paid — we&apos;ll record it
+                Mark anything the tenant has already paid, we&apos;ll record it
                 and email them a receipt.
               </p>
             </div>
@@ -430,7 +430,7 @@ export default function NewTenantPage() {
                   Tenant has already moved in
                 </span>
                 <span className="mt-0.5 block text-[12px] text-ink-muted">
-                  Activate the lease now and mark the unit occupied — skips the
+                  Activate the lease now and mark the unit occupied, skips the
                   accept-invitation step. Leave unchecked to send an invitation
                   the tenant must accept.
                 </span>

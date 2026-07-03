@@ -53,20 +53,20 @@ export function Marketplace() {
           </h2>
           <p className="mt-5 max-w-xl text-[16.5px] leading-[1.55] text-ink-muted">
             Landlords flip a vacant unit into a marketplace listing in two
-            taps. Tenants browse, filter, and reserve — with an inspection
-            fee or a full deposit — without ever leaving the app.
+            taps. Tenants browse, filter, and reserve, with an inspection
+            fee or a full deposit, without ever leaving the app.
           </p>
 
           <ul className="mt-8 space-y-4">
             <Bullet
               icon={<Search className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}
               title="Real listings, not classifieds"
-              body="Every listing is tied to a verified landlord and a real unit on Property360 — no scams, no ghost agents."
+              body="Every listing is tied to a verified landlord and a real unit on Property360, no scams, no ghost agents."
             />
             <Bullet
               icon={<MapPin className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}
               title="Filter by location, price, tenant type"
-              body="Singles, families, students, professionals — landlords pick who they want, tenants only see homes they qualify for."
+              body="Singles, families, students, professionals, landlords pick who they want, tenants only see homes they qualify for."
             />
             <Bullet
               icon={<Sparkles className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}

@@ -67,7 +67,7 @@ export default function AdminDashboard() {
           <PageHeader
             eyebrow={todayDateline()}
             title="The state of the desk."
-            description="Live figures from the production API — rent received, payouts settled, occupancy held."
+            description="Live figures from the production API, rent received, payouts settled, occupancy held."
           />
 
           {/* Headline KPIs (with period delta where it makes sense) */}
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
             />
           </div>
 
-          {/* People & inventory — secondary register */}
+          {/* People & inventory, secondary register */}
           <section className="mt-10">
             <h3 className="mb-4 flex items-baseline gap-3">
               <span aria-hidden className="h-3 w-[3px] bg-cryola-400" />

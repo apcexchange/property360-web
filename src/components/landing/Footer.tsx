@@ -1,12 +1,16 @@
 import Link from "next/link";
+import { NewsletterForm } from "@/components/marketing/NewsletterForm";
 
 export function Footer() {
   return (
     <footer className="border-t border-foundation-700/10 bg-paper py-14">
       <div className="mx-auto max-w-6xl px-6">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
+          <div className="col-span-2">
+            <Link
+              href="/"
+              className="flex items-center gap-2 font-semibold tracking-tight"
+            >
               <span className="grid h-8 w-8 place-items-center rounded-full bg-foundation-700 text-cryola-300">
                 <span className="text-[13px] font-bold leading-none">P</span>
               </span>
@@ -15,8 +19,12 @@ export function Footer() {
               </span>
             </Link>
             <p className="mt-4 max-w-xs text-[13.5px] leading-[1.6] text-ink-muted">
-              Property management for the way Nigeria rents — built in Lagos.
+              Property management for the way Nigeria rents, built in Lagos.
             </p>
+            <p className="mt-6 text-[13px] font-medium text-foundation-700">
+              Tips for landlords, tenants &amp; agents, straight to your inbox.
+            </p>
+            <NewsletterForm source="newsletter-footer" variant="footer" />
           </div>
 
           <FooterCol title="Product">
@@ -24,6 +32,7 @@ export function Footer() {
             <FooterLink href="/landlord">For landlords</FooterLink>
             <FooterLink href="/tenant">For tenants</FooterLink>
             <FooterLink href="/agents">For agents</FooterLink>
+            <FooterLink href="/communities">Estate communities</FooterLink>
             <FooterLink href="/pricing">Pricing</FooterLink>
             <FooterLink href="/onboarding">Get started</FooterLink>
             <FooterLink href="/#download">Download the app</FooterLink>
@@ -31,10 +40,12 @@ export function Footer() {
 
           <FooterCol title="Company">
             <FooterLink href="/about">About</FooterLink>
-            <FooterLink href="/guides">Guides</FooterLink>
+            <FooterLink href="/guides">Blog</FooterLink>
             <FooterLink href="/contact">Contact</FooterLink>
             <FooterLink href="/support">Support</FooterLink>
-            <FooterLink href="mailto:partnerships@property360.africa">Partnerships</FooterLink>
+            <FooterLink href="mailto:partnerships@property360.africa">
+              Partnerships
+            </FooterLink>
           </FooterCol>
 
           <FooterCol title="Legal">
@@ -45,7 +56,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-foundation-700/10 pt-6 text-[13px] text-ink-muted md:flex-row">
-          <p>© {new Date().getFullYear()} Property360 · Lagos, Nigeria.</p>
+          <p>© {new Date().getFullYear()} Property360</p>
           <p className="flex items-center gap-2 text-[12px]">
             <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-500" />
             Made for landlords, tenants, and agents

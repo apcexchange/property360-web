@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-      {/* Editorial cover plate — left rail */}
+      {/* Editorial cover plate, left rail */}
       <aside className="relative hidden flex-col justify-between overflow-hidden bg-foundation-700 px-12 py-14 text-paper lg:flex">
         <div className="relative z-10">
           <div className="flex items-baseline">
@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
             The ledger of <em className="text-cryola-300">Nigerian</em> rent.
           </p>
           <p className="mt-5 max-w-md font-display text-[15px] italic leading-snug text-foundation-200">
-            Every payout, every lease, every tenant — recorded, reconciled,
+            Every payout, every lease, every tenant, recorded, reconciled,
             and ready for review by the morning desk.
           </p>
           <div className="mt-8 h-px w-full bg-foundation-600/70" />

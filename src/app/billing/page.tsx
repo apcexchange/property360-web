@@ -8,7 +8,7 @@ import { billingApi } from "@/lib/billing-api";
  * Thin redirect that preserves the old `/billing?handoff=…` URL the mobile
  * app sends users to ("Manage plan on the web"). We:
  *   1. Redeem the single-use handoff token here, before AppAuthGate sees
- *      the URL — if we tried this inside /app/* it would bounce to /login
+ *      the URL, if we tried this inside /app/* it would bounce to /login
  *      first because the gate has no concept of token redemption.
  *   2. Forward to /app/billing (the real billing UI, now inside the app
  *      shell). If redemption fails, AppAuthGate handles the bounce.
@@ -31,7 +31,7 @@ function LegacyBillingRedirectInner() {
         try {
           await billingApi.redeemHandoff(handoff);
         } catch {
-          // Token expired / already used. Fall through — the
+          // Token expired / already used. Fall through, the
           // AppAuthGate at /app/billing will bounce to /login.
         }
       }

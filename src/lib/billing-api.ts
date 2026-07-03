@@ -73,7 +73,7 @@ export const billingApi = {
   /**
    * Backend `/auth/login` accepts `identifier` (email OR phone) and returns
    * `accessToken` / `refreshToken`. We store the access token in the shared
-   * web session under the existing `p360_admin_token` key — admin and billing
+   * web session under the existing `p360_admin_token` key, admin and billing
    * coexist by role, not by separate sessions.
    */
   async login(emailOrPhone: string, password: string): Promise<LoginResponse> {
@@ -109,7 +109,7 @@ export const billingApi = {
 
   /**
    * Synchronously verify a Paystack transaction by reference and activate
-   * the subscription — used on the /billing/success page so we don't have
+   * the subscription, used on the /billing/success page so we don't have
    * to wait for the webhook to land. Returns the fresh subscription view.
    */
   async verify(reference: string): Promise<SubscriptionView> {
@@ -123,7 +123,7 @@ export const billingApi = {
 
   /**
    * Trade a single-use mobile handoff token for a real access JWT. Used by
-   * /billing when it sees ?handoff=… on the URL — the mobile app produced
+   * /billing when it sees ?handoff=… on the URL, the mobile app produced
    * the token via POST /auth/web-handoff while signed in, then opened this
    * page in the system browser. Sets the session on success.
    */

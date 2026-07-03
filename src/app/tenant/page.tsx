@@ -11,12 +11,12 @@ import { getListings } from "@/lib/listings-api";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Find a home in Nigeria — Property360 for tenants",
+  title: "Find a home in Nigeria, Property360 for tenants",
   description:
-    "Browse verified rental homes across Nigeria, reserve through Paystack, sign your tenancy agreement and pay rent — all in one app.",
+    "Browse verified rental homes across Nigeria, reserve through Paystack, sign your tenancy agreement and pay rent, all in one app.",
   alternates: { canonical: "/tenant" },
   openGraph: {
-    title: "Property360 for tenants — find a home you can trust",
+    title: "Property360 for tenants, find a home you can trust",
     description:
       "Browse verified rentals, reserve through Paystack, sign in-app. No more cash to strangers.",
     url: "https://property360.africa/tenant",
@@ -35,7 +35,7 @@ const REASONS = [
     icon: CreditCard,
     title: "Pay through Paystack.",
     body:
-      "Reserve a unit, pay your deposit, pay your monthly rent — all through card, bank transfer, or USSD. Every payment leaves a receipt.",
+      "Reserve a unit, pay your deposit, pay your monthly rent, all through card, bank transfer, or USSD. Every payment leaves a receipt.",
   },
   {
     icon: FileSignature,
@@ -47,7 +47,7 @@ const REASONS = [
     icon: Wrench,
     title: "Report repairs that get fixed.",
     body:
-      "Submit maintenance requests with photos and priority. The landlord sees them; you see the status — no more lost WhatsApp messages.",
+      "Submit maintenance requests with photos and priority. The landlord sees them; you see the status, no more lost WhatsApp messages.",
   },
 ];
 

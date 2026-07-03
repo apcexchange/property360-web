@@ -19,7 +19,7 @@ import { landlordApi } from "@/lib/landlord-api";
 
 export default function TenantsPage() {
   // Distinct key from the active-only occupied-units used by invoicing /
-  // payments / renewals — this list also includes pending invitations so a
+  // payments / renewals, this list also includes pending invitations so a
   // just-added tenant shows up immediately (marked pending).
   const q = useQuery({
     queryKey: ["tenants", "occupied-units", "with-pending"],
@@ -109,8 +109,8 @@ export default function TenantsPage() {
             ) : (
           <Card className="divide-y divide-foundation-700/10">
             {filtered.map((row) => {
-              // A pending invitation has no active lease to open yet — the
-              // lease detail page is built around an active tenancy — so keep
+              // A pending invitation has no active lease to open yet, the
+              // lease detail page is built around an active tenancy, so keep
               // those rows non-clickable and show the status instead.
               const isPending = row.lease?.status === "pending";
               const isClickable = !!row.lease && !isPending;

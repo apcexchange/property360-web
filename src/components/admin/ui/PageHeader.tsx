@@ -36,7 +36,7 @@ export function PageHeader({ title, description, actions, filters, eyebrow }: Pr
         )}
       </div>
 
-      {/* Masthead double rule — the editorial signature, now in brand teal */}
+      {/* Masthead double rule, the editorial signature, now in brand teal */}
       <div className="mt-5 h-px w-full bg-foundation-700/30" />
       <div className="mt-[3px] h-px w-full bg-foundation-700/30" />
 

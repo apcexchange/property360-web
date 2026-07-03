@@ -90,7 +90,7 @@ export default function ChatThreadPage() {
             />
           ) : (messages.data ?? []).length === 0 ? (
             <p className="grid h-full place-items-center text-[13px] text-ink-muted">
-              No messages yet — say hi.
+              No messages yet, say hi.
             </p>
           ) : (
             messages.data!.map((m) => {

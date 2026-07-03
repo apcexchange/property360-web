@@ -8,7 +8,7 @@ import { session } from "@/lib/session";
 import { TIERS, Tier } from "./pricingTiers";
 
 // Re-export so existing imports `from "@/components/marketing/PricingTable"`
-// keep working — the data lives in pricingTiers.ts now so server
+// keep working, the data lives in pricingTiers.ts now so server
 // components can import it without crashing the prerender.
 export { TIERS };
 export type { Tier };
@@ -69,7 +69,7 @@ function TierCard({ tier, interval }: { tier: Tier; interval: BillingInterval })
   const price =
     interval === "annual" ? tier.annualNgn : tier.monthlyNgn;
   const unit = interval === "annual" ? "/year" : "/month";
-  // Effective monthly when paying annually — useful comparison anchor.
+  // Effective monthly when paying annually, useful comparison anchor.
   const monthlyEquivalent =
     interval === "annual" && tier.annualNgn != null
       ? Math.round(tier.annualNgn / 12)

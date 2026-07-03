@@ -20,7 +20,7 @@ const scenarios = [
   {
     label: "A property manager",
     sub: "Acting for three landlords",
-    body: "used to juggle three WhatsApp threads, three filing systems, three sets of complaints. Property360 turns it into one inbox — each landlord sees only their own properties, with permission to delegate the work.",
+    body: "used to juggle three WhatsApp threads, three filing systems, three sets of complaints. Property360 turns it into one inbox, each landlord sees only their own properties, with permission to delegate the work.",
   },
 ];
 

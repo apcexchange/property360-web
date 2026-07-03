@@ -18,7 +18,7 @@ interface Props {
 
 /**
  * Two-tab signature capture: Draw on canvas, or Upload an image file.
- * Emits a PNG `Blob` and the method via onChange. Optional — parent can
+ * Emits a PNG `Blob` and the method via onChange. Optional, parent can
  * submit without ever capturing if the signer prefers typed name alone.
  */
 export function SignatureCapture({ onChange, resetSignal }: Props) {
@@ -130,7 +130,7 @@ export function SignatureCapture({ onChange, resetSignal }: Props) {
           </div>
           <div className="mt-2 flex items-center justify-between">
             <p className="text-[11.5px] text-ink-muted">
-              Draw with mouse or finger. Optional — typed name alone still
+              Draw with mouse or finger. Optional, typed name alone still
               signs.
             </p>
             <button

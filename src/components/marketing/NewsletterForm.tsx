@@ -13,14 +13,14 @@ export function NewsletterForm({
   variant?: "footer" | "block";
 }) {
   const [email, setEmail] = useState("");
-  // Honeypot — bots fill hidden fields; humans never see it.
+  // Honeypot, bots fill hidden fields; humans never see it.
   const [company, setCompany] = useState("");
   const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (company) return; // honeypot tripped — silently drop
+    if (company) return; // honeypot tripped, silently drop
     if (!EMAIL_RE.test(email.trim())) {
       setState("error");
       setMessage("Enter a valid email address.");

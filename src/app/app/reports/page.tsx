@@ -659,7 +659,7 @@ function BalanceSheetSection({
       />
       {propertySelected && (
         <p className="mb-3 rounded-lg border border-foundation-700/10 bg-foundation-700/5 px-3 py-2 text-[12px] text-foundation-700">
-          Balance sheet is portfolio-wide — property filter doesn&apos;t apply
+          Balance sheet is portfolio-wide, property filter doesn&apos;t apply
           here.
         </p>
       )}

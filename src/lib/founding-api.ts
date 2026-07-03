@@ -12,7 +12,7 @@ export interface FoundingStatus {
 /**
  * Live "Founding 50" slot counter for the marketing site. Public endpoint
  * (no auth), so a plain fetch keeps it independent of the axios/session stack.
- * Never throws — returns null on failure so the UI can fall back gracefully
+ * Never throws, returns null on failure so the UI can fall back gracefully
  * (show the offer copy without a live number rather than break the page).
  */
 export async function getFoundingStatus(): Promise<FoundingStatus | null> {
@@ -42,6 +42,6 @@ export async function joinFoundingWaitlist(
     const body = (await res.json().catch(() => ({}))) as { message?: string };
     return { ok: res.ok, message: body.message };
   } catch {
-    return { ok: false, message: "Network error — please try again." };
+    return { ok: false, message: "Network error, please try again." };
   }
 }

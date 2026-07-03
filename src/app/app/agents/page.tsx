@@ -105,7 +105,7 @@ export default function AgentsPage() {
                     <p className="mt-0.5 text-[11.5px] text-ink-muted">
                       Invited {formatDate(a.createdAt)}
                       {!a.agent && a.status === "pending"
-                        ? " — waiting for them to create an account"
+                        ? ", waiting for them to create an account"
                         : ""}
                     </p>
                   </div>

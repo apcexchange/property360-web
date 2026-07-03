@@ -9,7 +9,7 @@ export type NewsletterSource =
 
 /**
  * Subscribe an email to the nurture list. Public endpoint (no auth), so a
- * plain fetch keeps it independent of the axios/session stack — same pattern
+ * plain fetch keeps it independent of the axios/session stack, same pattern
  * as the demo-request and founding waitlist clients. Never throws.
  */
 export async function subscribeNewsletter(payload: {
@@ -26,7 +26,7 @@ export async function subscribeNewsletter(payload: {
     const body = (await res.json().catch(() => ({}))) as { message?: string };
     return { ok: res.ok, message: body.message };
   } catch {
-    return { ok: false, message: "Network error — please try again." };
+    return { ok: false, message: "Network error, please try again." };
   }
 }
 
@@ -43,6 +43,6 @@ export async function unsubscribeNewsletter(
     const body = (await res.json().catch(() => ({}))) as { message?: string };
     return { ok: res.ok, message: body.message };
   } catch {
-    return { ok: false, message: "Network error — please try again." };
+    return { ok: false, message: "Network error, please try again." };
   }
 }

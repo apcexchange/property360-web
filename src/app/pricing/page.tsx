@@ -9,9 +9,9 @@ import { Founding50 } from "@/components/marketing/Founding50";
 import { FoundingBar } from "@/components/marketing/FoundingBar";
 
 export const metadata: Metadata = {
-  title: "Pricing — Property360 for Nigerian landlords",
+  title: "Pricing, Property360 for Nigerian landlords",
   description:
-    "Start free with a 7-day trial — no card required. Pay only when your portfolio grows. Tier pricing based on number of properties; tenants and managers are always included.",
+    "Start free with a 7-day trial, no card required. Pay only when your portfolio grows. Tier pricing based on number of properties; tenants and managers are always included.",
   alternates: { canonical: "/pricing" },
   openGraph: {
     title: "Property360 pricing",
@@ -25,19 +25,19 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "I own a hostel with 30 rooms. Does that count as 30 properties?",
-    a: "No. A property is a whole building. A 30-room hostel counts as one property, and you can collect rent from all 30 rooms (and chat with all 30 tenants) on the Solo tier. The same is true of a block of 12 flats — that's one property, twelve units inside it.",
+    a: "No. A property is a whole building. A 30-room hostel counts as one property, and you can collect rent from all 30 rooms (and chat with all 30 tenants) on the Solo tier. The same is true of a block of 12 flats, that's one property, twelve units inside it.",
   },
   {
     q: "What counts as a property?",
-    a: "A property is a building — a flat, a house, a block of flats, a hostel, a shop. The flats / rooms / units inside that building don't count separately against your property cap. If you own two separate buildings, that's two properties even if each has only one unit.",
+    a: "A property is a building, a flat, a house, a block of flats, a hostel, a shop. The flats / rooms / units inside that building don't count separately against your property cap. If you own two separate buildings, that's two properties even if each has only one unit.",
   },
   {
     q: "Is there a free trial?",
-    a: "Yes. Every new account starts on a 7-day free trial with up to 2 properties — no card required. After the trial you pick a tier and start paying.",
+    a: "Yes. Every new account starts on a 7-day free trial with up to 2 properties, no card required. After the trial you pick a tier and start paying.",
   },
   {
     q: "Are payment processing fees included?",
-    a: "No — Paystack's standard processing fees (1.5% + ₦100 capped at ₦2,000) are charged on each transaction and deducted before settlement. Property360 doesn't take a cut of your rent.",
+    a: "No, Paystack's standard processing fees (1.5% + ₦100 capped at ₦2,000) are charged on each transaction and deducted before settlement. Property360 doesn't take a cut of your rent.",
   },
   {
     q: "How does property manager seat counting work?",
@@ -49,7 +49,7 @@ const FAQS = [
   },
   {
     q: "Do you offer annual billing?",
-    a: "Yes — paying annually saves 20% vs. monthly. Pick your interval at /billing or during onboarding.",
+    a: "Yes, paying annually saves 20% vs. monthly. Pick your interval at /billing or during onboarding.",
   },
 ];
 
@@ -67,7 +67,7 @@ export default function PricingPage() {
             <span className="text-cryola-500">Pay only when you grow.</span>
           </>
         }
-        subtitle="7-day free trial on every new account — no card required. Then pay only for the number of properties you manage. Tenants and property managers are always included, no per-seat fees."
+        subtitle="7-day free trial on every new account, no card required. Then pay only for the number of properties you manage. Tenants and property managers are always included, no per-seat fees."
       >
         <p className="text-[13px] text-ink-muted">
           Save <span className="font-semibold text-foundation-700">20% when paid annually</span>.
@@ -86,7 +86,7 @@ export default function PricingPage() {
               <span className="font-semibold">A property = a whole building.</span>{" "}
               The flats, rooms, or hostel beds inside that building are{" "}
               <span className="font-semibold">unlimited</span>. A 40-room hostel
-              counts as one property — same as a single 2-bedroom flat.
+              counts as one property, same as a single 2-bedroom flat.
             </p>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function PricingPage() {
             </div>
           </div>
           <p className="mt-10 text-[14px] text-paper/65">
-            Solo is ₦2,250/month — less than the cost of a single tank of fuel
+            Solo is ₦2,250/month, less than the cost of a single tank of fuel
             in most Nigerian cities, and it manages your entire building.
           </p>
         </div>

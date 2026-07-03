@@ -57,7 +57,7 @@ type Row = {
   ts: number;
   /** Single-line description used in the row's primary slot. */
   primaryLabel: string;
-  /** Secondary line — tenant + property/unit for rent, reference for wallet. */
+  /** Secondary line, tenant + property/unit for rent, reference for wallet. */
   secondaryLabel?: string;
   reference?: string;
   // Rent-specific extras kept so CSV export can write them.

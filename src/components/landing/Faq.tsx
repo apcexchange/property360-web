@@ -8,7 +8,7 @@ import { Reveal } from "./Reveal";
 const faqs = [
   {
     q: "Is Property360 free to use?",
-    a: "Downloading and using the core features is free. Tenants pay no platform fee on rent transactions. We may charge landlords a small fee on collected rent — always disclosed before you transact.",
+    a: "Downloading and using the core features is free. Tenants pay no platform fee on rent transactions. We may charge landlords a small fee on collected rent, always disclosed before you transact.",
   },
   {
     q: "Do I have to be tech-savvy to use it?",
@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     q: "How do tenants pay?",
-    a: "Through Paystack — by debit card, bank transfer, or USSD. Most payments confirm instantly. Funds settle into your in-app wallet, ready to withdraw to your bank account.",
+    a: "Through Paystack, by debit card, bank transfer, or USSD. Most payments confirm instantly. Funds settle into your in-app wallet, ready to withdraw to your bank account.",
   },
   {
     q: "What if my tenant doesn't want to use the app?",
@@ -24,7 +24,7 @@ const faqs = [
   },
   {
     q: "Can I add an agent who works for me?",
-    a: "Yes. Invite an agent to a specific property and choose exactly what they can do — collect rent, sign agreements, manage maintenance, or just observe. Revoke access any time.",
+    a: "Yes. Invite an agent to a specific property and choose exactly what they can do, collect rent, sign agreements, manage maintenance, or just observe. Revoke access any time.",
   },
   {
     q: "Where does my data live? Is it secure?",

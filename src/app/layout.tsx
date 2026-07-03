@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { TawkChat } from "@/components/TawkChat";
+import { SmartsuppChat } from "@/components/SmartsuppChat";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
@@ -26,7 +26,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 const SITE_URL = "https://property360.africa";
-const TITLE = "Property360 — Property management for Nigerian landlords";
+const TITLE = "Property360, Property management for Nigerian landlords";
 const DESCRIPTION =
   "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Nigeria, for landlords nationwide.";
 
@@ -39,7 +39,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: {
     default: TITLE,
-    template: "%s — Property360",
+    template: "%s, Property360",
   },
   description: DESCRIPTION,
   metadataBase: new URL(SITE_URL),
@@ -147,7 +147,7 @@ export default function RootLayout({
         <ChunkErrorReloader />
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
-        <TawkChat />
+        <SmartsuppChat />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

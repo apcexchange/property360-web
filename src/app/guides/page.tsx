@@ -4,6 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { PageHero } from "@/components/marketing/PageHero";
+import { NewsletterBlock } from "@/components/marketing/NewsletterBlock";
 import { guides } from "@/content/guides";
 
 const SITE_URL = "https://property360.africa";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
     "Practical guides on renting in Nigeria: tenancy agreements, caution fees, collecting rent online, eviction and quit notices, rent increases, and more.",
   alternates: { canonical: "/guides" },
   openGraph: {
-    title: "Property360 Guides — renting in Nigeria, explained",
+    title: "Property360 Guides, renting in Nigeria, explained",
     description:
       "Practical, plain-English guides for Nigerian landlords, tenants, and agents.",
     url: `${SITE_URL}/guides`,
@@ -38,7 +39,7 @@ export default function GuidesIndexPage() {
     <div className="min-h-screen bg-paper text-foundation-700">
       <Nav />
       <PageHero
-        eyebrow="Guides"
+        eyebrow="Blog"
         title={
           <>
             Renting in Nigeria,
@@ -77,6 +78,8 @@ export default function GuidesIndexPage() {
           ))}
         </div>
       </section>
+
+      <NewsletterBlock source="newsletter-guides" heading="Get the next guide by email" />
 
       <Footer />
 

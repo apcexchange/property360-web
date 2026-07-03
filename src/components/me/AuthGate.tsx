@@ -7,7 +7,7 @@ import { session, AdminUser } from "@/lib/session";
 import { BrandLoader } from "@/components/ui/BrandLoader";
 
 /**
- * Auth gate for /me/*. Tenants only — landlords / agents are bounced to
+ * Auth gate for /me/*. Tenants only, landlords / agents are bounced to
  * /login which routes them onwards.
  */
 export function TenantAuthGate({ children }: { children: React.ReactNode }) {
@@ -38,7 +38,7 @@ export function TenantAuthGate({ children }: { children: React.ReactNode }) {
         }
         session.set(token, user);
         // Email verification is enforced only during self-service web
-        // onboarding — not as a runtime gate here. Tenants are often created
+        // onboarding, not as a runtime gate here. Tenants are often created
         // by their landlord (no OTP step), so blocking on emailVerified would
         // lock them out of their own area permanently. See backfillEmailVerified.
         setState("ok");

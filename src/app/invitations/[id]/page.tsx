@@ -125,7 +125,7 @@ export default function AcceptInvitationPage() {
     return partyName(inv.invitedBy);
   }, [inv]);
 
-  // Branch 1: not signed in — show the public landing with sign in / sign up CTAs.
+  // Branch 1: not signed in, show the public landing with sign in / sign up CTAs.
   if (authReady && !hasToken) {
     return (
       <SignedOutView id={id} emailHint={emailHint} />
@@ -198,7 +198,7 @@ export default function AcceptInvitationPage() {
     );
   }
 
-  // Branch 4: role mismatch — invitation is for someone with the other role.
+  // Branch 4: role mismatch, invitation is for someone with the other role.
   const expectedRole =
     inv.direction === "landlord_to_agent" ? "agent" : "landlord";
   if (me?.role && me.role !== expectedRole) {
@@ -297,7 +297,7 @@ export default function AcceptInvitationPage() {
               })}
               {(properties.data ?? []).length === 0 && !properties.isLoading && (
                 <p className="text-[13px] text-ink-muted">
-                  You don&apos;t have any properties yet — accepting will give
+                  You don&apos;t have any properties yet, accepting will give
                   this manager access to anything you add later.
                 </p>
               )}

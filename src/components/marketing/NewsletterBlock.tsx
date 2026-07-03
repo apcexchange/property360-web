@@ -4,7 +4,7 @@ import type { NewsletterSource } from "@/lib/newsletter-api";
 export function NewsletterBlock({
   source,
   heading = "Stay in the loop",
-  sub = "Occasional tips for Nigerian landlords, tenants, and agents — plus product updates. No spam.",
+  sub = "Occasional tips for Nigerian landlords, tenants, and agents, plus product updates. No spam.",
 }: {
   source: NewsletterSource;
   heading?: string;

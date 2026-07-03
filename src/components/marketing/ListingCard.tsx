@@ -1,17 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Bath, MapPin } from "lucide-react";
+import { BedDouble, Bath, MapPin, BadgeCheck } from "lucide-react";
 import {
   Listing,
   formatNaira,
   listingImage,
   listingTitle,
   locationLabel,
+  isLandlordVerified,
 } from "@/lib/listings-api";
 
 export function ListingCard({ listing }: { listing: Listing }) {
   const img = listingImage(listing);
   const reserved = listing.listingStatus === "reserved";
+  const verified = isLandlordVerified(listing);
 
   return (
     <Link
@@ -40,6 +42,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
         {listing.isNegotiable && !reserved && (
           <span className="absolute left-3 top-3 rounded-full bg-foundation-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cryola-300">
             Negotiable
+          </span>
+        )}
+        {verified && (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-0.5 text-[10px] font-semibold text-foundation-700 shadow-sm backdrop-blur">
+            <BadgeCheck className="h-3 w-3 text-emerald-600" />
+            Verified
           </span>
         )}
       </div>

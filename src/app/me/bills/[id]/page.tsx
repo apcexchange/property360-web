@@ -78,7 +78,7 @@ export default function BillDetailPage() {
     mutationFn: (shareId: string) => tenantApi.markBillSharePaid(id, shareId),
     onSuccess: () => {
       invalidate();
-      toast.success("Marked as paid — waiting for confirmation");
+      toast.success("Marked as paid, waiting for confirmation");
     },
     onError: (err) => toast.error(errMsg(err)),
   });
@@ -478,7 +478,7 @@ function EscrowWallet({ billId }: { billId: string }) {
         </button>
         {activeWithdrawal && (
           <p className="mt-2 text-[11.5px] text-ink-muted">
-            A withdrawal is already in progress — settle it first.
+            A withdrawal is already in progress, settle it first.
           </p>
         )}
       </Card>
@@ -676,7 +676,7 @@ function RequestWithdrawalModal({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["me", "bill-withdrawals", billId] });
       qc.invalidateQueries({ queryKey: ["me", "bill-wallet", billId] });
-      toast.success("Withdrawal requested — neighbours will vote");
+      toast.success("Withdrawal requested, neighbours will vote");
       onClose();
     },
     onError: (err) => setError(errMsg(err)),

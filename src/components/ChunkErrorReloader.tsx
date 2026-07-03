@@ -7,7 +7,7 @@ import { useEffect } from "react";
 // ChunkLoadError (e.g. clicking "Login" loads the login route's old chunk).
 // Recover transparently: reload once to pull fresh HTML + chunk hashes.
 //
-// A sessionStorage cooldown prevents a reload loop — if the failure is NOT a
+// A sessionStorage cooldown prevents a reload loop, if the failure is NOT a
 // stale deploy (genuinely broken build), the second occurrence inside the
 // window is left to surface instead of reloading forever.
 const RELOAD_GUARD_KEY = "p360_chunk_reload_at";
@@ -31,7 +31,7 @@ function reloadOnce() {
     if (Date.now() - last < RELOAD_COOLDOWN_MS) return; // already tried recently
     sessionStorage.setItem(RELOAD_GUARD_KEY, String(Date.now()));
   } catch {
-    // sessionStorage unavailable (private mode / quota) — reload anyway; the
+    // sessionStorage unavailable (private mode / quota), reload anyway; the
     // worst case without the guard is one extra reload.
   }
   window.location.reload();

@@ -266,7 +266,7 @@ function planSubtitle(sub: SubscriptionView): string {
       year: "numeric",
     })}`;
   }
-  if (sub.status === "past_due") return "Payment failed — update billing";
+  if (sub.status === "past_due") return "Payment failed, update billing";
   if (sub.status === "cancelled" && sub.renewsAt) {
     return `Access ends ${new Date(sub.renewsAt).toLocaleDateString("en-NG", {
       day: "numeric",

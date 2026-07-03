@@ -12,7 +12,7 @@ export interface RegisterPayload {
   password: string;
   phone: string;
   role: UserRole;
-  /** Optional referral code from /onboarding?ref=… — backend silently ignores invalid codes. */
+  /** Optional referral code from /onboarding?ref=…, backend silently ignores invalid codes. */
   referralCode?: string;
 }
 
@@ -35,7 +35,7 @@ export const authApi = {
 
   /**
    * Generic sign-in. Accepts email or phone as identifier. Does NOT
-   * enforce any role gate — the caller decides what to do with the
+   * enforce any role gate, the caller decides what to do with the
    * user after authenticating.
    */
   async login(identifier: string, password: string): Promise<AuthResponse> {

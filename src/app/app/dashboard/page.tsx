@@ -52,7 +52,7 @@ export default function DashboardPage() {
         }
       />
       <PageContainer>
-        {/* Pending landlord invitations — shown to managers whenever any are
+        {/* Pending landlord invitations, shown to managers whenever any are
            waiting, regardless of whether they already have properties. */}
         {user?.role === "agent" && pendingInvites.length > 0 && (
           <Link
@@ -76,7 +76,7 @@ export default function DashboardPage() {
             </span>
           </Link>
         )}
-        {/* Property manager banner — visible to role=agent until they have
+        {/* Property manager banner, visible to role=agent until they have
            any properties (own or managed). Once stats.totalProperties > 0
            the regular dashboard takes over. */}
         {user?.role === "agent" &&
@@ -93,7 +93,7 @@ export default function DashboardPage() {
                   </p>
                   <p className="mt-1 text-[13px] text-ink-muted">
                     Manage your own properties or accept invitations from
-                    landlords — both work side-by-side.
+                    landlords, both work side-by-side.
                   </p>
                   <div className="mt-4">
                     <Link
@@ -118,7 +118,7 @@ export default function DashboardPage() {
               </div>
             </Card>
           )}
-        {/* Referral nudge — one-line banner, non-intrusive. Hidden once
+        {/* Referral nudge, one-line banner, non-intrusive. Hidden once
             it would compete with the agent-onboarding banner above. */}
         {!(user?.role === "agent" && stats.data?.totalProperties === 0) && (
           <Link

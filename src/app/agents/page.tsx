@@ -7,12 +7,12 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 
 export const metadata: Metadata = {
-  title: "For agents — manage landlord portfolios with auditable access",
+  title: "For agents, manage landlord portfolios with auditable access",
   description:
-    "Property360 lets landlords give agents granular per-property permissions: add tenants, record payments, manage maintenance — every action attributed.",
+    "Property360 lets landlords give agents granular per-property permissions: add tenants, record payments, manage maintenance, every action attributed.",
   alternates: { canonical: "/agents" },
   openGraph: {
-    title: "Property360 for agents — work the landlord's portfolio, attributably",
+    title: "Property360 for agents, work the landlord's portfolio, attributably",
     description:
       "Granular per-property permissions, audit trail, real-time chat with both sides.",
     url: "https://property360.africa/agents",
@@ -25,7 +25,7 @@ const PILLARS = [
     icon: KeyRound,
     title: "Permissions that match the engagement.",
     body:
-      "Landlords grant you exactly what you need — add tenants, record payments, manage maintenance, upload agreements — per property. No blanket access, no awkward conversations.",
+      "Landlords grant you exactly what you need, add tenants, record payments, manage maintenance, upload agreements, per property. No blanket access, no awkward conversations.",
   },
   {
     icon: ShieldCheck,
@@ -43,7 +43,7 @@ const PILLARS = [
     icon: Briefcase,
     title: "Get paid like a professional.",
     body:
-      "Commissions logged against the lease, agent fees collected through Paystack, payouts to your bank — no envelope of cash, no chasing.",
+      "Commissions logged against the lease, agent fees collected through Paystack, payouts to your bank, no envelope of cash, no chasing.",
   },
 ];
 
@@ -60,7 +60,7 @@ export default function AgentsPage() {
             <span className="text-cryola-500">With auditable access.</span>
           </>
         }
-        subtitle="Most agents work on trust and WhatsApp. Property360 gives you the access you need, scoped to the property — and proof of every action you take."
+        subtitle="Most agents work on trust and WhatsApp. Property360 gives you the access you need, scoped to the property, and proof of every action you take."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link

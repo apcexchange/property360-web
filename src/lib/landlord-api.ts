@@ -154,7 +154,7 @@ export interface Lease {
   paymentFrequency: PaymentFrequency;
   status: LeaseStatus;
   fees?: UnitFees;
-  // Recurring billing — when true, the nightly cron drafts and emails
+  // Recurring billing, when true, the nightly cron drafts and emails
   // the next rent invoice as `nextInvoiceDate` passes.
   autoGenerateInvoice?: boolean;
   nextInvoiceDate?: string;
@@ -165,7 +165,7 @@ export interface Lease {
 }
 
 /**
- * Shape returned by /tenants/occupied-units — a slimmed Lease the
+ * Shape returned by /tenants/occupied-units, a slimmed Lease the
  * backend builds explicitly with `id` (not `_id`). Keep it separate
  * from `Lease` so callers using the full Lease shape elsewhere still
  * get `_id`.
@@ -422,7 +422,7 @@ export interface LandlordTransaction {
 
 /**
  * Mirrors the nested guarantor sub-document on the Lease model. `address`
- * is an OBJECT, not a string — backend stores street/city/state separately.
+ * is an OBJECT, not a string, backend stores street/city/state separately.
  * Rendering it directly as a React child crashes ("object with keys {}")
  * when the subdoc exists but its inner fields are undefined.
  */
@@ -464,7 +464,7 @@ export interface TenancyAgreement {
   signedDocumentPublicId?: string;
   status: "draft" | "sent_for_signing" | "signed" | "cancelled";
   signedAt?: string;
-  /** Clickwrap signing — set when the tenant typed-name signs in-app. */
+  /** Clickwrap signing, set when the tenant typed-name signs in-app. */
   tenantAcknowledged?: boolean;
   tenantAcknowledgedAt?: string;
   signedTypedName?: string;
@@ -632,7 +632,7 @@ export interface TenantProfileRequest {
 }
 
 /**
- * Profile fields populated on the tenant's User document — what the
+ * Profile fields populated on the tenant's User document, what the
  * landlord's "Tenant profile" card on the lease detail page renders.
  * Mirrors the existing IUser shape; only the requestable fields are
  * exposed here.
@@ -707,8 +707,7 @@ export interface Notification {
 
 /**
  * Backend ChatService.getConversations returns a hand-built object with
- * `id`, `otherParty`, and an optional `listing` / `property` summary —
- * NOT the raw Mongoose doc. Match that shape exactly.
+ * `id`, `otherParty`, and an optional `listing` / `property` summary,  * NOT the raw Mongoose doc. Match that shape exactly.
  */
 export interface ChatConversation {
   id: string;
@@ -975,8 +974,8 @@ export const landlordApi = {
       | { property?: Property; units?: Unit[] }
       | (Property & { units?: Unit[] });
     // Two shapes seen in the wild:
-    //   1) { property: {...}, units: [...] } — explicit wrapper
-    //   2) { ...propertyFields, units: [...] } — flat (current backend)
+    //   1) { property: {...}, units: [...] }, explicit wrapper
+    //   2) { ...propertyFields, units: [...] }, flat (current backend)
     if (data && typeof data === "object" && "property" in data) {
       return {
         property: data.property as Property,
@@ -1027,7 +1026,7 @@ export const landlordApi = {
       headers: { "Content-Type": "multipart/form-data" },
     });
     const data = unwrap(res.data) as { imageUrl?: string; publicId?: string };
-    // Fail loud rather than letting undefined propagate into state — the
+    // Fail loud rather than letting undefined propagate into state, the
     // caller then renders `url.split(...)` on undefined and crashes the
     // tree. Server should have returned the upload URL on a 200; if it
     // didn't, that's an upstream bug we want surfaced as a toast.
@@ -1054,7 +1053,7 @@ export const landlordApi = {
   /**
    * Patch property fields. Sends only the keys provided. Media arrays
    * (images, videos) replace whatever's on the server, so callers must
-   * pass the full desired array — append the new URL when adding, omit
+   * pass the full desired array, append the new URL when adding, omit
    * a URL when removing.
    */
   async updateProperty(
@@ -1089,7 +1088,7 @@ export const landlordApi = {
     unit: UnitSummary;
     lease: LeaseSummary | null;
   }>> {
-    // includePending also returns pending invitations — used by the Tenants
+    // includePending also returns pending invitations, used by the Tenants
     // page so a just-invited tenant is visible. Other callers (invoicing,
     // payments, renewals) omit it and get active leases only.
     const res = await api.get("/tenants/occupied-units", {
@@ -1280,7 +1279,7 @@ export const landlordApi = {
     return asList<WalletTransaction>(unwrap(res.data));
   },
   /**
-   * Cross-lease rent / deposit / maintenance payments — what landlords
+   * Cross-lease rent / deposit / maintenance payments, what landlords
    * intuitively mean by "transactions". Wallet ledger entries
    * (settlements, payouts) live on walletTransactions() above; the
    * /app/transactions page fetches both and merges them client-side.
@@ -1323,7 +1322,7 @@ export const landlordApi = {
     return unwrap(res.data) as BankAccount;
   },
   async setPrimaryBankAccount(id: string): Promise<BankAccount> {
-    // Backend route is PATCH /bank-accounts/:id/primary — POST 404s.
+    // Backend route is PATCH /bank-accounts/:id/primary, POST 404s.
     const res = await api.patch(`/bank-accounts/${id}/primary`);
     return unwrap(res.data) as BankAccount;
   },
@@ -1595,7 +1594,7 @@ export const landlordApi = {
   /**
    * Landlord fills the tenant's profile on their behalf. Multipart so
    * avatar / kycSelfie / idDocument can be attached. Backend accepts any
-   * subset of the fields — partial updates are fine.
+   * subset of the fields, partial updates are fine.
    */
   async fillTenantProfile(
     leaseId: string,
@@ -1671,7 +1670,7 @@ export const landlordApi = {
     jurisdiction?: string;
     specialClauses?: string;
   }): Promise<{ body: string }> {
-    // Claude can take 15–30s to draft a 4k-token agreement; default
+    // Claude can take 15-30s to draft a 4k-token agreement; default
     // 20s axios timeout would silently kill the request.
     const res = await api.post("/agreement-templates/ai/generate", body, {
       timeout: 120_000,

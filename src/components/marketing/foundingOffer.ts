@@ -1,16 +1,15 @@
-// "The Founding 50" launch offer — single source of truth.
+// "The Founding 50" launch offer, single source of truth.
 //
 // This is a launch-only construct, NOT a standing pricing tier (those live in
 // pricingTiers.ts). Keep the headline numbers here so the announcement bar,
 // the landing section, and the pricing section never drift apart.
 //
-// `normalAnnualNgn` mirrors the Pro tier's annual price in pricingTiers.ts —
-// keep them in sync if Pro pricing changes.
+// `normalAnnualNgn` mirrors the Pro tier's annual price in pricingTiers.ts, // keep them in sync if Pro pricing changes.
 
 export const FOUNDING = {
   /** Tier the founding price applies to. */
   tier: "Pro",
-  /** Total founding slots. The scarcity lever — keep it honest. */
+  /** Total founding slots. The scarcity lever, keep it honest. */
   slots: 50,
   /**
    * Slots claimed so far. Bump this manually as founding landlords sign up
@@ -26,13 +25,13 @@ export const FOUNDING = {
   ctaHref: "/onboarding",
   /**
    * The owned launch community: a broadcast-only WhatsApp Channel
-   * ("Property360 — Founding Landlords"). Fill in once created
+   * ("Property360, Founding Landlords"). Fill in once created
    * (format: https://whatsapp.com/channel/<id>). Empty = not created yet;
    * content should leave a "[WhatsApp channel link]" placeholder, not guess.
    */
   whatsappChannelUrl: "https://whatsapp.com/channel/0029VbCuWPVGZNCpzfWMan1G",
   perks: [
-    "Pro plan at ₦65,000/year — locked at that price forever",
+    "Pro plan at ₦65,000/year, locked at that price forever",
     "Free done-for-you setup: we load your properties, units & tenants",
     "A “Founding Landlord” badge on your account",
     "A direct line to the founder for your first 60 days",

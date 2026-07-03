@@ -28,7 +28,7 @@ const features = [
   {
     icon: FileSignature,
     title: "Tenancy agreements, in-app",
-    body: "Upload an agreement, OCR pulls the key fields, and both parties sign electronically in-app — typed name, optional signature image, defensible audit trail.",
+    body: "Upload an agreement, OCR pulls the key fields, and both parties sign electronically in-app, typed name, optional signature image, defensible audit trail.",
   },
   {
     icon: ShieldCheck,
@@ -38,7 +38,7 @@ const features = [
   {
     icon: MessagesSquare,
     title: "In-app chat",
-    body: "Conversations live next to the property they're about — searchable, archived, shared with the right agents.",
+    body: "Conversations live next to the property they're about, searchable, archived, shared with the right agents.",
   },
   {
     icon: Wrench,

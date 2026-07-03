@@ -8,7 +8,7 @@ const steps = [
   {
     n: "01",
     title: "Sign up in 60 seconds",
-    body: "Email, phone, password — that's it. Verify with NIN, Driver's Licence, Passport, or Voter's Card and you're ready to transact.",
+    body: "Email, phone, password, that's it. Verify with NIN, Driver's Licence, Passport, or Voter's Card and you're ready to transact.",
   },
   {
     n: "02",
@@ -18,12 +18,12 @@ const steps = [
   {
     n: "03",
     title: "Set the lease, set the rent schedule",
-    body: "Pick monthly, quarterly, or annual billing. Caution, agent, agreement, legal, service — all the Nigerian fee categories handled.",
+    body: "Pick monthly, quarterly, or annual billing. Caution, agent, agreement, legal, service, all the Nigerian fee categories handled.",
   },
   {
     n: "04",
     title: "Get paid, on time, into your wallet",
-    body: "Tenants pay via Paystack — card, bank, USSD. Funds settle into your wallet, withdraw to any Nigerian bank in minutes.",
+    body: "Tenants pay via Paystack, card, bank, USSD. Funds settle into your wallet, withdraw to any Nigerian bank in minutes.",
   },
 ];
 
@@ -55,7 +55,7 @@ export function HowItWorks() {
             aria-hidden
             className="absolute left-3 top-0 h-full w-px bg-foundation-700/15 sm:left-6"
           />
-          {/* Animated foreground rail — fills as user scrolls */}
+          {/* Animated foreground rail, fills as user scrolls */}
           <motion.div
             aria-hidden
             style={{ height: railHeight }}
