@@ -321,6 +321,11 @@ export interface WalletSummary {
   totalEarned: number;
   totalPaidOut: number;
   currency: "NGN";
+  dvaAccountNumber?: string;
+  dvaBankName?: string;
+  dvaProvider?: string;
+  dvaStatus?: "pending" | "active" | "failed";
+  dvaFailureReason?: string;
 }
 
 export interface WalletTransaction {
