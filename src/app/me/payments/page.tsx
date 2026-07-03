@@ -3,10 +3,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Banknote, CreditCard, X } from "lucide-react";
+import { Banknote, CreditCard, Wallet, X } from "lucide-react";
 import { AxiosError } from "axios";
 import { TenantTopbar } from "@/components/me/Topbar";
 import { BrandLoader } from "@/components/ui/BrandLoader";
+import { useToast } from "@/components/ui/Toast";
 import {
   PageContainer,
   Card,
@@ -167,6 +168,23 @@ function RentSection({
   onRecord: (amount: number) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+  const qc = useQueryClient();
+
+  const wallet = useQuery({
+    queryKey: ["wallet"],
+    queryFn: () => tenantApi.getWallet(),
+  });
+  // The rent "invoice" the summary card totals up isn't always backed by a
+  // single Invoice document (see PaymentSummary — it's a Transaction
+  // aggregate), but AutoInvoiceService does create one for the current
+  // billing period once it's due; that's what shows up here with a real id.
+  const upcoming = useQuery({
+    queryKey: ["me", "payments", "upcoming"],
+    queryFn: () => tenantApi.getUpcomingPayments(),
+  });
+  const rentInvoiceId = upcoming.data?.find((u) => !!u.paymentId)?.paymentId;
+
   const pay = useMutation({
     mutationFn: () =>
       tenantApi.initiateInvoicePayment({
@@ -191,9 +209,28 @@ function RentSection({
     },
   });
 
+  const payFromWallet = useMutation({
+    mutationFn: (invoiceId: string) => tenantApi.payInvoiceFromWallet(invoiceId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["me", "payments"] });
+      qc.invalidateQueries({ queryKey: ["wallet"] });
+      qc.invalidateQueries({ queryKey: ["me", "dashboard"] });
+      toast.success("Invoice paid from wallet");
+    },
+    onError: (err: unknown) => {
+      const ax = err as { response?: { data?: { message?: string } } };
+      setError(ax?.response?.data?.message ?? "Wallet payment failed");
+    },
+  });
+
   const dueLabel = nextDueDate ? daysUntilDueLabel(daysUntilDue) : null;
   const dueTone: "good" | "warn" | "bad" =
     daysUntilDue < 0 ? "bad" : daysUntilDue <= 7 ? "warn" : "good";
+
+  const canUseWallet =
+    !!wallet.data?.dvaStatus &&
+    (wallet.data?.balance ?? 0) >= outstanding &&
+    !!rentInvoiceId;
 
   return (
     <Card className="mb-6 p-5">
@@ -214,18 +251,47 @@ function RentSection({
       </div>
       {error && <p className="mt-3 text-[12.5px] text-red-700">{error}</p>}
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setError(null);
-            pay.mutate();
-          }}
-          disabled={pay.isPending || outstanding <= 0}
-          className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
-        >
-          <CreditCard className="h-4 w-4" />{" "}
-          {pay.isPending ? "Starting payment…" : "Pay rent online"}
-        </button>
+        {canUseWallet ? (
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                payFromWallet.mutate(rentInvoiceId as string);
+              }}
+              disabled={payFromWallet.isPending || outstanding <= 0}
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
+            >
+              <Wallet className="h-4 w-4" />{" "}
+              {payFromWallet.isPending ? "Paying…" : "Pay from wallet"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                pay.mutate();
+              }}
+              disabled={pay.isPending || outstanding <= 0}
+              className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-5 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-50"
+            >
+              <CreditCard className="h-4 w-4" />{" "}
+              {pay.isPending ? "Starting payment…" : "Pay with card"}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              pay.mutate();
+            }}
+            disabled={pay.isPending || outstanding <= 0}
+            className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
+          >
+            <CreditCard className="h-4 w-4" />{" "}
+            {pay.isPending ? "Starting payment…" : "Pay rent online"}
+          </button>
+        )}
         <button
           type="button"
           onClick={() => onRecord(outstanding > 0 ? outstanding : monthlyRent)}
