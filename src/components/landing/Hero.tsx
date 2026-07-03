@@ -7,10 +7,6 @@ import type { Transition } from "framer-motion";
 
 const EASE: Transition["ease"] = [0.22, 1, 0.36, 1];
 
-// TODO(property360): replace with the real product walkthrough video.
-// "Watch Demo" opens this in a new tab (YouTube/Vimeo).
-const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=REPLACE_WITH_DEMO_VIDEO";
-
 export function Hero() {
   const reduce = useReducedMotion();
 
@@ -101,15 +97,13 @@ export function Hero() {
             Get started
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
-          <a
-            href={DEMO_VIDEO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/demo"
             className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/80 px-6 py-3.5 text-sm font-semibold text-foundation-700 backdrop-blur transition hover:border-foundation-700/30 hover:bg-paper"
           >
             <Play className="h-4 w-4" />
             Watch demo
-          </a>
+          </Link>
           <Link
             href="/request-demo"
             className="inline-flex items-center gap-2 rounded-full border border-foundation-700/15 bg-paper/80 px-6 py-3.5 text-sm font-semibold text-foundation-700 backdrop-blur transition hover:border-foundation-700/30 hover:bg-paper"
