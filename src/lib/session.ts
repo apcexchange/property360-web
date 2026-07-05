@@ -50,6 +50,11 @@ export const session = {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(TOKEN_KEY, token);
     window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+    // Stitch this person's activity in PostHog. Dynamic import so posthog-js is
+    // never pulled into an SSR bundle (this line only runs client-side).
+    void import("./analytics").then((a) =>
+      a.identifyUser(user._id, { role: user.role })
+    );
   },
   clear() {
     if (typeof window === "undefined") return;
@@ -57,5 +62,6 @@ export const session = {
     window.localStorage.removeItem(USER_KEY);
     cachedRaw = null;
     cachedUser = null;
+    void import("./analytics").then((a) => a.resetAnalytics());
   },
 };

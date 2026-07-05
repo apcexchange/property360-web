@@ -2,6 +2,7 @@
 
 import { api, unwrap } from "./api";
 import { session, AdminUser } from "./session";
+import { capture } from "./analytics";
 
 export type UserRole = "landlord" | "tenant" | "agent";
 
@@ -30,6 +31,7 @@ export const authApi = {
       throw new Error("Register failed: unexpected response.");
     }
     session.set(data.accessToken, data.user);
+    capture("signup_completed", { role: payload.role });
     return data;
   },
 

@@ -3,6 +3,8 @@ import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SmartsuppChat } from "@/components/SmartsuppChat";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
+import { PostHogProvider } from "@/components/PostHogProvider";
+import { ConsentNotice } from "@/components/ConsentNotice";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
@@ -145,7 +147,10 @@ export default function RootLayout({
     >
       <body className="font-sans">
         <ChunkErrorReloader />
-        <ToastProvider>{children}</ToastProvider>
+        <PostHogProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </PostHogProvider>
+        <ConsentNotice />
         <Analytics />
         <SmartsuppChat />
         <script
