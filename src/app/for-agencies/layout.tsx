@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 // The /for-agencies page is a client component, so it cannot export metadata
 // itself. This server layout supplies the SEO metadata for that route.
 export const metadata: Metadata = {
-  title: "Property360 for agencies & property managers",
+  // No leading "Property360": the root layout appends ", Property360" via its
+  // title template, so a brand prefix here would double it.
+  title: "For agencies & property managers in Nigeria",
   description:
     "Run multiple landlords' portfolios from one dashboard. Property360 gives agencies and property managers granular per-property permissions, rent collection, payouts, and reporting across every client.",
   alternates: { canonical: "/for-agencies" },

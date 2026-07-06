@@ -32,6 +32,7 @@ export function Footer() {
             <FooterLink href="/landlord">For landlords</FooterLink>
             <FooterLink href="/tenant">For tenants</FooterLink>
             <FooterLink href="/agents">For agents</FooterLink>
+            <FooterLink href="/for-agencies">For agencies</FooterLink>
             <FooterLink href="/communities">Estate communities</FooterLink>
             <FooterLink href="/pricing">Pricing</FooterLink>
             <FooterLink href="/onboarding">Get started</FooterLink>
