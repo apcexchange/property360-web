@@ -13,9 +13,10 @@ interface Props {
 }
 
 /**
- * In-app phone verification dialog. Sends a Termii SMS code to the user's
- * phone when it opens, then collects the 6-digit code. On success flips
- * phoneVerified=true on the user (handled by authApi.verifyPhone).
+ * In-app phone verification dialog. Sends a WhatsApp-first OTP when it opens
+ * (backend may fall back to SMS), collects the 6-digit code, and offers a
+ * manual "send by SMS instead" switch. On success flips phoneVerified (and
+ * whatsappVerified when the code arrived on WhatsApp) via authApi.verifyPhone.
  */
 export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
   const [code, setCode] = useState("");
@@ -23,6 +24,8 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
   const [verifying, setVerifying] = useState(false);
   const [resendNotice, setResendNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [channelUsed, setChannelUsed] = useState<"whatsapp" | "sms">("whatsapp");
+  const [cooldown, setCooldown] = useState(0);
   const sentRef = useRef(false);
 
   useEffect(() => {
@@ -30,23 +33,40 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
       setCode("");
       setError(null);
       setResendNotice(null);
+      setChannelUsed("whatsapp");
+      setCooldown(0);
       sentRef.current = false;
       return;
     }
     // Auto-send on open, but only once per open cycle (StrictMode would
-    // otherwise fire two SMS).
+    // otherwise fire two sends).
     if (sentRef.current) return;
     sentRef.current = true;
-    sendCode();
+    sendCode("whatsapp");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  async function sendCode() {
+  // 60s resend cooldown, mirrored server-side (429 if bypassed).
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const t = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
+
+  async function sendCode(channel: "whatsapp" | "sms") {
     setSending(true);
     setError(null);
     try {
-      await authApi.sendPhoneVerification();
-      setResendNotice("Code sent. Check your text messages.");
+      const { channelUsed: used } = await authApi.sendPhoneVerification(channel);
+      setChannelUsed(used);
+      setCooldown(60);
+      setResendNotice(
+        used === "whatsapp"
+          ? "Code sent to your WhatsApp."
+          : "Code sent by SMS. Check your text messages."
+      );
+      (window as unknown as { posthog?: { capture?: (e: string, p?: object) => void } })
+        .posthog?.capture?.("phone_otp_sent", { channel: used });
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       setError(
@@ -65,6 +85,8 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
     setError(null);
     try {
       await authApi.verifyPhone(code.trim());
+      (window as unknown as { posthog?: { capture?: (e: string, p?: object) => void } })
+        .posthog?.capture?.("phone_otp_verified", { channel: channelUsed });
       onVerified();
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
@@ -79,6 +101,8 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
 
   if (!open) return null;
 
+  const resendLabel = cooldown > 0 ? `Resend (${cooldown}s)` : "Resend code";
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-foundation-900/50 px-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-3xl bg-paper p-6 shadow-2xl">
@@ -92,10 +116,21 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
                 Verify your phone
               </h2>
               <p className="mt-0.5 text-[12.5px] text-ink-muted">
-                We sent a code to{" "}
-                <span className="font-semibold text-foundation-700">
-                  {phone}
-                </span>
+                {channelUsed === "whatsapp" ? (
+                  <>
+                    Code sent to your WhatsApp on{" "}
+                    <span className="font-semibold text-foundation-700">
+                      {phone}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Code sent by SMS to{" "}
+                    <span className="font-semibold text-foundation-700">
+                      {phone}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -137,11 +172,23 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
             </button>
             <button
               type="button"
-              onClick={sendCode}
-              disabled={sending}
+              onClick={() => sendCode(channelUsed)}
+              disabled={sending || cooldown > 0}
               className="text-[12.5px] font-semibold text-foundation-700 transition hover:text-foundation-900 disabled:opacity-60"
             >
-              {sending ? "Sending…" : "Resend code"}
+              {sending ? "Sending…" : resendLabel}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                sendCode(channelUsed === "whatsapp" ? "sms" : "whatsapp")
+              }
+              disabled={sending || cooldown > 0}
+              className="text-[12.5px] font-semibold text-ink-muted underline-offset-2 transition hover:text-foundation-700 hover:underline disabled:opacity-60"
+            >
+              {channelUsed === "whatsapp"
+                ? "Send by SMS instead"
+                : "Send to WhatsApp instead"}
             </button>
           </div>
 

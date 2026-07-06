@@ -16,6 +16,9 @@ export interface AdminUser {
   // can reach the dashboard; phone is optional and prompted in-app.
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  // True only when a verification code was delivered over WhatsApp and
+  // verified. Unlocks the WhatsApp assistant.
+  whatsappVerified?: boolean;
 }
 
 // Cache the parsed user keyed by the raw localStorage string. React's
