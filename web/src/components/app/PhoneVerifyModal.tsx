@@ -53,6 +53,11 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
     return () => clearInterval(t);
   }, [cooldown]);
 
+  // Single deletion point for when PostHog lands on this branch.
+  const capture = (event: string, props?: object) =>
+    (window as unknown as { posthog?: { capture?: (e: string, p?: object) => void } })
+      .posthog?.capture?.(event, props);
+
   async function sendCode(channel: "whatsapp" | "sms") {
     setSending(true);
     setError(null);
@@ -65,8 +70,7 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
           ? "Code sent to your WhatsApp."
           : "Code sent by SMS. Check your text messages."
       );
-      (window as unknown as { posthog?: { capture?: (e: string, p?: object) => void } })
-        .posthog?.capture?.("phone_otp_sent", { channel: used });
+      capture("phone_otp_sent", { channel: used });
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       setError(
@@ -85,8 +89,7 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
     setError(null);
     try {
       await authApi.verifyPhone(code.trim());
-      (window as unknown as { posthog?: { capture?: (e: string, p?: object) => void } })
-        .posthog?.capture?.("phone_otp_verified", { channel: channelUsed });
+      capture("phone_otp_verified", { channel: channelUsed });
       onVerified();
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
@@ -173,7 +176,7 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
             <button
               type="button"
               onClick={() => sendCode(channelUsed)}
-              disabled={sending || cooldown > 0}
+              disabled={sending || verifying || cooldown > 0}
               className="text-[12.5px] font-semibold text-foundation-700 transition hover:text-foundation-900 disabled:opacity-60"
             >
               {sending ? "Sending…" : resendLabel}
@@ -183,12 +186,14 @@ export function PhoneVerifyModal({ open, phone, onClose, onVerified }: Props) {
               onClick={() =>
                 sendCode(channelUsed === "whatsapp" ? "sms" : "whatsapp")
               }
-              disabled={sending || cooldown > 0}
+              disabled={sending || verifying || cooldown > 0}
               className="text-[12.5px] font-semibold text-ink-muted underline-offset-2 transition hover:text-foundation-700 hover:underline disabled:opacity-60"
             >
-              {channelUsed === "whatsapp"
-                ? "Send by SMS instead"
-                : "Send to WhatsApp instead"}
+              {cooldown > 0
+                ? `Switch available in ${cooldown}s`
+                : channelUsed === "whatsapp"
+                  ? "Send by SMS instead"
+                  : "Send to WhatsApp instead"}
             </button>
           </div>
 
