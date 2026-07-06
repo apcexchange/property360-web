@@ -10,7 +10,7 @@ The platform assistant (AssistantService: an LLM tool-calling loop grounded in t
 
 ## Decision
 
-Build a thin WhatsApp channel adapter over the existing assistant using the Meta WhatsApp Cloud API directly: an inbound webhook, identity resolution by verified phone number, the existing `AssistantService.ask()` loop, and free-form text replies inside Meta's 24-hour service window. v1 is read-only plus deep links, and serves all three roles (tenant, landlord, agent), which requires building the missing read-only agent toolset.
+Build a thin WhatsApp channel adapter over the existing assistant using the Meta WhatsApp Cloud API directly: an inbound webhook, identity resolution by **verified WhatsApp** (the `whatsappVerified` flag, earned by completing phone verification over the WhatsApp channel per the 2026-07-06 WhatsApp-first OTP spec), the existing `AssistantService.ask()` loop, and free-form text replies inside Meta's 24-hour service window. v1 is read-only plus deep links, and serves all three roles (tenant, landlord, agent), which requires building the missing read-only agent toolset.
 
 ### Alternatives considered and rejected
 
@@ -30,15 +30,16 @@ Build a thin WhatsApp channel adapter over the existing assistant using the Meta
 
 ### 2. Identity resolution
 
-Normalize the inbound `wa_id` to E.164 (reuse the existing phone normalization) and look up users where `phone` matches, `phoneVerified: true`, `isActive: true`, and not soft-deleted.
+Normalize the inbound `wa_id` to E.164 (reuse the existing phone normalization) and look up users where `phone` matches, `whatsappVerified: true`, `isActive: true`, and not soft-deleted.
 
 | Match count | Behavior |
 | --- | --- |
 | Exactly 1 | Proceed as that user: `ToolContext { userId, role }` |
-| 0 | Static reply (no LLM call): this number is not linked to a verified account, with a signup link and instructions to verify the phone in-app |
+| 0, but the phone matches an account without `whatsappVerified` | Static reply (no LLM call): "verify your WhatsApp from the app to use the assistant", with a link to the in-app verification screen. Covers both unverified users and users who verified by SMS only |
+| 0, no account matches at all | Static reply (no LLM call): this number is not linked to a Property360 account, with a signup link |
 | 2+ | Static "please contact support" reply; log for ops (`User.phone` is not unique) |
 
-Rationale: WhatsApp authenticates that the sender controls the number; `phoneVerified` proves the number belongs to the account (and the 2026-07-06 WhatsApp-first OTP spec makes that verification itself run over WhatsApp). This is sound for read-only access. It is one reason v1 stays read-only.
+Rationale: verifying WhatsApp is the explicit unlock for the assistant. WhatsApp authenticates that the sender controls the number in the moment; `whatsappVerified` proves the account holder completed a code delivered to that same WhatsApp (the OTP spec sets it only when the code went over the WhatsApp channel, never via the SMS fallback). `phoneVerified` alone is NOT sufficient. This is sound for read-only access and is one reason v1 stays read-only.
 
 ### 3. Assistant integration
 
@@ -105,6 +106,6 @@ No test runner exists in the repo. Manual verification:
 
 1. curl the `GET` handshake with a matching and a mismatching verify token.
 2. curl simulated Meta `POST` payloads (valid signature, invalid signature, duplicate `wamid`, non-text type) against a dev deploy and check logs plus replies.
-3. End to end from a real WhatsApp account whose number belongs to: a verified tenant, a verified landlord, a verified agent (permission-gated queries both allowed and denied), an unverified user, and an unknown number.
+3. End to end from a real WhatsApp account whose number belongs to: a WhatsApp-verified tenant, a WhatsApp-verified landlord, a WhatsApp-verified agent (permission-gated queries both allowed and denied), a user verified by SMS only (must be guided to WhatsApp verification), an unverified user, and an unknown number.
 4. Confirm an action-bearing reply renders as a working absolute web URL.
 5. Confirm rate limiting with a burst of messages.

@@ -14,6 +14,8 @@ A contributing bug was found during design: the Termii OTP send in `backend/src/
 
 Deliver OTPs WhatsApp-first with automatic server-side SMS fallback, and fix the SMS route to use Termii's `dnd` channel. No new vendor is introduced.
 
+Verification completed over the WhatsApp channel additionally marks the user's WhatsApp as verified (`whatsappVerified`). Downstream features gate on this: the WhatsApp assistant channel (companion spec, same date) requires a verified WhatsApp, not just a verified phone.
+
 ### Alternatives considered and rejected
 
 1. **Firebase Phone Auth.** Rejected: requires the Blaze plan with per-SMS billing (roughly 10-30x Termii's rate for Nigeria), still terminates as an SMS on the same carriers, adds a second identity system, and demands native-module surgery on a no-EAS Expo pipeline (config plugins, google-services files in CI, release keystore SHA-256 registration, Play Integrity, APNs key). Google's SMS fraud protection also throttles high-risk regions, and Nigeria is a top SMS-pumping target.
@@ -28,7 +30,9 @@ WhatsApp delivery in Nigeria is data-based, unaffected by DND, and near-universa
 - Extend the OTP channel type to `'sms' | 'whatsapp'` and thread it through `sendOtp`. Email OTPs remain in `EmailOtpService`.
 - Termii channel mapping: requested `whatsapp` sends with Termii `channel: 'whatsapp'`; requested `sms` sends with Termii `channel: 'dnd'` (replacing the current `generic`).
 - **Server-side fallback in one request:** if the WhatsApp send fails (recipient has no WhatsApp, Termii error), retry immediately over SMS on the `dnd` channel. The response reports which channel actually succeeded via `channelUsed`. If both channels fail, return a clean 502.
-- Verification is unchanged. Termii verifies by `pinId` regardless of delivery channel; the VTpass self-managed HMAC path stays as-is.
+- Verification mechanics are unchanged. Termii verifies by `pinId` regardless of delivery channel; the VTpass self-managed HMAC path stays as-is.
+- **WhatsApp verification flag (new User fields):** add `whatsappVerified: boolean` and `whatsappVerifiedAt: Date` to the User model. `verifyOtp` returns the channel that actually delivered the code (read from the `PhoneOtp` record before it is deleted). `AuthService.verifyPhone` always sets `phoneVerified`; when the delivering channel was WhatsApp it also sets `whatsappVerified` and `whatsappVerifiedAt`. This proves the user controls that WhatsApp account, not just the phone number. A code requested over WhatsApp but delivered by the SMS fallback counts as SMS: it sets `phoneVerified` only.
+- **Re-verification path:** the send endpoint currently rejects whenever `phoneVerified` is true. It now rejects only when the requested channel adds nothing: SMS requests reject when `phoneVerified` is true; WhatsApp requests reject only when `whatsappVerified` is also true. This lets a user who verified by SMS run the flow again over WhatsApp to earn `whatsappVerified`.
 - **VTpass provider degradation:** VTpass is SMS-only. Under `SMS_PROVIDER=vtpass`, a WhatsApp request silently degrades to SMS and the response carries `channelUsed: 'sms'`.
 - **Resend cooldown:** enforce a 60-second per-phone cooldown on sends, checked against the latest `PhoneOtp` record's `createdAt`. A ladder invites more resends; this bounds cost and abuse.
 
@@ -36,7 +40,7 @@ WhatsApp delivery in Nigeria is data-based, unaffected by DND, and near-universa
 
 - `POST /auth/phone/send-verification` accepts an optional body `{ channel?: 'whatsapp' | 'sms' }`, defaulting to `whatsapp`.
 - The response adds `channelUsed: 'whatsapp' | 'sms'` alongside the existing `expiresAt`.
-- `POST /auth/phone/verify` is untouched.
+- `POST /auth/phone/verify` keeps its request shape; the serialized user in the response now includes `whatsappVerified` / `whatsappVerifiedAt`.
 - Backward compatibility: old clients send no body, which resolves to WhatsApp-first with SMS fallback; their verify flow is identical.
 
 ### 3. Clients (mobile and web, same treatment)
@@ -49,7 +53,7 @@ WhatsApp delivery in Nigeria is data-based, unaffected by DND, and near-universa
 
 ### 4. Measurement
 
-- Add a `channel` field to the `PhoneOtp` model so backend records reflect what was actually sent.
+- Add a `channel` field to the `PhoneOtp` model recording what was actually sent (post-fallback). This field is load-bearing, not just analytics: verify reads it to decide whether to set `whatsappVerified`.
 - Clients fire `phone_otp_sent` (with `channel` property) and `phone_otp_verified` events. These slot into the PostHog instrumentation on `feat/analytics-posthog` when it merges; until then they are no-ops or logs. No new analytics infrastructure is part of this feature.
 
 ### 5. Error handling summary
@@ -72,6 +76,7 @@ No test runner exists in the repo. Manual verification:
 
 1. curl `POST /auth/phone/send-verification` with no body against a real +234 number; confirm WhatsApp delivery and `channelUsed: 'whatsapp'`.
 2. curl with `{ "channel": "sms" }`; confirm SMS delivery on a DND-flagged number (the `dnd` channel fix).
-3. Verify the code via `POST /auth/phone/verify` for each channel; confirm `phoneVerified` flips.
+3. Verify the code via `POST /auth/phone/verify` for each channel; confirm `phoneVerified` flips in both cases, and that `whatsappVerified` flips only for the WhatsApp-delivered code (including the fallback case: requested WhatsApp, delivered by SMS, must NOT set it).
+4. As an SMS-verified user, request a WhatsApp-channel code again; confirm the send is allowed and completing it sets `whatsappVerified`.
 4. Force a WhatsApp failure (number without WhatsApp) and confirm the SMS fallback plus `channelUsed: 'sms'`.
 5. Exercise the modal flow end to end on mobile and web, including resend cooldown and channel switch.
