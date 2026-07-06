@@ -78,5 +78,5 @@ No test runner exists in the repo. Manual verification:
 2. curl with `{ "channel": "sms" }`; confirm SMS delivery on a DND-flagged number (the `dnd` channel fix).
 3. Verify the code via `POST /auth/phone/verify` for each channel; confirm `phoneVerified` flips in both cases, and that `whatsappVerified` flips only for the WhatsApp-delivered code (including the fallback case: requested WhatsApp, delivered by SMS, must NOT set it).
 4. As an SMS-verified user, request a WhatsApp-channel code again; confirm the send is allowed and completing it sets `whatsappVerified`.
-4. Force a WhatsApp failure (number without WhatsApp) and confirm the SMS fallback plus `channelUsed: 'sms'`.
-5. Exercise the modal flow end to end on mobile and web, including resend cooldown and channel switch.
+5. Force a WhatsApp failure (number without WhatsApp) and confirm the SMS fallback plus `channelUsed: 'sms'`.
+6. Exercise the modal flow end to end on mobile and web, including resend cooldown and channel switch.
