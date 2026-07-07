@@ -23,6 +23,10 @@ Verification completed over the WhatsApp channel additionally marks the user's W
 
 WhatsApp delivery in Nigeria is data-based, unaffected by DND, and near-universal among Property360's smartphone-first users. The existing Termii account already has WhatsApp configuration (`TERMII_WHATSAPP_DEVICE_ID`, message templates).
 
+### Future direction (decided 2026-07-07): Meta-direct WhatsApp delivery in v2
+
+Termii's WhatsApp channel is the v1 delivery rail because it ships immediately (hosted pin verification, no WABA setup). Once the WhatsApp assistant channel's Meta Cloud API setup exists (app, token, dedicated number), WhatsApp OTP delivery should move to Meta directly behind a config switch: generate the code with the existing self-managed machinery (the VTpass path's generate/HMAC/attempt-throttle), deliver it via a Meta authentication template (native copy-code button), and on failure send the same code as plain SMS over Termii's dnd route, all verified by the one HMAC path. This removes a vendor from the auth-critical path and unifies verification. Contingency: if the Termii dashboard check finds WhatsApp OTP unavailable on the current plan, Meta-direct becomes the v1 path instead of an optimization.
+
 ## Design
 
 ### 1. Backend: OtpService channel support
