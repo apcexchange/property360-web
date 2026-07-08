@@ -17,6 +17,10 @@ export function Footer() {
             <p className="mt-4 max-w-xs text-[13.5px] leading-[1.6] text-ink-muted">
               Property management for the way Nigeria rents — built in Lagos.
             </p>
+            <p className="mt-4 max-w-xs text-[12.5px] leading-[1.55] text-ink-muted">
+              GM Mall, KM 46 Lekki-Epe Expressway, opposite SBI Hotel,
+              Sangotedo, Lagos.
+            </p>
           </div>
 
           <FooterCol title="Product">

@@ -98,8 +98,10 @@ const jsonLd = {
       logo: `${SITE_URL}/icon.png`,
       address: {
         "@type": "PostalAddress",
-        addressCountry: "NG",
+        streetAddress: "GM Mall, KM 46 Lekki-Epe Expressway, opposite SBI Hotel, Sangotedo",
         addressLocality: "Lagos",
+        addressRegion: "Lagos",
+        addressCountry: "NG",
       },
       contactPoint: [
         {
