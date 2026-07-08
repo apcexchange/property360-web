@@ -92,6 +92,17 @@ Existing `config.whatsapp.meta.*` (phoneNumberId, accessToken, apiVersion) is re
 3. Webhook subscription to the `messages` field pointing at `https://api.property360.africa/api/v1/webhooks/whatsapp`.
 4. Confirm the display name / business verification status so the assistant number does not look like spam.
 
+## As-built implementation notes (2026-07-08)
+
+Built via the 2026-07-08 implementation plan; commits `df3c54d` through `8581252` on the backend repo. Reviewed deviations from the design above, all deliberate:
+
+1. **Rate limiting** runs BEFORE identity resolution (so unknown/hostile numbers are capped too) and is notice-once-then-silent: one rate-limit reply when the limit is first crossed, then silence until the sliding window drains. Replying to every over-limit message would flood the sender's thread and degrade the business number's Meta quality rating.
+2. **Landlords are additionally plan-gated**: an unentitled landlord (no `canUseAiTemplates` feature) gets a static needs-plan reply with a billing link, mirroring the in-app `requireAiAccess`. Tenants and agents pass ungated; on the in-app REST routes a route-local bypass keeps agents clear of the AI plan gate (their subscription owner cannot be resolved without a property context).
+3. **Signature verification uses true raw-body capture** (an `express.json` verify hook scoped to `/webhooks/` paths), not the Paystack re-serialization pattern: Meta's HMAC is over the exact request bytes.
+4. **Action links** use the pre-existing `config.web.baseUrl` (`WEB_BASE_URL`) rather than a new env var.
+5. **Agent tools v1** gates payment and arrears tools on `canViewPayments`; a `canViewReports`-gated summary tool can follow later.
+6. `render.yaml` carries no WhatsApp vars by existing convention; `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_ASSISTANT_ENABLED`, and the `META_WHATSAPP_*` credentials are set directly in the Render dashboard.
+
 ## Out of scope for v1
 
 - Write actions of any kind (including "send reminder" style safe writes)
