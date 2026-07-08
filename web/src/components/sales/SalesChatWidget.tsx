@@ -32,6 +32,15 @@ const HIDDEN_PREFIXES = ["/app", "/me", "/admin"];
 // Set once the pre-chat lead form has been completed on this browser.
 const LEAD_DONE_KEY = "p360.salesbot.leadDone";
 
+// Set once the visitor has opened (or dismissed) the chat, so the proactive
+// "unread message" nudge shows only until they first engage, never again.
+const OPENED_KEY = "p360.salesbot.opened";
+
+// Proactive teaser shown on the launcher on a first visit, styled to read like
+// an unread incoming message so it invites a click.
+const TEASER =
+  "👋 Hi there! Have a question about Property360? Ask me anything, I'm here to help.";
+
 const WHATSAPP_FALLBACK =
   "https://wa.me/2349027788838?text=" +
   encodeURIComponent("Hi, I have a question about Property360.");
@@ -65,6 +74,7 @@ export function SalesChatWidget() {
   const [gEmail, setGEmail] = useState("");
   const [gateBusy, setGateBusy] = useState(false);
   const [gateError, setGateError] = useState<string | null>(null);
+  const [teaser, setTeaser] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p));
@@ -110,6 +120,20 @@ export function SalesChatWidget() {
     if (!scrollRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages.length, pending, open]);
+
+  // Proactive "unread message" nudge: on a first visit (chat never opened,
+  // no restored conversation), pop the teaser a beat after the widget is
+  // enabled so it feels like an incoming message rather than a static badge.
+  useEffect(() => {
+    if (hidden || enabled !== true || open) return;
+    if (messages.length > 0) return; // returning visitor with history
+    if (localStorage.getItem(OPENED_KEY) === "1") return;
+    const t = setTimeout(() => {
+      setTeaser(true);
+      track("salesbot_teaser_shown");
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [hidden, enabled, open, messages.length]);
 
   if (hidden || enabled === false) return null;
 
@@ -202,8 +226,24 @@ export function SalesChatWidget() {
     }
   }
 
+  // Mark the widget as engaged so the unread nudge never shows again.
+  function markSeen() {
+    setTeaser(false);
+    try {
+      localStorage.setItem(OPENED_KEY, "1");
+    } catch {
+      /* private mode: nudge simply reappears next session */
+    }
+  }
+
+  function openChat() {
+    markSeen();
+    setOpen(true);
+    track("salesbot_opened", { page: pathname });
+  }
+
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
       {open && (
         <div className="relative mb-3 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-2xl border border-foundation-700/10 bg-paper shadow-2xl">
           {/* Header */}
@@ -380,17 +420,46 @@ export function SalesChatWidget() {
         </div>
       )}
 
+      {/* Proactive unread nudge: a dismissible teaser bubble above the launcher */}
+      {!open && teaser && (
+        <div className="mb-3 flex w-[min(80vw,270px)] items-start gap-2 rounded-2xl border border-foundation-700/10 bg-paper p-3 shadow-2xl">
+          <BotAvatar />
+          <button
+            type="button"
+            onClick={openChat}
+            className="flex-1 text-left text-[12.5px] leading-snug text-foundation-700"
+          >
+            {TEASER}
+          </button>
+          <button
+            type="button"
+            aria-label="Dismiss"
+            onClick={markSeen}
+            className="-mr-1 -mt-1 rounded-full p-1 text-foundation-700/40 transition hover:bg-foundation-700/5 hover:text-foundation-700"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       <button
         type="button"
         aria-label={open ? "Close chat" : "Chat with us"}
         onClick={() => {
-          const next = !open;
-          setOpen(next);
-          if (next) track("salesbot_opened", { page: pathname });
+          if (open) {
+            setOpen(false);
+          } else {
+            openChat();
+          }
         }}
-        className="grid h-14 w-14 place-items-center rounded-full bg-foundation-700 text-paper shadow-lg transition hover:bg-foundation-800"
+        className="relative grid h-14 w-14 place-items-center rounded-full bg-foundation-700 text-paper shadow-lg transition hover:bg-foundation-800"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        {!open && teaser && (
+          <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-[11px] font-bold text-white ring-2 ring-paper">
+            1
+          </span>
+        )}
       </button>
     </div>
   );
