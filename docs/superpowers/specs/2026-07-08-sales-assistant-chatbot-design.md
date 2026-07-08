@@ -15,7 +15,7 @@ Inspiration: lura.ng (a Nigerian "24/7 AI sales agent" SaaS). We are building ou
 1. **Build our own** rather than subscribe to Lura. We already have an LLM client with provider failover, a tool-call loop, and action-button plumbing in the backend.
 2. **Primary CTA is direct signup** on the web app (Founding 50 claim), measurable in PostHog.
 3. **The widget replaces Smartsupp** as the single floating chat bubble on all public and marketing pages. `SmartsuppChat.tsx` is removed from the layout.
-4. **Soft lead capture mid-chat**: the bot sells first, and asks for name plus WhatsApp number or email when interest is clear. No gate before chatting.
+4. **Soft lead capture mid-chat**: the bot sells first, and asks for name plus WhatsApp number or email when interest is clear. No gate before chatting. (Superseded post-build, see Amendments.)
 5. **Scope**: Property360 site only for v1. Clean module boundaries preserve the option to extract a Lura-style standalone product later. No multi-tenant work now.
 6. **Architecture A**: a new, separate public sales module on the Express backend. Not a guest mode bolted onto the existing account-scoped `/assistant` routes, and not a parallel chat stack in Next.js.
 
@@ -120,6 +120,10 @@ PostHog events forming the funnel: `salesbot_opened`, `salesbot_message_sent`, `
 
 - Multi-tenant standalone service (the Lura competitor). The module boundary (`services/sales/`, own models, own prompt file) is the extraction seam.
 - Streaming replies, WhatsApp owner alerts, CSV export, hot-lead auto-routing to WhatsApp, per-page context awareness beyond `sourcePage`.
+
+## Amendments
+
+**2026-07-08 (post-build, user decision): pre-chat lead gate replaces soft mid-chat capture.** Matching the Lura UX: the visitor's first message appears in the thread, then a "Let's get started" form overlay collects name (required) plus WhatsApp number or email (at least one required, email optional) before the first answer is delivered. Implementation: public `POST /sales/leads` (validated, rate-limited to 5 per IP per 10 minutes since each capture can email the owner), `leadCaptured` flag added to the history response so returning captured visitors skip the gate (also cached in localStorage), and the chat prompt now receives a per-session VISITOR PROFILE system line so the bot greets the visitor by first name and never re-asks for known details. The `capture_lead` LLM tool remains as an enrichment path (role, portfolio size, quality, corrections).
 
 ## Success criteria
 
