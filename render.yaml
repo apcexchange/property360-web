@@ -115,3 +115,7 @@ services:
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-sonnet-4-6
+      - key: SALES_ASSISTANT_ENABLED
+        value: "false"
+      - key: SALES_ASSISTANT_DAILY_BUDGET
+        value: "1000"
