@@ -28,6 +28,7 @@ export interface SalesSendResult {
 
 export interface SalesHistory {
   enabled: boolean;
+  leadCaptured: boolean;
   messages: SalesTurn[];
 }
 
@@ -64,8 +65,20 @@ async function getHistory(): Promise<SalesHistory> {
   const d = res.data?.data ?? {};
   return {
     enabled: d.enabled !== false,
+    leadCaptured: Boolean(d.leadCaptured),
     messages: Array.isArray(d.messages) ? d.messages : [],
   };
 }
 
-export const salesApi = { send, getHistory };
+async function captureLead(input: {
+  name: string;
+  phone?: string;
+  email?: string;
+}): Promise<void> {
+  await salesClient.post("/sales/leads", {
+    sessionId: getSalesSessionId(),
+    ...input,
+  });
+}
+
+export const salesApi = { send, getHistory, captureLead };

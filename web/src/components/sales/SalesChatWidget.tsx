@@ -29,6 +29,9 @@ const QUICK_QUESTIONS = [
 // Logged-in surfaces have the account assistant; hide the sales bot there.
 const HIDDEN_PREFIXES = ["/app", "/me", "/admin"];
 
+// Set once the pre-chat lead form has been completed on this browser.
+const LEAD_DONE_KEY = "p360.salesbot.leadDone";
+
 const WHATSAPP_FALLBACK =
   "https://wa.me/2349027788838?text=" +
   encodeURIComponent("Hi, I have a question about Property360.");
@@ -54,6 +57,14 @@ export function SalesChatWidget() {
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
   const [lastFailedText, setLastFailedText] = useState<string | null>(null);
+  const [leadDone, setLeadDone] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [pendingText, setPendingText] = useState<string | null>(null);
+  const [gName, setGName] = useState("");
+  const [gPhone, setGPhone] = useState("");
+  const [gEmail, setGEmail] = useState("");
+  const [gateBusy, setGateBusy] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p));
@@ -70,12 +81,17 @@ export function SalesChatWidget() {
     }
     let cancelled = false;
     getSalesSessionId(); // ensure the id exists before any send
+    if (localStorage.getItem(LEAD_DONE_KEY) === "1") setLeadDone(true);
     salesApi
       .getHistory()
       .then((h) => {
         if (cancelled) return;
         sessionStorage.setItem("p360.salesbot.enabled", String(h.enabled));
         setEnabled(h.enabled);
+        if (h.leadCaptured) {
+          localStorage.setItem(LEAD_DONE_KEY, "1");
+          setLeadDone(true);
+        }
         if (h.messages.length > 0) {
           setMessages(
             h.messages.map((m) => ({ role: m.role, content: m.content }))
@@ -99,9 +115,21 @@ export function SalesChatWidget() {
 
   async function fire(raw: string) {
     const value = raw.trim();
-    if (!value || pending) return;
-    setLastFailedText(null);
+    if (!value || pending || gateBusy) return;
     setMessages((m) => [...m, { role: "user", content: value }]);
+    if (!leadDone) {
+      // Lura-style gate: hold the first message, collect the lead, then
+      // deliver the answer.
+      setPendingText(value);
+      setGateOpen(true);
+      track("salesbot_gate_shown");
+      return;
+    }
+    await deliver(value);
+  }
+
+  async function deliver(value: string) {
+    setLastFailedText(null);
     setPending(true);
     track("salesbot_message_sent");
     try {
@@ -128,6 +156,43 @@ export function SalesChatWidget() {
     }
   }
 
+  async function submitGate() {
+    const name = gName.trim();
+    const phone = gPhone.trim();
+    const email = gEmail.trim();
+    if (!name) {
+      setGateError("Please enter your name");
+      return;
+    }
+    if (!phone && !email) {
+      setGateError("Add your WhatsApp number or email");
+      return;
+    }
+    setGateBusy(true);
+    setGateError(null);
+    try {
+      await salesApi.captureLead({
+        name,
+        phone: phone || undefined,
+        email: email || undefined,
+      });
+      localStorage.setItem(LEAD_DONE_KEY, "1");
+      setLeadDone(true);
+      setGateOpen(false);
+      track("salesbot_lead_captured", { via: "gate" });
+      const value = pendingText;
+      setPendingText(null);
+      if (value) await deliver(value);
+    } catch (e) {
+      const msg = (
+        e as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
+      setGateError(msg ?? "Could not save your details. Please try again.");
+    } finally {
+      setGateBusy(false);
+    }
+  }
+
   function onAction(a: SalesAction) {
     if (a.key === "signup") track("salesbot_signup_clicked");
     if (a.web.startsWith("http")) {
@@ -140,7 +205,7 @@ export function SalesChatWidget() {
   return (
     <div className="fixed bottom-5 right-5 z-50">
       {open && (
-        <div className="mb-3 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-2xl border border-foundation-700/10 bg-paper shadow-2xl">
+        <div className="relative mb-3 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-2xl border border-foundation-700/10 bg-paper shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between bg-foundation-700 px-4 py-3 text-paper">
             <div className="flex items-center gap-2">
@@ -207,7 +272,7 @@ export function SalesChatWidget() {
                     {lastFailedText && (
                       <button
                         type="button"
-                        onClick={() => fire(lastFailedText)}
+                        onClick={() => deliver(lastFailedText)}
                         className="rounded-full border border-foundation-700/15 px-3 py-1.5 text-[12px] font-medium text-foundation-700 transition hover:bg-foundation-700/5"
                       >
                         Try again
@@ -262,6 +327,56 @@ export function SalesChatWidget() {
               <Send className="h-4 w-4" />
             </button>
           </form>
+
+          {gateOpen && (
+            <div className="absolute inset-0 z-10 flex flex-col justify-end bg-foundation-900/40">
+              <div className="rounded-t-2xl bg-paper p-5 shadow-2xl">
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-foundation-700/15" />
+                <h4 className="text-center text-[17px] font-semibold text-foundation-700">
+                  Let&apos;s get started
+                </h4>
+                <p className="mt-1 text-center text-[12.5px] text-ink-muted">
+                  Enter your details so I can give you priority service.
+                </p>
+                <div className="mt-4 space-y-2.5">
+                  <input
+                    value={gName}
+                    onChange={(e) => setGName(e.target.value)}
+                    maxLength={80}
+                    placeholder="What's your name?"
+                    className="w-full rounded-xl border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13.5px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none"
+                  />
+                  <input
+                    value={gPhone}
+                    onChange={(e) => setGPhone(e.target.value)}
+                    inputMode="tel"
+                    maxLength={16}
+                    placeholder="WhatsApp number (080...)"
+                    className="w-full rounded-xl border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13.5px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none"
+                  />
+                  <input
+                    value={gEmail}
+                    onChange={(e) => setGEmail(e.target.value)}
+                    inputMode="email"
+                    maxLength={120}
+                    placeholder="Email address (optional)"
+                    className="w-full rounded-xl border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13.5px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none"
+                  />
+                </div>
+                {gateError && (
+                  <p className="mt-2 text-center text-[12px] text-red-600">{gateError}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={submitGate}
+                  disabled={gateBusy}
+                  className="mt-4 w-full rounded-full bg-foundation-700 py-2.5 text-[13.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
+                >
+                  {gateBusy ? "Saving…" : "Start chatting"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
