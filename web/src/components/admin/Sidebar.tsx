@@ -27,6 +27,10 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    label: "Sales",
+    items: [{ href: "/admin/sales-leads", label: "Sales leads" }],
+  },
+  {
     label: "Marketplace",
     items: [
       { href: "/admin/listings", label: "Listings" },
@@ -57,7 +61,7 @@ export const NAV_SECTIONS: NavSection[] = [
 
 function isActive(itemHref: string, pathname: string): boolean {
   if (itemHref === "/admin") return pathname === "/admin";
-  // Financial reports is a sub-route of /admin/reports — treat them as distinct.
+  // Financial reports is a sub-route of /admin/reports, treat them as distinct.
   if (itemHref === "/admin/reports") return pathname === "/admin/reports";
   return pathname.startsWith(itemHref);
 }
@@ -66,7 +70,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void } = {})
   const pathname = usePathname();
   return (
     <>
-      {/* Masthead — newspaper plate */}
+      {/* Masthead, newspaper plate */}
       <div className="border-b border-foundation-600/70 px-6 pb-5 pt-7">
         <div className="flex items-baseline">
           <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-paper">

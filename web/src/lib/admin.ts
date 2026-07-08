@@ -263,6 +263,27 @@ export interface AdminKycRow {
   createdAt: string;
 }
 
+export interface AdminSalesLeadRow {
+  _id: string;
+  sessionId: string;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  role?: string | null;
+  portfolioSize?: string | null;
+  quality?: string | null;
+  status: string;
+  sourcePage?: string | null;
+  messageCount: number;
+  lastMessageAt?: string | null;
+  createdAt: string;
+}
+
+export interface AdminSalesLeadDetail {
+  lead: AdminSalesLeadRow;
+  messages: { role: "user" | "assistant"; content: string; createdAt: string }[];
+}
+
 const adminApi = {
   async login(email: string, password: string): Promise<AdminUser> {
     const res = await api.post<ApiEnvelope<{ user: AdminUser; accessToken: string }>>(
@@ -460,6 +481,26 @@ const adminApi = {
     notes?: string,
   ): Promise<void> {
     await api.post(`/admin/deletion-requests/${requestId}/resolve`, { action, notes });
+  },
+
+  async listSalesLeads(params: {
+    status?: string;
+    quality?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Paginated<AdminSalesLeadRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminSalesLeadRow>>>("/admin/sales/leads", { params });
+    return unwrap(res.data);
+  },
+
+  async getSalesLead(leadId: string): Promise<AdminSalesLeadDetail> {
+    const res = await api.get<ApiEnvelope<AdminSalesLeadDetail>>(`/admin/sales/leads/${leadId}`);
+    return unwrap(res.data);
+  },
+
+  async updateSalesLead(leadId: string, status: string): Promise<AdminSalesLeadRow> {
+    const res = await api.patch<ApiEnvelope<AdminSalesLeadRow>>(`/admin/sales/leads/${leadId}`, { status });
+    return unwrap(res.data);
   },
 };
 
