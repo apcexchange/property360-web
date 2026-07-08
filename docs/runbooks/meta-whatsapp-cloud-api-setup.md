@@ -63,6 +63,14 @@ The callback endpoint (`POST /api/v1/webhooks/whatsapp`) is built in the assista
 1. Choose a random string as `WHATSAPP_VERIFY_TOKEN` (password manager + Render env).
 2. App dashboard > WhatsApp > **Configuration** > Webhook: callback URL `https://api.property360.africa/api/v1/webhooks/whatsapp`, verify token from step 1. Meta immediately fires the GET handshake; the endpoint must echo `hub.challenge`.
 3. Under Webhook fields, **subscribe to `messages`** (only).
+4. **Subscribe the app to the WABA** (the step everyone misses; without it Meta silently delivers nothing, even though the dashboard shows the callback URL saved):
+
+```
+curl -X POST "https://graph.facebook.com/<API_VERSION>/<WABA_ID>/subscribed_apps" \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+Verify with a GET on the same URL: `data` must list the app. An empty `data: []` means inbound webhooks are OFF for that WABA. (Bit us on 2026-07-08: URL configured, `messages` toggled on, yet zero deliveries until this call.)
 
 ## Phase 6 [OPS]: Sanity test
 
