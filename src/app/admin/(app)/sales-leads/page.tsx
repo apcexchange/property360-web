@@ -160,6 +160,24 @@ export default function AdminSalesLeadsPage() {
                         .filter(Boolean)
                         .join(" · ") || "No contact details yet"}
                     </p>
+                    {detail.data.lead.attribution &&
+                      (detail.data.lead.attribution.source ||
+                        detail.data.lead.attribution.campaign ||
+                        detail.data.lead.attribution.landingPath) && (
+                        <p className="mt-1 text-xs text-ink-muted">
+                          Source:{" "}
+                          {[
+                            detail.data.lead.attribution.source,
+                            detail.data.lead.attribution.medium,
+                            detail.data.lead.attribution.campaign,
+                          ]
+                            .filter(Boolean)
+                            .join(" / ") || "direct"}
+                          {detail.data.lead.attribution.landingPath
+                            ? ` · ${detail.data.lead.attribution.landingPath}`
+                            : ""}
+                        </p>
+                      )}
                   </div>
                   <StatusBadge value={detail.data.lead.status} />
                 </div>

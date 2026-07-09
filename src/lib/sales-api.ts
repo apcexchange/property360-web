@@ -74,10 +74,23 @@ async function captureLead(input: {
   name: string;
   phone?: string;
   email?: string;
+  // Ad attribution from the /chat landing URL. Sent as flat fields; the
+  // backend persists them onto the lead and older builds ignore them.
+  attribution?: {
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmContent?: string;
+    utmTerm?: string;
+    landingPath?: string;
+    referrer?: string;
+  };
 }): Promise<void> {
+  const { attribution, ...contact } = input;
   await salesClient.post("/sales/leads", {
     sessionId: getSalesSessionId(),
-    ...input,
+    ...contact,
+    ...(attribution ?? {}),
   });
 }
 

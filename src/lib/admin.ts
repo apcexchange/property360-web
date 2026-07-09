@@ -201,6 +201,15 @@ export interface AdminSalesLeadRow {
   quality?: string | null;
   status: string;
   sourcePage?: string | null;
+  attribution?: {
+    source?: string | null;
+    medium?: string | null;
+    campaign?: string | null;
+    content?: string | null;
+    term?: string | null;
+    landingPath?: string | null;
+    referrer?: string | null;
+  } | null;
   messageCount: number;
   lastMessageAt?: string | null;
   createdAt: string;
