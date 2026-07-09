@@ -480,7 +480,7 @@ git commit --no-verify -m "refactor(otp): make verifyOtp record-driven (codeHash
 **Files:**
 - Modify: `backend/.env.example`
 - Modify: `backend/.env.prod.example`
-- Modify: `render.yaml` (repo root)
+- Modify: `backend/render.yaml` (this is the one Render deploys from; the monorepo-root `render.yaml` is a separate/mirror file and is NOT edited here)
 
 - [ ] **Step 1: Add to both `.env.example` files**
 
@@ -496,7 +496,7 @@ WHATSAPP_OTP_PROVIDER=meta
 META_WHATSAPP_OTP_TEMPLATE=
 ```
 
-- [ ] **Step 2: Add non-secret vars to `render.yaml`**
+- [ ] **Step 2: Add non-secret vars to `backend/render.yaml`**
 
 In the backend service's `envVars:` list, matching the existing indentation, add:
 
@@ -517,7 +517,8 @@ Run: `cd backend && npm run build`
 Expected: tsc exits 0 (no code change, just confirms nothing broke).
 
 ```bash
-git add backend/.env.example backend/.env.prod.example render.yaml
+# run from inside backend/ (nested repo):
+git add .env.example .env.prod.example render.yaml
 git commit --no-verify -m "chore(otp): document WHATSAPP_OTP_* env vars"
 ```
 
