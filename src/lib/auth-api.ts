@@ -50,6 +50,24 @@ export const authApi = {
     return data;
   },
 
+  /**
+   * Redeem a single-use set-password token (from the email sent after WhatsApp
+   * registration). On success the backend sets the password and returns a
+   * normal auth response, so we sign the user straight in.
+   */
+  async redeemPasswordSetup(
+    token: string,
+    password: string
+  ): Promise<AuthResponse> {
+    const res = await api.post("/auth/set-password/redeem", { token, password });
+    const data = unwrap(res.data) as AuthResponse;
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Set password failed: unexpected response.");
+    }
+    session.set(data.accessToken, data.user);
+    return data;
+  },
+
   /** Send an OTP to the user's phone or email. */
   async sendOtp(type: "phone" | "email", value: string): Promise<void> {
     await api.post("/auth/otp/send", { type, value });
