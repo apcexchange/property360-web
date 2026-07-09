@@ -41,8 +41,10 @@ const OPENED_KEY = "p360.salesbot.opened";
 const TEASER =
   "👋 Hi there! Have a question about Property360? Ask me anything, I'm here to help.";
 
+// Real team member (not the WhatsApp assistant bot). Used when the API is
+// unreachable so the visitor can still reach a person.
 const WHATSAPP_FALLBACK =
-  "https://wa.me/2349027788838?text=" +
+  "https://wa.me/2348130416934?text=" +
   encodeURIComponent("Hi, I have a question about Property360.");
 
 const GREETING =
