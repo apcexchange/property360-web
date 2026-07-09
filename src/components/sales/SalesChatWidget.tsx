@@ -36,6 +36,10 @@ const LEAD_DONE_KEY = "p360.salesbot.leadDone";
 // "unread message" nudge shows only until they first engage, never again.
 const OPENED_KEY = "p360.salesbot.opened";
 
+// Set the first time the proactive nudge auto-pops, so it appears at most once
+// per browser instead of re-popping on every page the visitor loads.
+const TEASER_SHOWN_KEY = "p360.salesbot.teaserShown";
+
 // Proactive teaser shown on the launcher on a first visit, styled to read like
 // an unread incoming message so it invites a click.
 const TEASER =
@@ -130,8 +134,14 @@ export function SalesChatWidget() {
     if (hidden || enabled !== true || open) return;
     if (messages.length > 0) return; // returning visitor with history
     if (localStorage.getItem(OPENED_KEY) === "1") return;
+    if (localStorage.getItem(TEASER_SHOWN_KEY) === "1") return; // auto-pop once per browser, not on every page
     const t = setTimeout(() => {
       setTeaser(true);
+      try {
+        localStorage.setItem(TEASER_SHOWN_KEY, "1");
+      } catch {
+        /* private mode: teaser may reappear next load */
+      }
       track("salesbot_teaser_shown");
     }, 1200);
     return () => clearTimeout(t);
@@ -258,8 +268,12 @@ export function SalesChatWidget() {
                 <p className="text-[13.5px] font-semibold leading-tight">
                   Property360
                 </p>
-                <p className="text-[11px] text-paper/70 leading-tight">
-                  Ask me anything about the product
+                <p className="flex items-center gap-1.5 text-[11px] text-paper/70 leading-tight">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
+                  </span>
+                  Online 24/7
                 </p>
               </div>
             </div>
@@ -457,11 +471,18 @@ export function SalesChatWidget() {
         className="relative grid h-14 w-14 place-items-center rounded-full bg-foundation-700 text-paper shadow-lg transition hover:bg-foundation-800"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-        {!open && teaser && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-[11px] font-bold text-white ring-2 ring-paper">
-            1
-          </span>
-        )}
+        {!open &&
+          (teaser ? (
+            <span className="absolute -right-0.5 -top-0.5 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-[11px] font-bold text-white ring-2 ring-paper">
+              1
+            </span>
+          ) : (
+            // Persistent "online" presence dot so the launcher reads as staffed 24/7
+            <span className="absolute right-0 top-0 flex h-3.5 w-3.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-60" />
+              <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-green-500 ring-2 ring-paper" />
+            </span>
+          ))}
       </button>
     </div>
   );
