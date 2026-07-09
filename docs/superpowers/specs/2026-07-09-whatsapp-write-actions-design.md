@@ -135,6 +135,21 @@ Read-only tool for tenant, landlord, and agent on the WhatsApp channel. Paramete
 - Guests using search or writes (registered users only).
 - Recording arbitrary standalone payments or issuing invoices from chat (only the add-tenant upfront-payment path).
 
+## As-built notes (2026-07-09)
+
+Built via the 2026-07-09 implementation plan (`docs/superpowers/plans/2026-07-09-whatsapp-write-actions.md`) through the subagent pipeline. Backend commits on `feat/wallet-dva`: `6673a86` (model), `05305ab` (flag), `7554d4f` (channel-aware tools + `search_marketplace`), `2c325a5` (write-flow service + add-property), `d29c030` (add-tenant), `a8da916` (start tools), `f318155` (orchestrator), `c4806c5` (review fixes). `tsc` clean throughout.
+
+Deliberate deviations from the design above:
+1. **Flow keyed by `userId`** (not `waId`): the `start_*` tool handler that creates the doc has `ctx.userId`, and write flows only exist for identified users. The doc also stores `waId` for reply routing.
+2. **Agent `landlordId` is resolved at the property-selection step** (the chosen property's `owner`), not up-front, because an agent may manage several landlords. Agents are scoped via the existing `activeAssignments` / `scopedPropertyIds('canAddTenant')` helpers (exported from `agentTools.ts`); `TenantService.assignTenantToUnit` re-verifies `property.owner === landlordId`.
+3. **Both tenant email AND phone are required** (the design said "and/or"): `assignTenantToUnit` calls `tenantEmail.toLowerCase()` unconditionally and needs a phone, so the flow collects both.
+4. **add-property creates unit drafts carrying the default rent** (`PropertyService.createProperty` only creates `Unit` records when `units` is an array), so each unit is created with the default rent.
+5. **Flow start** uses LLM `start_add_property` / `start_add_tenant` tools; the orchestrator re-checks for a newly-created flow after the assistant call and emits the flow's first prompt verbatim (never the model's paraphrase). `ToolContext` gained optional `channel` and `waId`.
+
+Review verdict: **APPROVED_WITH_MINORS** (no critical, security, or money-safety defects). Fixed: `parseDate` now rejects rollover dates (e.g. `31/02`), and `firstPrompt` + the CANCEL path are inside try/catch so a transient DB error always yields a reply. Known/accepted minors: the flag is not a hard kill-switch for an already-running flow (drains within the 30-min TTL); flow prompts are not persisted to `AssistantMessage` (flows bypass the LLM); `assignTenantToUnit`'s email lookup ignores role (pre-existing service behavior, not introduced here).
+
+**Remaining before enabling:** real-phone E2E (below) against a dev/preview deploy with `WHATSAPP_WRITE_ACTIONS_ENABLED=true`, then flip the flag in Render. Not yet deployed.
+
 ## Testing (manual, no test runner)
 
 1. Marketplace search: as each registered role, search by state/city/type/price/bedrooms/keyword; confirm top-5 results with working listing links; confirm an unregistered number does NOT get the tool (still gets the register reply).
