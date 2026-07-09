@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { SmartsuppChat } from "@/components/SmartsuppChat";
+import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { ConsentNotice } from "@/components/ConsentNotice";
@@ -154,7 +154,7 @@ export default function RootLayout({
         </PostHogProvider>
         <ConsentNotice />
         <Analytics />
-        <SmartsuppChat />
+        <SalesChatWidget />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
