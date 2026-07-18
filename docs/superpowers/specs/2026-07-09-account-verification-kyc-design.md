@@ -18,7 +18,7 @@ Self-collected, admin-reviewed KYC. Property360 (a registered business) collects
 3. **Review loop:** submit → `pending` → admins notified → admin approves (`verified`) or rejects (`rejected` + reason) → user notified. A rejected user can fix and re-submit.
 4. **Selfie:** optional.
 5. **Badge:** verified users show a "Verified" badge beside or below their name.
-6. **Phone verification** is the already-built WhatsApp-first OTP (Termii SMS fallback); it is a separate flow and out of scope here.
+6. **Phone verification is part of the verify-account journey.** It reuses the already-built WhatsApp-first OTP with Termii SMS fallback (no backend OTP changes), presented as a step alongside the KYC document collection. It becomes functional once Meta's template clears; until then it degrades exactly as it does today (falls back to SMS when enabled, else email).
 
 ## What we collect (the "Verify your account" form)
 
@@ -31,6 +31,8 @@ Self-collected, admin-reviewed KYC. Property360 (a registered business) collects
 - **Consent checkbox** (NDPA: explicit consent to collect and store the ID)
 
 `dateOfBirth` and `occupation` already exist on the model and may be included as optional fields.
+
+**Phone verification** is a step in the same journey: the client sends an OTP via the built WhatsApp-first path (`POST /auth/phone/send-verification` with `channel: 'whatsapp'`), which falls back to Termii SMS on a not-delivered result, and confirms it via `POST /auth/phone/verify`. No new backend. The "Verify your account" experience therefore has two parts: verify the phone number, and submit the KYC documents.
 
 ## Data model
 
@@ -97,7 +99,7 @@ Phone OTP is already built and independent.
 - Third-party identity verification (NIMC/BVN check). Manual review only; provider is a future upgrade.
 - Selfie liveness/matching (selfie is stored, not matched).
 - Gating any non-money action (listings, rent recording, tenant/property management stay open).
-- Changes to the phone OTP flow (already built).
+- Changes to the phone OTP backend (already built; the client reuses its endpoints, WhatsApp-first with Termii SMS fallback).
 
 ## Risks
 
