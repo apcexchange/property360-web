@@ -1866,21 +1866,27 @@ export const landlordApi = {
   },
   async uploadKycSelfie(file: File): Promise<KycSummary> {
     const form = new FormData();
-    form.append("file", file);
+    form.append("selfie", file); // backend: upload.single('selfie')
     const res = await api.post("/kyc/selfie", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return unwrap(res.data) as KycSummary;
   },
-  async uploadKycDocument(
-    file: File,
-    type: string,
-    documentNumber: string
-  ): Promise<KycSummary> {
+  async uploadKycDocument(args: {
+    file: File;
+    type: string;
+    documentNumber: string;
+    consent: boolean;
+    gender?: string;
+    address?: { street?: string; city?: string; state?: string; postalCode?: string };
+  }): Promise<KycSummary> {
     const form = new FormData();
-    form.append("file", file);
-    form.append("type", type);
-    form.append("documentNumber", documentNumber);
+    form.append("document", args.file); // backend: upload.single('document')
+    form.append("documentType", args.type); // backend: req.body.documentType
+    form.append("documentNumber", args.documentNumber);
+    form.append("consent", String(args.consent));
+    if (args.gender) form.append("gender", args.gender);
+    if (args.address) form.append("address", JSON.stringify(args.address));
     const res = await api.post("/kyc/document", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
