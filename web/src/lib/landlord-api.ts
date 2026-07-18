@@ -780,13 +780,15 @@ export interface SharedBill {
 export type KycStatus =
   | "not_started"
   | "pending"
-  | "approved"
+  | "verified"
   | "rejected";
 
 export interface KycSummary {
-  selfieStatus: KycStatus;
-  documentStatus: KycStatus;
-  overallStatus: KycStatus;
+  status: KycStatus;
+  selfieUploaded: boolean;
+  documentUploaded: boolean;
+  selfieUrl?: string;
+  document?: { type?: string; number?: string; imageUrl?: string };
 }
 
 export interface UserProfile {

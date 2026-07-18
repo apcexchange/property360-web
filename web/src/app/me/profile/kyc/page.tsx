@@ -33,14 +33,14 @@ const GENDERS = [
 const STATUS_TONE: Record<KycStatus, "good" | "warn" | "bad" | "neutral"> = {
   not_started: "neutral",
   pending: "warn",
-  approved: "good",
+  verified: "good",
   rejected: "bad",
 };
 
 const STATUS_LABEL: Record<KycStatus, string> = {
   not_started: "Not started",
   pending: "Under review",
-  approved: "Verified",
+  verified: "Verified",
   rejected: "Rejected",
 };
 
@@ -91,11 +91,11 @@ export default function TenantKycPage() {
               </p>
               <div className="mt-2 flex items-center gap-3">
                 <p className="font-display text-[22px] font-extrabold text-foundation-700">
-                  {STATUS_LABEL[q.data!.overallStatus]}
+                  {STATUS_LABEL[q.data!.status]}
                 </p>
                 <StatusPill
-                  label={STATUS_LABEL[q.data!.overallStatus]}
-                  tone={STATUS_TONE[q.data!.overallStatus]}
+                  label={STATUS_LABEL[q.data!.status]}
+                  tone={STATUS_TONE[q.data!.status]}
                 />
               </div>
             </Card>
@@ -149,7 +149,8 @@ export default function TenantKycPage() {
             </p>
             <div className="mt-2 grid gap-6 lg:grid-cols-2">
               <SelfieCard
-                status={q.data!.selfieStatus}
+                status={q.data!.status}
+                uploaded={q.data!.selfieUploaded}
                 onUpload={(file) =>
                   tenantApi.uploadKycSelfie(file).then(() => {
                     qc.invalidateQueries({ queryKey: ["me", "kyc-status"] });
@@ -157,7 +158,8 @@ export default function TenantKycPage() {
                 }
               />
               <DocumentCard
-                status={q.data!.documentStatus}
+                status={q.data!.status}
+                uploaded={q.data!.documentUploaded}
                 onUpload={(args) =>
                   tenantApi
                     .uploadKycDocument(args)
@@ -187,23 +189,33 @@ export default function TenantKycPage() {
   );
 }
 
-function StatusIcon({ s }: { s: KycStatus }) {
-  if (s === "approved") return <Check className="h-4 w-4 text-emerald-600" />;
-  if (s === "pending") return <Clock className="h-4 w-4 text-amber-600" />;
-  if (s === "rejected") return <X className="h-4 w-4 text-red-600" />;
+function StatusIcon({
+  status,
+  uploaded,
+}: {
+  status: KycStatus;
+  uploaded: boolean;
+}) {
+  if (status === "rejected") return <X className="h-4 w-4 text-red-600" />;
+  if (uploaded) return <Check className="h-4 w-4 text-emerald-600" />;
+  if (status === "pending") return <Clock className="h-4 w-4 text-amber-600" />;
   return null;
 }
 
 function SelfieCard({
   status,
+  uploaded,
   onUpload,
 }: {
   status: KycStatus;
+  uploaded: boolean;
   onUpload: (f: File) => Promise<void>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const locked = status === "pending" || status === "verified";
 
   return (
     <Card className="p-5">
@@ -217,7 +229,7 @@ function SelfieCard({
           </p>
         </div>
         <span className="flex items-center gap-1.5">
-          <StatusIcon s={status} />
+          <StatusIcon status={status} uploaded={uploaded} />
           <StatusPill
             label={STATUS_LABEL[status]}
             tone={STATUS_TONE[status]}
@@ -227,11 +239,17 @@ function SelfieCard({
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        disabled={busy || status === "pending" || status === "approved"}
+        disabled={busy || locked}
         className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
       >
         <Upload className="h-4 w-4" />{" "}
-        {busy ? "Uploading…" : status === "rejected" ? "Re-upload" : "Upload selfie"}
+        {busy
+          ? "Uploading…"
+          : status === "rejected"
+          ? "Re-upload"
+          : uploaded
+          ? "Selfie uploaded"
+          : "Upload selfie"}
       </button>
       <input
         ref={fileRef}
@@ -265,9 +283,11 @@ function SelfieCard({
 
 function DocumentCard({
   status,
+  uploaded,
   onUpload,
 }: {
   status: KycStatus;
+  uploaded: boolean;
   onUpload: (args: {
     file: File;
     type: string;
@@ -297,7 +317,7 @@ function DocumentCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const locked = status === "pending" || status === "approved";
+  const locked = status === "pending" || status === "verified";
   const canSubmit =
     !locked &&
     !busy &&
@@ -320,7 +340,7 @@ function DocumentCard({
           </p>
         </div>
         <span className="flex items-center gap-1.5">
-          <StatusIcon s={status} />
+          <StatusIcon status={status} uploaded={uploaded} />
           <StatusPill
             label={STATUS_LABEL[status]}
             tone={STATUS_TONE[status]}
@@ -419,6 +439,8 @@ function DocumentCard({
           ? "Uploading…"
           : status === "rejected"
           ? "Re-upload"
+          : uploaded
+          ? "Document uploaded"
           : "Upload document"}
       </button>
       <input

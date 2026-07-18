@@ -324,12 +324,14 @@ export interface UserProfile {
   avatar?: string;
 }
 
-export type KycStatus = "not_started" | "pending" | "approved" | "rejected";
+export type KycStatus = "not_started" | "pending" | "verified" | "rejected";
 
 export interface KycSummary {
-  selfieStatus: KycStatus;
-  documentStatus: KycStatus;
-  overallStatus: KycStatus;
+  status: KycStatus;
+  selfieUploaded: boolean;
+  documentUploaded: boolean;
+  selfieUrl?: string;
+  document?: { type?: string; number?: string; imageUrl?: string };
 }
 
 export type FeeType =

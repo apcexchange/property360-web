@@ -115,7 +115,7 @@ export default function AdminKycPage() {
                       </a>
                     )}
                     {!r.kyc?.document?.imageSignedUrl && !r.kyc?.selfieSignedUrl && (
-                      <span className="text-xs text-ink-muted">—</span>
+                      <span className="text-xs text-ink-muted">None</span>
                     )}
                   </div>
                 ),
