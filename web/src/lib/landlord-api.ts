@@ -797,6 +797,8 @@ export interface UserProfile {
   phone?: string;
   role: "landlord" | "tenant" | "agent";
   avatar?: string;
+  gender?: "male" | "female" | "other";
+  address?: { street?: string; city?: string; state?: string; postalCode?: string };
 }
 
 export type AgentPermissions = {
@@ -1805,6 +1807,8 @@ export const landlordApi = {
     email: string;
     phone: string;
     avatar: string;
+    gender: "male" | "female" | "other";
+    address: { street?: string; city?: string; state?: string; postalCode?: string };
   }>): Promise<UserProfile> {
     const res = await api.put("/auth/profile", body);
     return unwrap(res.data) as UserProfile;
