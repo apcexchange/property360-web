@@ -14,7 +14,7 @@ Self-collected, admin-reviewed KYC. Property360 (a registered business) collects
 ## Decisions (locked with the user)
 
 1. **Who:** landlords and agents are required to verify; tenants may verify but are never required.
-2. **Gate:** only **money and wallet actions** are blocked for unverified landlords/agents (wallet funding, wallet withdrawal/payout). Browsing, listing, tenant/property management, and rent recording are NOT gated.
+2. **Gate:** only **money and wallet actions** are blocked (wallet funding, wallet withdrawal/payout). Enforcement keys off the **wallet-owning landlord's** verification: a verified landlord's agent can transact on the landlord's behalf without the agent's own KYC gating it. Browsing, listing, tenant/property management, and rent recording are NOT gated.
 3. **Review loop:** submit → `pending` → admins notified → admin approves (`verified`) or rejects (`rejected` + reason) → user notified. A rejected user can fix and re-submit.
 4. **Selfie:** optional.
 5. **Badge:** verified users show a "Verified" badge beside or below their name.
@@ -57,7 +57,7 @@ Layering follows the existing convention (routes → controllers → services �
 - `POST /admin/kyc/:userId/approve` → `kyc.status = verified`, `verifiedAt = now`, notify the user.
 - `POST /admin/kyc/:userId/reject` `{ reason }` → `kyc.status = rejected`, `rejectionReason = reason`, notify the user.
 
-**Gate:** a `requireVerifiedKyc` middleware returns 403 (with a clear "verify your account to use wallet features" message) when a landlord/agent whose `kyc.status !== 'verified'` hits a gated route. Applied only to the **wallet funding and withdrawal/payout** routes. Tenants bypass the gate. The gate reads the acting user's own KYC (for agents acting on behalf of a landlord, it is the agent's own identity that must be verified to move money).
+**Gate:** a `requireVerifiedKyc` middleware returns 403 (with a clear "verify your account to use wallet features" message) when the **wallet-owning landlord's** `kyc.status !== 'verified'`. Applied only to the **wallet funding and withdrawal/payout** routes. The gate reads `req.landlordId` (the existing landlord-scoping invariant), so it is the landlord who owns the wallet whose verification is checked, whether a landlord or their agent is the actor. A verified landlord's agent transacts freely; the agent's own KYC is not an additional gate. Tenants are not affected (they do not own landlord wallets).
 
 ## Notifications
 
