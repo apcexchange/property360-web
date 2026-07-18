@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ChevronDown, User, Menu, Gift } from "lucide-react";
@@ -24,7 +24,9 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
   const { toggle: toggleSidebar } = useSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const user = session.getUser();
+  // Subscribe to session changes so the status badge updates live after phone
+  // verification or a KYC submit, without waiting for a navigation.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ChevronDown, User } from "lucide-react";
@@ -22,7 +22,8 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const user = session.getUser();
+  // Subscribe to session changes so the badge stays in sync live.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -65,12 +66,9 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
               <span className="hidden max-w-[160px] truncate sm:inline">
                 {user?.firstName ?? user?.email ?? "Account"}
               </span>
-              {user && (
+              {user && getOverallVerification(user).isVerified && (
                 <span className="hidden sm:inline-flex">
-                  <StatusPill
-                    label={getOverallVerification(user).label}
-                    tone={getOverallVerification(user).tone}
-                  />
+                  <StatusPill label="Verified" tone="good" />
                 </span>
               )}
               <ChevronDown className="h-4 w-4 text-ink-muted" />

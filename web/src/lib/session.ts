@@ -31,7 +31,24 @@ export interface AdminUser {
 let cachedRaw: string | null = null;
 let cachedUser: AdminUser | null = null;
 
+// Lightweight same-tab subscription so React views (via useSyncExternalStore)
+// re-render when the stored user changes in this tab, e.g. right after phone
+// verification or a KYC submit calls session.set(). The browser "storage" event
+// only fires in other tabs, so it cannot cover these same-tab writes.
+type SessionListener = () => void;
+const sessionListeners = new Set<SessionListener>();
+function notifySession() {
+  sessionListeners.forEach((listener) => listener());
+}
+
 export const session = {
+  /** Subscribe to same-tab session changes; returns an unsubscribe function. */
+  subscribe(listener: () => void): () => void {
+    sessionListeners.add(listener);
+    return () => {
+      sessionListeners.delete(listener);
+    };
+  },
   getToken(): string | null {
     if (typeof window === "undefined") return null;
     return window.localStorage.getItem(TOKEN_KEY);
@@ -56,6 +73,7 @@ export const session = {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(TOKEN_KEY, token);
     window.localStorage.setItem(USER_KEY, JSON.stringify(user));
+    notifySession();
   },
   clear() {
     if (typeof window === "undefined") return;
@@ -63,5 +81,6 @@ export const session = {
     window.localStorage.removeItem(USER_KEY);
     cachedRaw = null;
     cachedUser = null;
+    notifySession();
   },
 };
