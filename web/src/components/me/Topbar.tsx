@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ChevronDown, User } from "lucide-react";
 import { session } from "@/lib/session";
+import { StatusPill } from "@/components/app/ui";
 
 interface Props {
   title: string;
@@ -63,6 +64,11 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
               <span className="hidden max-w-[160px] truncate sm:inline">
                 {user?.firstName ?? user?.email ?? "Account"}
               </span>
+              {user?.kyc?.status === "verified" && (
+                <span className="hidden sm:inline-flex">
+                  <StatusPill label="Verified" tone="good" />
+                </span>
+              )}
               <ChevronDown className="h-4 w-4 text-ink-muted" />
             </button>
             {menuOpen && (
