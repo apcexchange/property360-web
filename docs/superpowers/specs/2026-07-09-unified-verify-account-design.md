@@ -35,6 +35,16 @@ One prominent **"Verify your account" banner** (styled like today's phone-verify
 
 If phone is already verified, the flow opens straight to step 2. If a submission is already pending, the banner/flow reflects that instead of prompting again.
 
+### Resume behavior (step-aware)
+
+The flow always **opens at the first incomplete step**, never re-asking for what's done:
+- First visit: opens at step 1 (phone). On successful OTP, `phoneVerified` ticks and the flow **advances automatically to step 2** (details).
+- User abandons at step 2 and leaves. The **banner stays** (overall status not yet Verified).
+- Next visit, they click the banner: because phone is already verified, the flow **skips step 1 entirely and opens directly at step 2** (the details they haven't completed).
+- Once details are submitted (`kyc.status = pending`), the banner reflects "Pending review" rather than prompting to submit again. It returns to a prompting state only if the submission is `rejected` (then it reopens at step 2 with the rejection reason).
+
+Step completion is derived from the live signals (`phoneVerified`, `kyc.status`), so resume works across sessions/devices without local state.
+
 ## Timer
 
 On the OTP step, show a live **resend countdown** (the 60s cooldown already exists in the backend and modal, surface it as a visible mm:ss countdown that disables "Resend" until it hits zero) plus a line stating the code expires in 10 minutes.
