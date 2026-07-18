@@ -287,8 +287,9 @@ export interface AdminKycRow {
   role: string;
   kyc?: {
     status?: string;
-    document?: { type?: string; uploadedAt?: string; imageUrl?: string };
+    document?: { type?: string; number?: string; uploadedAt?: string; imageUrl?: string; imageSignedUrl?: string };
     selfieUrl?: string;
+    selfieSignedUrl?: string;
   };
   createdAt: string;
 }
