@@ -16,6 +16,9 @@ export interface AdminUser {
   // can reach the dashboard; phone is optional and prompted in-app.
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  gender?: "male" | "female" | "other";
+  address?: { street?: string; city?: string; state?: string; postalCode?: string };
+  kyc?: { status?: "not_started" | "pending" | "verified" | "rejected"; rejectionReason?: string };
 }
 
 // Cache the parsed user keyed by the raw localStorage string. React's

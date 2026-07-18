@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Upload, Check, Clock, X } from "lucide-react";
+import { ArrowLeft, Upload, Check, Clock, X, Phone } from "lucide-react";
 import { AxiosError } from "axios";
 import { TenantTopbar } from "@/components/me/Topbar";
+import { PhoneVerifyModal } from "@/components/app/PhoneVerifyModal";
 import {
   PageContainer,
   Card,
@@ -14,6 +15,7 @@ import {
   StatusPill,
 } from "@/components/app/ui";
 import { tenantApi, KycStatus } from "@/lib/tenant-api";
+import { session } from "@/lib/session";
 
 const ID_TYPES = [
   { value: "nin", label: "NIN (National Identity Number)" },
@@ -22,17 +24,23 @@ const ID_TYPES = [
   { value: "voters_card", label: "Voter's Card" },
 ];
 
+const GENDERS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
 const STATUS_TONE: Record<KycStatus, "good" | "warn" | "bad" | "neutral"> = {
   not_started: "neutral",
   pending: "warn",
-  approved: "good",
+  verified: "good",
   rejected: "bad",
 };
 
 const STATUS_LABEL: Record<KycStatus, string> = {
   not_started: "Not started",
   pending: "Under review",
-  approved: "Verified",
+  verified: "Verified",
   rejected: "Rejected",
 };
 
@@ -42,6 +50,14 @@ export default function TenantKycPage() {
     queryKey: ["me", "kyc-status"],
     queryFn: () => tenantApi.kycStatus(),
   });
+
+  const user = session.getUser();
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  // Bump on successful phone verification to force this component to
+  // re-read session.getUser() (localStorage isn't reactive on its own).
+  const [phoneTick, setPhoneTick] = useState(0);
+  const rejectionReason =
+    user?.kyc?.status === "rejected" ? user?.kyc?.rejectionReason : undefined;
 
   return (
     <>
@@ -75,18 +91,66 @@ export default function TenantKycPage() {
               </p>
               <div className="mt-2 flex items-center gap-3">
                 <p className="font-display text-[22px] font-extrabold text-foundation-700">
-                  {STATUS_LABEL[q.data!.overallStatus]}
+                  {STATUS_LABEL[q.data!.status]}
                 </p>
                 <StatusPill
-                  label={STATUS_LABEL[q.data!.overallStatus]}
-                  tone={STATUS_TONE[q.data!.overallStatus]}
+                  label={STATUS_LABEL[q.data!.status]}
+                  tone={STATUS_TONE[q.data!.status]}
                 />
               </div>
             </Card>
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            {rejectionReason && (
+              <Card className="mt-4 border-red-200 bg-red-50 p-4">
+                <p className="text-[13px] font-semibold text-red-700">
+                  Resubmission needed
+                </p>
+                <p className="mt-1 text-[12.5px] text-red-700/80">
+                  {rejectionReason}
+                </p>
+              </Card>
+            )}
+
+            <Card className="mt-6 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cryola-300 text-foundation-700">
+                    <Phone className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                      Step 1
+                    </p>
+                    <p className="mt-1 font-display text-[15px] font-bold text-foundation-700">
+                      Verify your phone
+                    </p>
+                    <p className="mt-1 text-[13px] text-foundation-700">
+                      Optional but recommended, adds trust and lets us reach
+                      you about your verification.
+                    </p>
+                  </div>
+                </div>
+                {user?.phoneVerified ? (
+                  <StatusPill label="Verified" tone="good" />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPhoneModalOpen(true)}
+                    className="shrink-0 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                  >
+                    Verify phone
+                  </button>
+                )}
+              </div>
+            </Card>
+
+            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+              Step 2 &middot; Upload your ID and selfie
+            </p>
+            <div className="mt-2 grid gap-6 lg:grid-cols-2">
               <SelfieCard
-                status={q.data!.selfieStatus}
+                status={q.data!.status}
+                uploaded={q.data!.selfieUploaded}
                 onUpload={(file) =>
                   tenantApi.uploadKycSelfie(file).then(() => {
                     qc.invalidateQueries({ queryKey: ["me", "kyc-status"] });
@@ -94,10 +158,11 @@ export default function TenantKycPage() {
                 }
               />
               <DocumentCard
-                status={q.data!.documentStatus}
-                onUpload={(file, type, num) =>
+                status={q.data!.status}
+                uploaded={q.data!.documentUploaded}
+                onUpload={(args) =>
                   tenantApi
-                    .uploadKycDocument(file, type, num)
+                    .uploadKycDocument(args)
                     .then(() =>
                       qc.invalidateQueries({ queryKey: ["me", "kyc-status"] })
                     )
@@ -107,27 +172,50 @@ export default function TenantKycPage() {
           </>
         )}
       </PageContainer>
+
+      <PhoneVerifyModal
+        open={phoneModalOpen}
+        phone={user?.phone ?? ""}
+        onClose={() => setPhoneModalOpen(false)}
+        onVerified={() => {
+          setPhoneModalOpen(false);
+          setPhoneTick((t) => t + 1);
+        }}
+      />
+      {/* phoneTick forces a re-render so session.getUser().phoneVerified is
+          re-read after the modal completes; the value itself is unused. */}
+      <span hidden>{phoneTick}</span>
     </>
   );
 }
 
-function StatusIcon({ s }: { s: KycStatus }) {
-  if (s === "approved") return <Check className="h-4 w-4 text-emerald-600" />;
-  if (s === "pending") return <Clock className="h-4 w-4 text-amber-600" />;
-  if (s === "rejected") return <X className="h-4 w-4 text-red-600" />;
+function StatusIcon({
+  status,
+  uploaded,
+}: {
+  status: KycStatus;
+  uploaded: boolean;
+}) {
+  if (status === "rejected") return <X className="h-4 w-4 text-red-600" />;
+  if (uploaded) return <Check className="h-4 w-4 text-emerald-600" />;
+  if (status === "pending") return <Clock className="h-4 w-4 text-amber-600" />;
   return null;
 }
 
 function SelfieCard({
   status,
+  uploaded,
   onUpload,
 }: {
   status: KycStatus;
+  uploaded: boolean;
   onUpload: (f: File) => Promise<void>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const locked = status === "pending" || status === "verified";
 
   return (
     <Card className="p-5">
@@ -141,7 +229,7 @@ function SelfieCard({
           </p>
         </div>
         <span className="flex items-center gap-1.5">
-          <StatusIcon s={status} />
+          <StatusIcon status={status} uploaded={uploaded} />
           <StatusPill
             label={STATUS_LABEL[status]}
             tone={STATUS_TONE[status]}
@@ -151,11 +239,17 @@ function SelfieCard({
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        disabled={busy || status === "pending" || status === "approved"}
+        disabled={busy || locked}
         className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
       >
         <Upload className="h-4 w-4" />{" "}
-        {busy ? "Uploading…" : status === "rejected" ? "Re-upload" : "Upload selfie"}
+        {busy
+          ? "Uploading…"
+          : status === "rejected"
+          ? "Re-upload"
+          : uploaded
+          ? "Selfie uploaded"
+          : "Upload selfie"}
       </button>
       <input
         ref={fileRef}
@@ -189,16 +283,50 @@ function SelfieCard({
 
 function DocumentCard({
   status,
+  uploaded,
   onUpload,
 }: {
   status: KycStatus;
-  onUpload: (f: File, type: string, num: string) => Promise<void>;
+  uploaded: boolean;
+  onUpload: (args: {
+    file: File;
+    type: string;
+    documentNumber: string;
+    consent: boolean;
+    gender?: string;
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+    };
+  }) => Promise<void>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
+  const prefill = session.getUser();
   const [type, setType] = useState(ID_TYPES[0].value);
   const [num, setNum] = useState("");
+  const [gender, setGender] = useState(prefill?.gender ?? "");
+  const [street, setStreet] = useState(prefill?.address?.street ?? "");
+  const [city, setCity] = useState(prefill?.address?.city ?? "");
+  const [stateVal, setStateVal] = useState(prefill?.address?.state ?? "");
+  const [postalCode, setPostalCode] = useState(
+    prefill?.address?.postalCode ?? ""
+  );
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const locked = status === "pending" || status === "verified";
+  const canSubmit =
+    !locked &&
+    !busy &&
+    num.trim().length > 0 &&
+    gender.length > 0 &&
+    street.trim().length > 0 &&
+    city.trim().length > 0 &&
+    stateVal.trim().length > 0 &&
+    consent;
 
   return (
     <Card className="p-5">
@@ -212,7 +340,7 @@ function DocumentCard({
           </p>
         </div>
         <span className="flex items-center gap-1.5">
-          <StatusIcon s={status} />
+          <StatusIcon status={status} uploaded={uploaded} />
           <StatusPill
             label={STATUS_LABEL[status]}
             tone={STATUS_TONE[status]}
@@ -224,7 +352,7 @@ function DocumentCard({
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          disabled={status === "pending" || status === "approved"}
+          disabled={locked}
           className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
         >
           {ID_TYPES.map((t) => (
@@ -237,17 +365,73 @@ function DocumentCard({
           value={num}
           onChange={(e) => setNum(e.target.value)}
           placeholder="ID number"
-          disabled={status === "pending" || status === "approved"}
+          disabled={locked}
           className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
         />
+        <select
+          value={gender}
+          onChange={(e) => setGender(e.target.value)}
+          disabled={locked}
+          className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
+        >
+          <option value="" disabled>
+            Gender
+          </option>
+          {GENDERS.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+        <input
+          value={street}
+          onChange={(e) => setStreet(e.target.value)}
+          placeholder="Street address"
+          disabled={locked}
+          className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="City"
+            disabled={locked}
+            className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
+          />
+          <input
+            value={stateVal}
+            onChange={(e) => setStateVal(e.target.value)}
+            placeholder="State"
+            disabled={locked}
+            className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
+          />
+        </div>
+        <input
+          value={postalCode}
+          onChange={(e) => setPostalCode(e.target.value)}
+          placeholder="Postal code (optional)"
+          disabled={locked}
+          className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 disabled:opacity-50"
+        />
+        <label className="flex items-start gap-2 text-[12.5px] text-foundation-700">
+          <input
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => setConsent(e.target.checked)}
+            disabled={locked}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-foundation-700/30"
+          />
+          <span>
+            I consent to Property360 collecting and storing my ID for
+            verification (per our privacy policy).
+          </span>
+        </label>
       </div>
 
       <button
         type="button"
         onClick={() => fileRef.current?.click()}
-        disabled={
-          !num.trim() || busy || status === "pending" || status === "approved"
-        }
+        disabled={!canSubmit}
         className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
       >
         <Upload className="h-4 w-4" />{" "}
@@ -255,6 +439,8 @@ function DocumentCard({
           ? "Uploading…"
           : status === "rejected"
           ? "Re-upload"
+          : uploaded
+          ? "Document uploaded"
           : "Upload document"}
       </button>
       <input
@@ -268,7 +454,19 @@ function DocumentCard({
           setBusy(true);
           setError(null);
           try {
-            await onUpload(f, type, num.trim());
+            await onUpload({
+              file: f,
+              type,
+              documentNumber: num.trim(),
+              consent,
+              gender: gender || undefined,
+              address: {
+                street: street.trim(),
+                city: city.trim(),
+                state: stateVal.trim(),
+                postalCode: postalCode.trim() || undefined,
+              },
+            });
           } catch (err) {
             const ax = err as AxiosError<{ message?: string }>;
             setError(
