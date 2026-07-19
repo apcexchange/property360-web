@@ -110,9 +110,16 @@ export const authApi = {
     return data.user;
   },
 
-  /** Send an SMS OTP to the signed-in user's phone (in-app phone-verify modal). */
-  async sendPhoneVerification(): Promise<void> {
-    await api.post("/auth/phone/send-verification");
+  /**
+   * Send a phone-verification OTP. WhatsApp-first by default; the backend
+   * ladder may fall back to SMS. Returns the channel that actually delivered.
+   */
+  async sendPhoneVerification(
+    channel: "whatsapp" | "sms" = "whatsapp"
+  ): Promise<{ channelUsed: "whatsapp" | "sms" }> {
+    const res = await api.post("/auth/phone/send-verification", { channel });
+    const data = unwrap(res.data) as { channelUsed?: "whatsapp" | "sms" };
+    return { channelUsed: data?.channelUsed ?? channel };
   },
 
   /** Verify the SMS code; on success flips phoneVerified=true on the user. */

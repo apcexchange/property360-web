@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ChevronDown, User, Menu, Gift } from "lucide-react";
 import { session } from "@/lib/session";
+import { getOverallVerification } from "@/lib/verification-status";
 import { StatusPill } from "./ui";
 import { useSidebar } from "./SidebarContext";
 
@@ -23,7 +24,9 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
   const { toggle: toggleSidebar } = useSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const user = session.getUser();
+  // Subscribe to session changes so the status badge updates live after phone
+  // verification or a KYC submit, without waiting for a navigation.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -84,9 +87,12 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
               <span className="hidden max-w-[160px] truncate sm:inline">
                 {user?.firstName ?? user?.email ?? "Account"}
               </span>
-              {user?.kyc?.status === "verified" && (
+              {user && (
                 <span className="hidden sm:inline-flex">
-                  <StatusPill label="Verified" tone="good" />
+                  <StatusPill
+                    label={getOverallVerification(user).label}
+                    tone={getOverallVerification(user).tone}
+                  />
                 </span>
               )}
               <ChevronDown className="h-4 w-4 text-ink-muted" />
