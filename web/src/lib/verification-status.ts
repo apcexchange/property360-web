@@ -63,12 +63,14 @@ export function getOverallVerification(user: UserLike): OverallVerification {
     };
   }
   if (kyc === "pending") {
+    // Submitted and awaiting admin review: nothing for the user to do, so no
+    // prompting banner. The "Pending review" status still shows on the profile.
     return {
       key: "pending",
       label: "Pending review",
       tone: "warn",
       isVerified: false,
-      showBanner: true,
+      showBanner: false,
     };
   }
   // kyc not started (or an unknown value): phone verification is the only
