@@ -68,7 +68,7 @@ export function getOverallVerification(user: UserLike): OverallVerification {
       label: "Pending review",
       tone: "warn",
       isVerified: false,
-      showBanner: true,
+      showBanner: false,
     };
   }
   // kyc not started (or an unknown value): phone verification is the only
