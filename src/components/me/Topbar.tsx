@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogOut, ChevronDown, User } from "lucide-react";
 import { session } from "@/lib/session";
+import { getOverallVerification } from "@/lib/verification-status";
 import { StatusPill } from "@/components/app/ui";
 
 interface Props {
@@ -20,7 +21,8 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const user = session.getUser();
+  // Subscribe to session changes so the badge stays in sync live.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -63,7 +65,7 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
               <span className="hidden max-w-[160px] truncate sm:inline">
                 {user?.firstName ?? user?.email ?? "Account"}
               </span>
-              {user?.kyc?.status === "verified" && (
+              {user && getOverallVerification(user).isVerified && (
                 <span className="hidden sm:inline-flex">
                   <StatusPill label="Verified" tone="good" />
                 </span>
