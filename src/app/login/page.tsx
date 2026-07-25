@@ -26,6 +26,7 @@ function LoginInner() {
   const [error, setError] = useState<string | null>(null);
 
   function safeNext(role: string): string {
+    if (role === "partner") return "/partner";
     if (nextParam && nextParam.startsWith("/")) {
       if (role === "tenant") {
         if (nextParam.startsWith("/me") || nextParam.startsWith("/listings")) {
