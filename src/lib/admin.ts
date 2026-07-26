@@ -294,6 +294,54 @@ export interface AdminKycRow {
   createdAt: string;
 }
 
+// Row shape returned by GET /admin/partners (owner populated + rollup stats
+// attached). Distinct from AdminPartnerCode below, which is the raw
+// PartnerCode document returned by mint/invite/status endpoints (owner is
+// an unpopulated id string, no stats).
+export interface AdminPartnerRow {
+  _id: string;
+  code: string;
+  status: "active" | "disabled";
+  commissionRate: number;
+  label?: string;
+  owner: { _id: string; firstName: string; lastName: string; email: string; role: string };
+  signups: number;
+  paidConversions: number;
+  totalEarned: number;
+}
+
+export interface AdminPartnerCode {
+  _id: string;
+  code: string;
+  owner: string;
+  commissionRate: number;
+  status: "active" | "disabled";
+  label?: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminPartnerDetail {
+  code: {
+    _id: string;
+    code: string;
+    status: string;
+    commissionRate: number;
+    label?: string;
+    owner: { _id: string; firstName: string; lastName: string; email: string; role: string };
+  };
+  commissions: Array<{
+    _id: string;
+    basisAmount: number;
+    rate: number;
+    commissionAmount: number;
+    status: string;
+    createdAt: string;
+    referee?: { firstName: string; lastName: string; email: string };
+  }>;
+}
+
 const adminApi = {
   async login(email: string, password: string): Promise<AdminUser> {
     const res = await api.post<ApiEnvelope<{ user: AdminUser; accessToken: string }>>(
@@ -521,6 +569,43 @@ const adminApi = {
       `/admin/sales/leads/${leadId}`,
       { status }
     );
+    return unwrap(res.data);
+  },
+
+  async listPartnerCodes(): Promise<AdminPartnerRow[]> {
+    const res = await api.get<ApiEnvelope<AdminPartnerRow[]>>("/admin/partners");
+    return unwrap(res.data);
+  },
+
+  async mintPartnerCode(input: {
+    code: string;
+    ownerId: string;
+    commissionRate: number;
+    label?: string;
+  }): Promise<AdminPartnerCode> {
+    const res = await api.post<ApiEnvelope<AdminPartnerCode>>("/admin/partners", input);
+    return unwrap(res.data);
+  },
+
+  async invitePartner(input: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    code: string;
+    commissionRate: number;
+    label?: string;
+  }): Promise<AdminPartnerCode> {
+    const res = await api.post<ApiEnvelope<AdminPartnerCode>>("/admin/partners/invite", input);
+    return unwrap(res.data);
+  },
+
+  async getPartnerDetail(id: string): Promise<AdminPartnerDetail> {
+    const res = await api.get<ApiEnvelope<AdminPartnerDetail>>(`/admin/partners/${id}`);
+    return unwrap(res.data);
+  },
+
+  async setPartnerStatus(id: string, status: "active" | "disabled"): Promise<AdminPartnerCode> {
+    const res = await api.patch<ApiEnvelope<AdminPartnerCode>>(`/admin/partners/${id}/status`, { status });
     return unwrap(res.data);
   },
 };
