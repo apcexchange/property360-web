@@ -608,6 +608,23 @@ const adminApi = {
     const res = await api.patch<ApiEnvelope<AdminPartnerCode>>(`/admin/partners/${id}/status`, { status });
     return unwrap(res.data);
   },
+
+  async updatePartnerRate(id: string, commissionRate: number): Promise<AdminPartnerCode> {
+    const res = await api.patch<ApiEnvelope<AdminPartnerCode>>(
+      `/admin/partners/${id}/rate`,
+      { commissionRate }
+    );
+    return unwrap(res.data);
+  },
+
+  async deletePartner(
+    id: string
+  ): Promise<{ deletedCommissions: number; detachedSignups: number }> {
+    const res = await api.delete<
+      ApiEnvelope<{ deletedCommissions: number; detachedSignups: number }>
+    >(`/admin/partners/${id}`);
+    return unwrap(res.data);
+  },
 };
 
 export default adminApi;

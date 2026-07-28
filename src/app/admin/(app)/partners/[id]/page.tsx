@@ -1,10 +1,12 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable, StatusBadge } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/ui/PageHeader";
+import { Button } from "@/components/admin/ui/Filters";
 import adminApi, { AdminPartnerDetail } from "@/lib/admin";
 import { formatNgn, formatDate } from "@/lib/format";
 
@@ -31,6 +33,8 @@ export default function AdminPartnerDetailPage() {
                 description={`${data.code.owner.firstName} ${data.code.owner.lastName} (${data.code.owner.email}) · ${data.code.commissionRate}% commission`}
                 actions={<StatusBadge value={data.code.status} />}
               />
+
+              <PartnerControls detail={data} />
 
               <DataTable<CommissionRow>
                 rows={data.commissions}
@@ -71,5 +75,92 @@ export default function AdminPartnerDetailPage() {
         </div>
       </main>
     </>
+  );
+}
+
+function PartnerControls({ detail }: { detail: AdminPartnerDetail }) {
+  const router = useRouter();
+  const qc = useQueryClient();
+  const [rate, setRate] = useState<number>(detail.code.commissionRate);
+
+  const rateMut = useMutation({
+    mutationFn: () => adminApi.updatePartnerRate(detail.code._id, rate),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "partners", detail.code._id] });
+      qc.invalidateQueries({ queryKey: ["admin", "partners"] });
+    },
+  });
+
+  const del = useMutation({
+    mutationFn: () => adminApi.deletePartner(detail.code._id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "partners"] });
+      router.replace("/admin/partners");
+    },
+  });
+
+  const count = detail.commissions.length;
+  const totalEarned = detail.commissions.reduce(
+    (s, c) => s + (c.commissionAmount ?? 0),
+    0
+  );
+
+  const confirmDelete = () => {
+    const history = count
+      ? ` It has ${count} paid conversion(s) totalling ${formatNgn(
+          totalEarned
+        )} of commission history, which will be permanently deleted.`
+      : "";
+    if (
+      window.confirm(
+        `Delete partner code "${detail.code.code}"?${history} Money already paid into the partner's wallet is NOT refunded. This cannot be undone.`
+      )
+    ) {
+      del.mutate();
+    }
+  };
+
+  const rateChanged = rate !== detail.code.commissionRate;
+  const rateValid = Number.isFinite(rate) && rate >= 0 && rate <= 100;
+
+  return (
+    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="text-[13px] font-medium text-ink-body">
+          Commission rate
+        </label>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={rate}
+          onChange={(e) => setRate(Number(e.target.value))}
+          className="w-24 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-foundation-500 focus:ring-2 focus:ring-cryola-200"
+        />
+        <span className="text-sm text-ink-muted">%</span>
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={rateMut.isPending || !rateChanged || !rateValid}
+          onClick={() => rateMut.mutate()}
+        >
+          {rateMut.isPending ? "Saving…" : "Save rate"}
+        </Button>
+        {rateMut.isSuccess && !rateChanged && (
+          <span className="text-sm text-success">Saved</span>
+        )}
+        {rateMut.isError && (
+          <span className="text-sm text-error">Couldn&apos;t save</span>
+        )}
+      </div>
+      <Button
+        variant="danger"
+        size="sm"
+        disabled={del.isPending}
+        onClick={confirmDelete}
+      >
+        {del.isPending ? "Deleting…" : "Delete partner"}
+      </Button>
+    </div>
   );
 }
