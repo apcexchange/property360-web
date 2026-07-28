@@ -26,6 +26,26 @@ export default function AdminPartnersPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "partners"] }),
   });
 
+  const del = useMutation({
+    mutationFn: (id: string) => adminApi.deletePartner(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "partners"] }),
+  });
+
+  const confirmDelete = (r: AdminPartnerRow) => {
+    const history = r.paidConversions
+      ? ` It has ${r.paidConversions} paid conversion(s) totalling ${formatNgn(
+          r.totalEarned
+        )} of commission history, which will be permanently deleted.`
+      : "";
+    if (
+      window.confirm(
+        `Delete partner code "${r.code}"?${history} Money already paid into the partner's wallet is NOT refunded. This cannot be undone.`
+      )
+    ) {
+      del.mutate(r._id);
+    }
+  };
+
   return (
     <>
       <Topbar />
@@ -113,6 +133,14 @@ export default function AdminPartnersPage() {
                       }
                     >
                       {r.status === "active" ? "Disable" : "Enable"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={del.isPending}
+                      onClick={() => confirmDelete(r)}
+                    >
+                      Delete
                     </Button>
                   </div>
                 ),
