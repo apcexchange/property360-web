@@ -133,4 +133,36 @@ export const authApi = {
     if (token) session.set(token, data.user);
     return data.user;
   },
+
+  /**
+   * Forgot-password step 1: ask the backend to email a 6-digit reset code.
+   * Always resolves — the backend does not reveal whether the email exists.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    await api.post("/auth/password/reset", { email });
+  },
+
+  /**
+   * Forgot-password step 2: exchange the emailed code for a new password.
+   * Rejects (HTTP 400) if the code is wrong or expired.
+   */
+  async confirmPasswordReset(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
+    await api.post("/auth/password/reset/confirm", {
+      email,
+      otp,
+      newPassword,
+    });
+  },
+
+  /** Change the currently signed-in user's password. */
+  async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    await api.post("/auth/change-password", { currentPassword, newPassword });
+  },
 };

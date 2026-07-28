@@ -145,9 +145,19 @@ export default function PartnerLoginPage() {
             </button>
           </form>
 
-          <p className="mt-10 font-display text-[12.5px] italic text-ink-faint">
-            First time here? Set your password using the link in your
-            invitation email, or contact hello@property360.africa.
+          <div className="mt-5">
+            <Link
+              href="/partner/forgot-password"
+              className="text-[12.5px] text-ink-muted underline decoration-rule-strong underline-offset-4 transition hover:text-ink"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+
+          <p className="mt-8 font-display text-[12.5px] italic text-ink-faint">
+            First time here? Sign in with the temporary password from your
+            invitation email, then change it in Settings once you&apos;re in.
+            Trouble? Contact hello@property360.africa.
           </p>
         </div>
       </main>

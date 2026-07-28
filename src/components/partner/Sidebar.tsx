@@ -12,6 +12,7 @@ const PARTNER_NAV_ITEMS: NavItem[] = [
   { href: "/partner", label: "Earnings & payout" },
   { href: "/partner/kyc", label: "Identity verification" },
   { href: "/partner/bank", label: "Bank accounts" },
+  { href: "/partner/settings", label: "Settings" },
 ];
 
 function isActive(itemHref: string, pathname: string): boolean {
