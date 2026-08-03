@@ -104,6 +104,12 @@ export default function NewPropertyPage() {
   const [quickCount, setQuickCount] = useState<number | "">("");
   const [quickRent, setQuickRent] = useState<number | "">("");
   const [quickPeriod, setQuickPeriod] = useState<RentPeriod>("annually");
+  // Off by default so a first-time run behaves exactly like before (replaces
+  // the list). Landlords with mixed rents (e.g. 1-31 at one rent, 32-51 at
+  // another) check this before running Quick Setup a second time so the new
+  // batch is appended, numbered continuing from the existing units, instead
+  // of wiping out the first batch.
+  const [quickAppend, setQuickAppend] = useState(false);
   // Quick-setup default fees: the landlord types each fee once and we
   // propagate the values to every generated unit (or, via "Apply to all
   // units", to the units already on the form). Saves a real chunk of
@@ -122,8 +128,12 @@ export default function NewPropertyPage() {
     const sharedFees: UnitFees | undefined = quickFeesHaveValues()
       ? { ...quickFees }
       : undefined;
+    // Appending continues the numbering after whatever's already on the
+    // form, so a second batch (e.g. a different rent tier) doesn't collide
+    // with "Flat 1" from the first run.
+    const startAt = quickAppend ? units.length : 0;
     const generated: UnitDraft[] = Array.from({ length: count }, (_, i) => ({
-      unitNumber: `Flat ${i + 1}`,
+      unitNumber: `Flat ${startAt + i + 1}`,
       bedrooms: 1,
       bathrooms: 1,
       rentAmount: rent,
@@ -132,7 +142,7 @@ export default function NewPropertyPage() {
       // into the others.
       ...(sharedFees ? { defaultFees: { ...sharedFees } } : {}),
     }));
-    setUnits(generated);
+    setUnits((prev) => (quickAppend ? [...prev, ...generated] : generated));
     setShowQuickSetup(false);
   }
 
@@ -363,6 +373,21 @@ export default function NewPropertyPage() {
               </button>
               {showQuickSetup && (
                 <div className="border-t border-cryola-400/30 px-4 py-4">
+                  {/* Only worth offering once there's a real batch to add to,
+                      the untouched single default unit doesn't count. */}
+                  {(units.length > 1 || units[0]?.rentAmount > 0) && (
+                    <label className="mb-3 flex items-center gap-2 text-[12.5px] font-medium text-foundation-700">
+                      <input
+                        type="checkbox"
+                        checked={quickAppend}
+                        onChange={(e) => setQuickAppend(e.target.checked)}
+                        className="h-4 w-4 rounded border-foundation-700/30 text-foundation-700 focus:ring-foundation-700/30"
+                      />
+                      Add to the {units.length} flat{units.length === 1 ? "" : "s"}/room
+                      {units.length === 1 ? "" : "s"} already on the form (for a
+                      different rent tier), instead of replacing them
+                    </label>
+                  )}
                   <div className="grid gap-3 sm:grid-cols-3">
                     <Field label="How many flats/rooms?">
                       <Input
@@ -420,8 +445,9 @@ export default function NewPropertyPage() {
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                     <p className="text-[11.5px] text-ink-muted">
-                      Replaces the list below. You can fine-tune individual
-                      flats/rooms after.
+                      {quickAppend
+                        ? `Adds to the list below, starting at Flat ${units.length + 1}.`
+                        : "Replaces the list below. You can fine-tune individual flats/rooms after."}
                     </p>
                     <button
                       type="button"
@@ -430,7 +456,8 @@ export default function NewPropertyPage() {
                       className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12px] font-semibold text-paper transition hover:bg-foundation-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Zap className="h-3.5 w-3.5" />
-                      Generate {typeof quickCount === "number" ? quickCount : ""} flats/rooms
+                      {quickAppend ? "Add" : "Generate"}{" "}
+                      {typeof quickCount === "number" ? quickCount : ""} flats/rooms
                     </button>
                   </div>
                 </div>
