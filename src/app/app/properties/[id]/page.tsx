@@ -12,6 +12,8 @@ import {
   FileText,
   Trash2,
   AlertTriangle,
+  Plus,
+  Pencil,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -25,6 +27,7 @@ import {
 } from "@/components/app/ui";
 import { landlordApi, Unit } from "@/lib/landlord-api";
 import { PropertyMediaCard } from "@/components/app/PropertyMedia";
+import { UnitFormModal } from "@/components/app/UnitFormModal";
 import { useToast } from "@/components/ui/Toast";
 
 export default function PropertyDetailPage() {
@@ -34,6 +37,10 @@ export default function PropertyDetailPage() {
   const toast = useToast();
   const [showDelete, setShowDelete] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [unitModal, setUnitModal] = useState<
+    { mode: "add" } | { mode: "edit"; unit: Unit } | null
+  >(null);
+  const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
   const q = useQuery({
     queryKey: ["properties", id],
     queryFn: () => landlordApi.getProperty(id),
@@ -53,6 +60,22 @@ export default function PropertyDetailPage() {
       toast.error(
         axErr.response?.data?.message ??
           (err instanceof Error ? err.message : "Couldn't delete this property.")
+      );
+    },
+  });
+
+  const deleteUnitMut = useMutation({
+    mutationFn: (unitId: string) => landlordApi.deleteUnit(id, unitId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["properties", id] });
+      toast.success("Unit deleted");
+      setUnitToDelete(null);
+    },
+    onError: (err) => {
+      const axErr = err as AxiosError<{ message?: string }>;
+      toast.error(
+        axErr.response?.data?.message ??
+          (err instanceof Error ? err.message : "Couldn't delete this unit.")
       );
     },
   });
