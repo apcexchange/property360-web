@@ -68,6 +68,8 @@ export default function PropertyDetailPage() {
     mutationFn: (unitId: string) => landlordApi.deleteUnit(id, unitId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["properties", id] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
       toast.success("Unit deleted");
       setUnitToDelete(null);
     },
@@ -347,6 +349,8 @@ export default function PropertyDetailPage() {
           onClose={() => setUnitModal(null)}
           onSaved={() => {
             queryClient.invalidateQueries({ queryKey: ["properties", id] });
+            queryClient.invalidateQueries({ queryKey: ["properties"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
             setUnitModal(null);
           }}
         />
@@ -455,6 +459,7 @@ function UnitRow({
       <button
         type="button"
         onClick={onEdit}
+        title="Edit unit"
         aria-label="Edit unit"
         className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-foundation-700 transition hover:bg-foundation-700/5"
       >
@@ -464,7 +469,7 @@ function UnitRow({
         type="button"
         onClick={onDelete}
         disabled={u.isOccupied}
-        title={u.isOccupied ? "Move out the tenant before deleting this unit" : undefined}
+        title={u.isOccupied ? "Move out the tenant before deleting this unit" : "Delete unit"}
         aria-label="Delete unit"
         className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-ink-muted transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
       >
