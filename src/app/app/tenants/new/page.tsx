@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
@@ -64,8 +64,9 @@ function endDateForFrequency(
   return d.toISOString().slice(0, 10);
 }
 
-export default function NewTenantPage() {
+function NewTenantPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const toast = useToast();
   const properties = useQuery({
@@ -73,8 +74,15 @@ export default function NewTenantPage() {
     queryFn: () => landlordApi.listProperties(),
   });
 
-  const [propertyId, setPropertyId] = useState<string>("");
-  const [unitId, setUnitId] = useState<string>("");
+  // Arriving from a specific unit's "Assign" button (property detail page)
+  // carries the property + unit in the URL so the landlord doesn't have to
+  // pick them again, fields stay editable in case the wrong unit was clicked.
+  const [propertyId, setPropertyId] = useState<string>(
+    () => searchParams.get("propertyId") ?? ""
+  );
+  const [unitId, setUnitId] = useState<string>(
+    () => searchParams.get("unitId") ?? ""
+  );
 
   const vacantUnits = useQuery({
     queryKey: ["vacant-units", propertyId],
@@ -522,6 +530,14 @@ export default function NewTenantPage() {
         </form>
       </PageContainer>
     </>
+  );
+}
+
+export default function NewTenantPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-paper" />}>
+      <NewTenantPageInner />
+    </Suspense>
   );
 }
 

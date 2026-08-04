@@ -442,7 +442,7 @@ function UnitRow({
       </div>
       {!u.isOccupied && (
         <Link
-          href="/app/tenants/new"
+          href={`/app/tenants/new?propertyId=${u.property}&unitId=${u._id}`}
           className="rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
         >
           <UserPlus className="mr-1 inline h-3 w-3" /> Assign
