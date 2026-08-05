@@ -61,6 +61,10 @@ function endDateForFrequency(
   // if the day-of-month drifted, snap back to the last day of the intended
   // month.
   if (d.getDate() !== day) d.setDate(0);
+  // A term ends the day BEFORE the next period begins: a 1-year lease from
+  // 20/10/2025 ends 19/10/2026, not 20/10/2026. Step back one day (JS rolls
+  // the 1st back to the last day of the prior month).
+  d.setDate(d.getDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
@@ -120,10 +124,18 @@ function NewTenantPageInner() {
   // Payment recorded at assign time.
   const [activateImmediately, setActivateImmediately] = useState(false);
   const [paidItems, setPaidItems] = useState<Set<PaidFeeKey>>(new Set());
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  // Payment date follows the lease start date until the landlord edits it.
   const [paymentDate, setPaymentDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
+  const [paymentDateTouched, setPaymentDateTouched] = useState(false);
+
+  // Keep the payment date in sync with the lease start date until the landlord
+  // manually edits it.
+  useEffect(() => {
+    if (!paymentDateTouched) setPaymentDate(leaseStartDate);
+  }, [leaseStartDate, paymentDateTouched]);
 
   // When the chosen unit changes, prefill rent + any default fees from the unit.
   useEffect(() => {
@@ -489,7 +501,10 @@ function NewTenantPageInner() {
                       <Field label="Payment date">
                         <Input
                           value={paymentDate}
-                          onChange={setPaymentDate}
+                          onChange={(v) => {
+                            setPaymentDate(v);
+                            setPaymentDateTouched(true);
+                          }}
                           type="date"
                         />
                       </Field>
