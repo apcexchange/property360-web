@@ -34,6 +34,13 @@ function LoginInner() {
         }
         return "/me";
       }
+      // Landlords/agents bounced here from an expired /app/billing session
+      // (incl. a failed mobile web-handoff) land on the dashboard instead of
+      // straight back on billing, that page is a rarer destination than the
+      // dashboard and shouldn't be where a normal sign-in dumps you.
+      if (nextParam.startsWith("/app/billing")) {
+        return "/app/dashboard";
+      }
       return nextParam;
     }
     return role === "tenant" ? "/me" : "/app/dashboard";
