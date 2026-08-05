@@ -38,7 +38,7 @@ export function AppTopbar({ title, subtitle, actions }: Props) {
 
   function signOut() {
     session.clear();
-    router.replace("/billing/login");
+    router.replace("/login");
   }
 
   const initials =
