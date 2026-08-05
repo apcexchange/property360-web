@@ -631,6 +631,14 @@ export interface TenantProfileRequest {
   updatedAt: string;
 }
 
+export interface TenantIdentityUpdate {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  whatsappVerified: boolean;
+}
+
 /**
  * Profile fields populated on the tenant's User document — what the
  * landlord's "Tenant profile" card on the lease detail page renders.
@@ -1611,6 +1619,28 @@ export const landlordApi = {
       { headers: { "Content-Type": "multipart/form-data" } }
     );
     return unwrap(res.data) as TenantProfileSnapshot;
+  },
+
+  /**
+   * Direct landlord/agent edit of the tenant's core identity fields
+   * (name/email/phone). Distinct from fillTenantProfile, which only
+   * covers KYC-adjacent fields. Any subset of the four fields is fine,
+   * partial update.
+   */
+  async updateTenantIdentity(
+    leaseId: string,
+    payload: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+    }
+  ): Promise<TenantIdentityUpdate> {
+    const res = await api.put(
+      `/tenants/lease/${leaseId}/tenant-identity`,
+      payload
+    );
+    return unwrap(res.data) as TenantIdentityUpdate;
   },
 
   // Agreement templates
