@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { AxiosError } from "axios";
-import { landlordApi, Unit, UnitFees } from "@/lib/landlord-api";
+import { landlordApi, RentPeriod, Unit, UnitFees } from "@/lib/landlord-api";
 import { useToast } from "@/components/ui/Toast";
 
 interface UnitFormModalProps {
@@ -49,6 +49,7 @@ export function UnitFormModal({
   const [bathrooms, setBathrooms] = useState(unit?.bathrooms ?? 1);
   const [size, setSize] = useState<number | undefined>(unit?.size);
   const [rentAmount, setRentAmount] = useState(unit?.rentAmount ?? 0);
+  const [rentPeriod, setRentPeriod] = useState<RentPeriod>(unit?.rentPeriod ?? "annually");
   const [fees, setFees] = useState<UnitFees>(unit?.defaultFees ?? {});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +81,7 @@ export function UnitFormModal({
       bathrooms,
       size,
       rentAmount,
+      rentPeriod,
       defaultFees: fees,
     };
     try {
@@ -154,17 +156,31 @@ export function UnitFormModal({
               onChange={(v) => setSize(v ? Number(v) : undefined)}
             />
           </Field>
-          <Field label="Rent (NGN)">
-            <Input
-              type="text"
-              value={rentAmount > 0 ? rentAmount.toLocaleString("en-NG") : ""}
-              onChange={(v) => {
-                const digits = v.replace(/[^0-9]/g, "");
-                setRentAmount(digits === "" ? 0 : Number(digits));
-              }}
-              placeholder="500,000"
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Rent (NGN)">
+              <Input
+                type="text"
+                value={rentAmount > 0 ? rentAmount.toLocaleString("en-NG") : ""}
+                onChange={(v) => {
+                  const digits = v.replace(/[^0-9]/g, "");
+                  setRentAmount(digits === "" ? 0 : Number(digits));
+                }}
+                placeholder="500,000"
+              />
+            </Field>
+            <Field label="Period">
+              <Select
+                value={rentPeriod}
+                onChange={(v) => setRentPeriod(v as RentPeriod)}
+                options={[
+                  { value: "annually", label: "Per year" },
+                  { value: "quarterly", label: "Per quarter" },
+                  { value: "monthly", label: "Per month" },
+                  { value: "daily", label: "Per day" },
+                ]}
+              />
+            </Field>
+          </div>
 
           <p className="pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
             Default fees (optional)
@@ -265,5 +281,29 @@ function Input({
       placeholder={placeholder}
       className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 placeholder:text-ink-muted/60 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10"
     />
+  );
+}
+
+function Select({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 focus:border-foundation-700/40 focus:outline-none focus:ring-2 focus:ring-foundation-700/10"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
   );
 }

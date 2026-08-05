@@ -437,7 +437,7 @@ function UnitRow({
           {formatNgn(u.rentAmount)}
         </p>
         <p className="text-[11.5px] text-ink-muted">
-          /{u.rentPeriod ?? "month"}
+          /{u.rentPeriod ?? "annually"}
         </p>
       </div>
       {!u.isOccupied && (

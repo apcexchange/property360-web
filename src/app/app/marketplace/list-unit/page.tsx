@@ -99,7 +99,7 @@ export default function ListUnitPage() {
                       { value: "", label: propertyId ? "Choose a unit" : "Pick a property first" },
                       ...(vacant.data ?? []).map((u) => ({
                         value: u._id,
-                        label: `Unit ${u.unitNumber} · ${formatNgn(u.rentAmount)}/${u.rentPeriod ?? "year"}`,
+                        label: `Unit ${u.unitNumber} · ${formatNgn(u.rentAmount)}/${u.rentPeriod ?? "annually"}`,
                       })),
                     ]}
                   />
