@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import { tenantApi } from "@/lib/tenant-api";
 import { NavBadge } from "@/components/app/NavBadge";
+import { useSidebar } from "@/components/app/SidebarContext";
 
 interface NavItem {
   href: string;
@@ -63,29 +66,51 @@ function isActive(itemHref: string, pathname: string): boolean {
   return pathname === itemHref || pathname.startsWith(itemHref + "/");
 }
 
-export function TenantSidebar() {
-  const pathname = usePathname();
-  const chatUnread = useQuery({
-    queryKey: ["me", "chat", "unread-count"],
-    queryFn: () => tenantApi.unreadChatCount(),
-    refetchInterval: 20_000,
-  });
+interface SidebarNavProps {
+  pathname: string;
+  chatUnread: number;
+  onItemClick?: () => void;
+  showClose?: boolean;
+  onClose?: () => void;
+}
+
+function SidebarNav({
+  pathname,
+  chatUnread,
+  onItemClick,
+  showClose,
+  onClose,
+}: SidebarNavProps) {
   return (
-    <aside className="hidden w-64 shrink-0 flex-col bg-foundation-700 text-paper lg:flex">
+    <>
       <div className="border-b border-foundation-600/70 px-6 pb-5 pt-7">
-        <div className="flex items-baseline">
-          <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-paper">
-            Property
-          </span>
-          <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-cryola-300">
-            360
-          </span>
-        </div>
-        <div className="mt-3 flex items-center gap-2.5">
-          <span className="h-px w-7 bg-cryola-400" />
-          <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cryola-300/90">
-            Tenant home
-          </span>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-baseline">
+              <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-paper">
+                Property
+              </span>
+              <span className="font-display text-[28px] font-medium leading-none tracking-[-0.035em] text-cryola-300">
+                360
+              </span>
+            </div>
+            <div className="mt-3 flex items-center gap-2.5">
+              <span className="h-px w-7 bg-cryola-400" />
+              <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-cryola-300/90">
+                Tenant home
+              </span>
+            </div>
+          </div>
+          {showClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close menu"
+              className="-mr-1 grid h-9 w-9 place-items-center rounded-full text-paper/80 transition hover:bg-foundation-600/40 hover:text-paper"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -108,6 +133,7 @@ export function TenantSidebar() {
                     )}
                     <Link
                       href={item.href}
+                      onClick={onItemClick}
                       className={`flex items-center py-1.5 leading-snug transition-colors ${
                         active
                           ? "font-medium text-paper"
@@ -116,7 +142,7 @@ export function TenantSidebar() {
                     >
                       {item.label}
                       {item.href === "/me/chat" && (
-                        <NavBadge count={chatUnread.data ?? 0} />
+                        <NavBadge count={chatUnread} />
                       )}
                     </Link>
                   </li>
@@ -126,6 +152,66 @@ export function TenantSidebar() {
           </div>
         ))}
       </nav>
-    </aside>
+    </>
+  );
+}
+
+export function TenantSidebar() {
+  const pathname = usePathname();
+  const { open, close } = useSidebar();
+  const chatUnread = useQuery({
+    queryKey: ["me", "chat", "unread-count"],
+    queryFn: () => tenantApi.unreadChatCount(),
+    refetchInterval: 20_000,
+  });
+
+  // Close drawer on route change so picking a link feels native.
+  useEffect(() => {
+    close();
+  }, [pathname, close]);
+
+  // Lock body scroll while drawer is open.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  const unreadCount = chatUnread.data ?? 0;
+
+  return (
+    <>
+      <aside className="hidden w-64 shrink-0 flex-col bg-foundation-700 text-paper lg:flex">
+        <SidebarNav pathname={pathname} chatUnread={unreadCount} />
+      </aside>
+
+      <div
+        className={`fixed inset-0 z-50 lg:hidden ${open ? "" : "pointer-events-none"}`}
+        aria-hidden={!open}
+      >
+        <div
+          onClick={close}
+          className={`absolute inset-0 bg-black/55 transition-opacity duration-200 ${
+            open ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <aside
+          className={`absolute inset-y-0 left-0 flex w-72 max-w-[85%] flex-col bg-foundation-700 text-paper shadow-2xl transition-transform duration-200 ease-out ${
+            open ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <SidebarNav
+            pathname={pathname}
+            chatUnread={unreadCount}
+            onItemClick={close}
+            showClose
+            onClose={close}
+          />
+        </aside>
+      </div>
+    </>
   );
 }
