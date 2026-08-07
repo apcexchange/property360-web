@@ -4,6 +4,7 @@ import { Suspense, useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Nav } from "@/components/landing/Nav";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { authApi } from "@/lib/auth-api";
 import { AxiosError } from "axios";
 
@@ -100,13 +101,13 @@ function LoginInner() {
 
           <label className="block">
             <span className="eyebrow block text-[10px]">Password</span>
-            <input
-              type="password"
+            <PasswordInput
+              wrapperClassName="mt-1"
               autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-full border border-foundation-700/15 bg-surface px-4 py-2.5 text-[14.5px] text-foundation-700 outline-none transition focus:border-foundation-700/40"
+              className="w-full rounded-full border border-foundation-700/15 bg-surface pl-4 pr-11 py-2.5 text-[14.5px] text-foundation-700 outline-none transition focus:border-foundation-700/40"
               placeholder="••••••••"
             />
           </label>
