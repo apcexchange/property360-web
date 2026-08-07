@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { authApi } from "@/lib/auth-api";
 import { Card } from "@/components/app/ui";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { AxiosError } from "axios";
 
 export default function PartnerSettingsPage() {
@@ -64,32 +65,32 @@ export default function PartnerSettingsPage() {
 
         <form onSubmit={onSubmit} className="mt-6 space-y-5">
           <Field label="Current password">
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className={inputCls}
+              toggleClassName={toggleCls}
               placeholder="••••••••"
             />
           </Field>
           <Field label="New password">
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className={inputCls}
+              toggleClassName={toggleCls}
               placeholder="At least 6 characters"
             />
           </Field>
           <Field label="Confirm new password">
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="new-password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               className={inputCls}
+              toggleClassName={toggleCls}
               placeholder="Re-enter new password"
             />
           </Field>
@@ -119,7 +120,9 @@ export default function PartnerSettingsPage() {
 }
 
 const inputCls =
-  "block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700";
+  "block w-full border-0 border-b border-rule-strong bg-transparent pl-0 pr-7 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700";
+const toggleCls =
+  "absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center text-ink-faint transition hover:text-ink-muted";
 
 function Field({
   label,

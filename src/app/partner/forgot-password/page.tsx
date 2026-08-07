@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { authApi } from "@/lib/auth-api";
 import { AxiosError } from "axios";
 
@@ -185,22 +186,22 @@ export default function PartnerForgotPasswordPage() {
                   />
                 </Field>
                 <Field label="New password">
-                  <input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className={inputCls}
+                    className={passwordInputCls}
+                    toggleClassName={toggleCls}
                     placeholder="At least 6 characters"
                   />
                 </Field>
                 <Field label="Confirm new password">
-                  <input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
-                    className={inputCls}
+                    className={passwordInputCls}
+                    toggleClassName={toggleCls}
                     placeholder="Re-enter password"
                   />
                 </Field>
@@ -246,6 +247,10 @@ export default function PartnerForgotPasswordPage() {
 
 const inputCls =
   "block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700";
+const passwordInputCls =
+  "block w-full border-0 border-b border-rule-strong bg-transparent pl-0 pr-7 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700";
+const toggleCls =
+  "absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center text-ink-faint transition hover:text-ink-muted";
 
 function Rules() {
   return (
