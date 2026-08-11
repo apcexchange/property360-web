@@ -191,7 +191,7 @@ function ListingRow({
         </p>
         <p className="mt-1 text-[12px] text-ink-muted">
           {unit ? `${unit.bedrooms} bed · ${unit.bathrooms} bath` : ""}
-          {unit && ` · ${formatNgn(unit.rentAmount)}/${unit.rentPeriod ?? "year"}`}
+          {unit && ` · ${formatNgn(unit.rentAmount)}/${unit.rentPeriod ?? "annually"}`}
         </p>
         {listing.listedAt && (
           <p className="mt-0.5 text-[11.5px] text-ink-muted">

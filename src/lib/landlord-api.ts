@@ -46,7 +46,7 @@ export interface Property {
   updatedAt: string;
 }
 
-export type RentPeriod = "daily" | "monthly" | "annually";
+export type RentPeriod = "daily" | "monthly" | "quarterly" | "annually";
 
 export interface UnitFees {
   securityDeposit?: number;
@@ -1084,6 +1084,7 @@ export const landlordApi = {
       bathrooms: number;
       size?: number;
       rentAmount: number;
+      rentPeriod?: RentPeriod;
       defaultFees?: UnitFees;
     }
   ): Promise<Unit> {
@@ -1099,6 +1100,7 @@ export const landlordApi = {
       bathrooms: number;
       size?: number;
       rentAmount: number;
+      rentPeriod: RentPeriod;
       defaultFees?: UnitFees;
     }>
   ): Promise<Unit> {
