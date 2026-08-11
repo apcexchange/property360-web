@@ -41,6 +41,7 @@ export default function PropertyDetailPage() {
     { mode: "add" } | { mode: "edit"; unit: Unit } | null
   >(null);
   const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
+  const [unitFilter, setUnitFilter] = useState<"all" | "occupied" | "vacant">("all");
   const q = useQuery({
     queryKey: ["properties", id],
     queryFn: () => landlordApi.getProperty(id),
@@ -95,6 +96,9 @@ export default function PropertyDetailPage() {
   const units = q.data?.units ?? [];
 
   const occupiedCount = units.filter((u) => u.isOccupied).length;
+  const filteredUnits = units.filter((u) =>
+    unitFilter === "all" ? true : unitFilter === "occupied" ? u.isOccupied : !u.isOccupied
+  );
 
   return (
     <>
@@ -244,25 +248,42 @@ export default function PropertyDetailPage() {
             </div>
 
             <div className="mt-8">
-              <div className="mb-3 flex items-center justify-between">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
                   Units
                 </h2>
-                <button
-                  type="button"
-                  onClick={() => setUnitModal({ mode: "add" })}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-3 py-1.5 text-[11.5px] font-semibold text-paper transition hover:bg-foundation-800"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Add unit
-                </button>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={unitFilter}
+                    onChange={(e) =>
+                      setUnitFilter(e.target.value as "all" | "occupied" | "vacant")
+                    }
+                    className="rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700"
+                  >
+                    <option value="all">All · {units.length}</option>
+                    <option value="occupied">Occupied · {occupiedCount}</option>
+                    <option value="vacant">Vacant · {units.length - occupiedCount}</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setUnitModal({ mode: "add" })}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-3 py-1.5 text-[11.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add unit
+                  </button>
+                </div>
               </div>
               {units.length === 0 ? (
                 <Card className="p-6 text-center text-[13px] text-ink-muted">
                   No units configured.
                 </Card>
+              ) : filteredUnits.length === 0 ? (
+                <Card className="p-6 text-center text-[13px] text-ink-muted">
+                  No {unitFilter} units.
+                </Card>
               ) : (
                 <Card className="divide-y divide-foundation-700/10">
-                  {units.map((u) => (
+                  {filteredUnits.map((u) => (
                     <UnitRow
                       key={u._id}
                       u={u}
@@ -416,7 +437,7 @@ function UnitRow({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 p-4">
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[14px] font-semibold text-foundation-700">
@@ -432,49 +453,53 @@ function UnitRow({
           {u.size ? ` · ${u.size}m²` : ""}
         </p>
       </div>
-      <div className="text-right">
-        <p className="text-[13.5px] font-semibold text-foundation-700">
-          {formatNgn(u.rentAmount)}
-        </p>
-        <p className="text-[11.5px] text-ink-muted">
-          /{u.rentPeriod ?? "annually"}
-        </p>
+      <div className="flex items-center justify-between gap-3 sm:shrink-0 sm:justify-end sm:gap-4">
+        <div className="shrink-0 text-right">
+          <p className="whitespace-nowrap text-[13.5px] font-semibold text-foundation-700">
+            {formatNgn(u.rentAmount)}
+          </p>
+          <p className="whitespace-nowrap text-[11.5px] text-ink-muted">
+            /{u.rentPeriod ?? "annually"}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {!u.isOccupied && (
+            <Link
+              href="/app/tenants/new"
+              className="whitespace-nowrap rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <UserPlus className="mr-1 inline h-3 w-3" /> Assign
+            </Link>
+          )}
+          {u.isOccupied && (
+            <Link
+              href="/app/invoices/new"
+              className="whitespace-nowrap rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <Receipt className="mr-1 inline h-3 w-3" /> Invoice
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Edit unit"
+            aria-label="Edit unit"
+            className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-foundation-700 transition hover:bg-foundation-700/5"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={u.isOccupied}
+            title={u.isOccupied ? "Move out the tenant before deleting this unit" : "Delete unit"}
+            aria-label="Delete unit"
+            className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-ink-muted transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
-      {!u.isOccupied && (
-        <Link
-          href="/app/tenants/new"
-          className="rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-        >
-          <UserPlus className="mr-1 inline h-3 w-3" /> Assign
-        </Link>
-      )}
-      {u.isOccupied && (
-        <Link
-          href="/app/invoices/new"
-          className="rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-        >
-          <Receipt className="mr-1 inline h-3 w-3" /> Invoice
-        </Link>
-      )}
-      <button
-        type="button"
-        onClick={onEdit}
-        title="Edit unit"
-        aria-label="Edit unit"
-        className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-foundation-700 transition hover:bg-foundation-700/5"
-      >
-        <Pencil className="h-3.5 w-3.5" />
-      </button>
-      <button
-        type="button"
-        onClick={onDelete}
-        disabled={u.isOccupied}
-        title={u.isOccupied ? "Move out the tenant before deleting this unit" : "Delete unit"}
-        aria-label="Delete unit"
-        className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-ink-muted transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
     </div>
   );
 }
