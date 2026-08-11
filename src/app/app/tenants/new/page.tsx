@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
@@ -61,11 +61,16 @@ function endDateForFrequency(
   // if the day-of-month drifted, snap back to the last day of the intended
   // month.
   if (d.getDate() !== day) d.setDate(0);
+  // A term ends the day BEFORE the next period begins: a 1-year lease from
+  // 20/10/2025 ends 19/10/2026, not 20/10/2026. Step back one day (JS rolls
+  // the 1st back to the last day of the prior month).
+  d.setDate(d.getDate() - 1);
   return d.toISOString().slice(0, 10);
 }
 
-export default function NewTenantPage() {
+function NewTenantPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const toast = useToast();
   const properties = useQuery({
@@ -73,8 +78,15 @@ export default function NewTenantPage() {
     queryFn: () => landlordApi.listProperties(),
   });
 
-  const [propertyId, setPropertyId] = useState<string>("");
-  const [unitId, setUnitId] = useState<string>("");
+  // Arriving from a specific unit's "Assign" button (property detail page)
+  // carries the property + unit in the URL so the landlord doesn't have to
+  // pick them again, fields stay editable in case the wrong unit was clicked.
+  const [propertyId, setPropertyId] = useState<string>(
+    () => searchParams.get("propertyId") ?? ""
+  );
+  const [unitId, setUnitId] = useState<string>(
+    () => searchParams.get("unitId") ?? ""
+  );
 
   const vacantUnits = useQuery({
     queryKey: ["vacant-units", propertyId],
@@ -112,10 +124,18 @@ export default function NewTenantPage() {
   // Payment recorded at assign time.
   const [activateImmediately, setActivateImmediately] = useState(false);
   const [paidItems, setPaidItems] = useState<Set<PaidFeeKey>>(new Set());
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
+  // Payment date follows the lease start date until the landlord edits it.
   const [paymentDate, setPaymentDate] = useState(
     new Date().toISOString().slice(0, 10)
   );
+  const [paymentDateTouched, setPaymentDateTouched] = useState(false);
+
+  // Keep the payment date in sync with the lease start date until the landlord
+  // manually edits it.
+  useEffect(() => {
+    if (!paymentDateTouched) setPaymentDate(leaseStartDate);
+  }, [leaseStartDate, paymentDateTouched]);
 
   // When the chosen unit changes, prefill rent + any default fees from the unit.
   useEffect(() => {
@@ -282,11 +302,25 @@ export default function NewTenantPage() {
                     ]}
                   />
                 </Field>
-                {propertyId && (vacantUnits.data?.length ?? 0) === 0 && !vacantUnits.isLoading && (
-                  <p className="text-[12.5px] text-ink-muted">
-                    No vacant units in this property.
-                  </p>
+                {propertyId && vacantUnits.isError && (
+                  <ErrorBox
+                    title="Couldn't load vacant units"
+                    message={
+                      (vacantUnits.error as AxiosError<{ message?: string }>)
+                        .response?.data?.message ??
+                      (vacantUnits.error as Error).message
+                    }
+                    onRetry={() => vacantUnits.refetch()}
+                  />
                 )}
+                {propertyId &&
+                  !vacantUnits.isError &&
+                  (vacantUnits.data?.length ?? 0) === 0 &&
+                  !vacantUnits.isLoading && (
+                    <p className="text-[12.5px] text-ink-muted">
+                      No vacant units in this property.
+                    </p>
+                  )}
               </>
             )}
           </Card>
@@ -481,7 +515,10 @@ export default function NewTenantPage() {
                       <Field label="Payment date">
                         <Input
                           value={paymentDate}
-                          onChange={setPaymentDate}
+                          onChange={(v) => {
+                            setPaymentDate(v);
+                            setPaymentDateTouched(true);
+                          }}
                           type="date"
                         />
                       </Field>
@@ -522,6 +559,14 @@ export default function NewTenantPage() {
         </form>
       </PageContainer>
     </>
+  );
+}
+
+export default function NewTenantPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-paper" />}>
+      <NewTenantPageInner />
+    </Suspense>
   );
 }
 

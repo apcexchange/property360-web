@@ -8,6 +8,7 @@ import { Check, ExternalLink, AlertTriangle } from "lucide-react";
 import { Tier } from "@/components/marketing/pricingTiers"
 import { TIERS } from "@/components/marketing/pricingTiers";
 import { IntervalToggle } from "@/components/marketing/IntervalToggle";
+import { AppTopbar } from "@/components/app/Topbar";
 import { BrandLoader } from "@/components/ui/BrandLoader";
 import {
   billingApi,
@@ -154,61 +155,69 @@ export default function BillingPage() {
   }
 
   if (loading) {
-    return <BrandLoader />;
+    return (
+      <>
+        <AppTopbar title="Subscription" subtitle="Manage your Property360 plan" />
+        <BrandLoader fullScreen={false} />
+      </>
+    );
   }
 
   // Tenants end up here if they somehow logged in, show a polite block.
   // (Landlords and property managers both have plans; only tenants don't.)
   if (sub && !sub.applicable) {
     return (
-      <div className="mx-auto max-w-3xl px-6 pt-16 pb-24 text-foundation-700">
-        <p className="eyebrow">Billing</p>
-        <h1 className="mt-3 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-          Subscriptions are for property owners and managers.
-        </h1>
-        <p className="mt-3 text-[15px] text-ink-muted">
-          You&apos;re signed in as a {sub.role}. Tenants don&apos;t have
-          subscriptions on Property360.
-        </p>
-        <Link
-          href="/app/dashboard"
-          className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-6 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
-        >
-          Back to dashboard →
-        </Link>
-      </div>
+      <>
+        <AppTopbar title="Subscription" subtitle="Manage your Property360 plan" />
+        <div className="mx-auto max-w-3xl px-6 pt-12 pb-24 text-foundation-700">
+          <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">
+            Subscriptions are for property owners and managers.
+          </h1>
+          <p className="mt-3 text-[15px] text-ink-muted">
+            You&apos;re signed in as a {sub.role}. Tenants don&apos;t have
+            subscriptions on Property360.
+          </p>
+          <Link
+            href="/app/dashboard"
+            className="mt-8 inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-6 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
+          >
+            Back to dashboard →
+          </Link>
+        </div>
+      </>
     );
   }
 
   if (!sub || loadError) {
     return (
-      <LoadErrorScreen
-        error={loadError}
-        apiUrl={API_BASE_URL}
-        onRetry={() => void load()}
-        onSignOut={signOut}
-      />
+      <>
+        <AppTopbar title="Subscription" subtitle="Manage your Property360 plan" />
+        <LoadErrorScreen
+          error={loadError}
+          apiUrl={API_BASE_URL}
+          onRetry={() => void load()}
+          onSignOut={signOut}
+        />
+      </>
     );
   }
 
   return (
-    <div className="text-foundation-700">
-      <section className="mx-auto max-w-6xl px-6 pt-10 pb-12">
-        <p className="eyebrow">Billing</p>
-        <h1 className="mt-3 font-display text-[clamp(1.75rem,4vw,2.75rem)] font-extrabold leading-[1.1] tracking-[-0.02em]">
-          Your plan
-        </h1>
-        <p className="mt-3 text-[15px] text-ink-muted">
-          Manage your Property360 subscription. Payments are processed by Paystack.
-        </p>
+    <>
+      <AppTopbar
+        title="Subscription"
+        subtitle="Manage your Property360 plan · payments processed by Paystack"
+      />
+      <div className="pt-8 text-foundation-700">
         {actionError && (
-          <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] text-red-700">
-            {actionError}
-          </p>
+          <section className="mx-auto max-w-6xl px-6 pb-2">
+            <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13.5px] text-red-700">
+              {actionError}
+            </p>
+          </section>
         )}
-      </section>
 
-      <CurrentPlanCard sub={sub} onCancelClick={() => setCancelOpen(true)} />
+        <CurrentPlanCard sub={sub} onCancelClick={() => setCancelOpen(true)} />
 
       {foundingStatus?.enabled &&
         foundingStatus.remaining > 0 &&
@@ -267,7 +276,8 @@ export default function BillingPage() {
           renewsAt={sub.renewsAt}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

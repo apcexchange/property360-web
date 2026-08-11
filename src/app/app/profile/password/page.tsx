@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import { PageContainer, Card, ErrorBox } from "@/components/app/ui";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { landlordApi } from "@/lib/landlord-api";
 
 export default function ChangePasswordPage() {
@@ -125,12 +126,21 @@ function Input({
   onChange: (v: string) => void;
   type?: "text" | "password";
 }) {
+  if (type === "password") {
+    return (
+      <PasswordInput
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoComplete="new-password"
+        className="w-full rounded-xl border border-foundation-700/15 bg-paper pl-3.5 pr-10 py-2.5 text-[14px] text-foundation-700"
+      />
+    );
+  }
   return (
     <input
       type={type}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      autoComplete={type === "password" ? "new-password" : undefined}
       className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
     />
   );
