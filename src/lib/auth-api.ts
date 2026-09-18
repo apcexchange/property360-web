@@ -110,10 +110,8 @@ export const authApi = {
     return data.user;
   },
 
-  /**
-   * Send a phone-verification OTP. WhatsApp-first by default; the backend
-   * ladder may fall back to SMS. Returns the channel that actually delivered.
-   */
+  /** Send the phone OTP. WhatsApp-first; the backend may fall back to SMS
+   *  and reports what actually happened via channelUsed. */
   async sendPhoneVerification(
     channel: "whatsapp" | "sms" = "whatsapp"
   ): Promise<{ channelUsed: "whatsapp" | "sms" }> {

@@ -14,6 +14,7 @@ import {
   ScrollText,
   ExternalLink,
   MessageSquare,
+  Pencil,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -42,6 +43,7 @@ import {
 } from "@/lib/landlord-api";
 import { RequestTenantProfileModal } from "@/components/app/RequestTenantProfileModal";
 import { EditTenantProfileForm } from "@/components/app/EditTenantProfileForm";
+import { EditTenantIdentityForm } from "@/components/app/EditTenantIdentityForm";
 import { useToast } from "@/components/ui/Toast";
 import { PageErrorBoundary } from "@/components/app/PageErrorBoundary";
 import { NIGERIA_STATES } from "@/lib/nigeria-locations";
@@ -363,6 +365,7 @@ function TenantProfileSection({
 }) {
   const [showRequest, setShowRequest] = useState(false);
   const [showFill, setShowFill] = useState(false);
+  const [showEditIdentity, setShowEditIdentity] = useState(false);
   const toast = useToast();
   const qc = useQueryClient();
   const pending = requests.find((r) => r.status === "pending") ?? null;
@@ -467,9 +470,19 @@ function TenantProfileSection({
               </div>
             )}
             <div className="flex-1">
-              <p className="font-display text-[18px] font-bold text-foundation-700">
-                {profile.firstName} {profile.lastName}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-display text-[18px] font-bold text-foundation-700">
+                  {profile.firstName} {profile.lastName}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowEditIdentity(true)}
+                  aria-label="Edit tenant name, email, or phone"
+                  className="grid h-6 w-6 place-items-center rounded-full text-ink-muted transition hover:bg-foundation-700/5 hover:text-foundation-700"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              </div>
               <p className="text-[12.5px] text-ink-muted">
                 {profile.email}
                 {profile.phone ? ` · ${profile.phone}` : ""}
@@ -538,6 +551,13 @@ function TenantProfileSection({
           leaseId={leaseId}
           initial={profile}
           onClose={() => setShowFill(false)}
+        />
+      )}
+      {showEditIdentity && profile && (
+        <EditTenantIdentityForm
+          leaseId={leaseId}
+          initial={profile}
+          onClose={() => setShowEditIdentity(false)}
         />
       )}
     </Card>

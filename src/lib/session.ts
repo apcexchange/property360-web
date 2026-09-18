@@ -16,6 +16,9 @@ export interface AdminUser {
   // can reach the dashboard; phone is optional and prompted in-app.
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  // True only when a verification code was delivered over WhatsApp and
+  // verified. Unlocks the WhatsApp assistant.
+  whatsappVerified?: boolean;
   gender?: "male" | "female" | "other";
   address?: { street?: string; city?: string; state?: string; postalCode?: string };
   kyc?: { status?: "not_started" | "pending" | "verified" | "rejected"; rejectionReason?: string };
@@ -70,11 +73,6 @@ export const session = {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(TOKEN_KEY, token);
     window.localStorage.setItem(USER_KEY, JSON.stringify(user));
-    // Stitch this person's activity in PostHog. Dynamic import so posthog-js is
-    // never pulled into an SSR bundle (this line only runs client-side).
-    void import("./analytics").then((a) =>
-      a.identifyUser(user._id, { role: user.role })
-    );
     notifySession();
   },
   clear() {
@@ -83,7 +81,6 @@ export const session = {
     window.localStorage.removeItem(USER_KEY);
     cachedRaw = null;
     cachedUser = null;
-    void import("./analytics").then((a) => a.resetAnalytics());
     notifySession();
   },
 };

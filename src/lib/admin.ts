@@ -547,28 +547,17 @@ const adminApi = {
     page?: number;
     limit?: number;
   }): Promise<Paginated<AdminSalesLeadRow>> {
-    const res = await api.get<ApiEnvelope<Paginated<AdminSalesLeadRow>>>(
-      "/admin/sales/leads",
-      { params }
-    );
+    const res = await api.get<ApiEnvelope<Paginated<AdminSalesLeadRow>>>("/admin/sales/leads", { params });
     return unwrap(res.data);
   },
 
   async getSalesLead(leadId: string): Promise<AdminSalesLeadDetail> {
-    const res = await api.get<ApiEnvelope<AdminSalesLeadDetail>>(
-      `/admin/sales/leads/${leadId}`
-    );
+    const res = await api.get<ApiEnvelope<AdminSalesLeadDetail>>(`/admin/sales/leads/${leadId}`);
     return unwrap(res.data);
   },
 
-  async updateSalesLead(
-    leadId: string,
-    status: string,
-  ): Promise<AdminSalesLeadRow> {
-    const res = await api.patch<ApiEnvelope<AdminSalesLeadRow>>(
-      `/admin/sales/leads/${leadId}`,
-      { status }
-    );
+  async updateSalesLead(leadId: string, status: string): Promise<AdminSalesLeadRow> {
+    const res = await api.patch<ApiEnvelope<AdminSalesLeadRow>>(`/admin/sales/leads/${leadId}`, { status });
     return unwrap(res.data);
   },
 

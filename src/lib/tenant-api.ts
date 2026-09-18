@@ -356,6 +356,26 @@ function asList<T>(data: unknown): T[] {
   return [];
 }
 
+// Mirrors landlord-api.ts's WalletSummary/WalletTransaction (kept as local
+// duplicates rather than a cross-import, matching this file's existing
+// pattern for shared shapes like Bank/TenantBankAccount below).
+export interface WalletSummary {
+  balance: number;
+  dvaAccountNumber?: string;
+  dvaBankName?: string;
+  dvaProvider?: string;
+  dvaStatus?: "pending" | "active" | "failed";
+  dvaFailureReason?: string;
+}
+
+export interface WalletTransaction {
+  _id: string;
+  type: string;
+  amount: number;
+  description: string;
+  createdAt: string;
+}
+
 // The backend returns each invitation as { leaseId, property, unit, landlord,
 // lease: { startDate, rentAmount, ...fees } }, the lease id is `leaseId` and
 // the lease/fee fields are nested under `lease`. Flatten that into the shape the
@@ -1033,6 +1053,28 @@ export const tenantApi = {
   }): Promise<TenantBankAccount> {
     const res = await api.post("/bank-accounts", body);
     return unwrap(res.data) as TenantBankAccount;
+  },
+
+  // Wallet
+  async getWallet(): Promise<WalletSummary> {
+    const res = await api.get("/wallet");
+    return unwrap(res.data) as WalletSummary;
+  },
+  async getWalletTransactions(): Promise<WalletTransaction[]> {
+    const res = await api.get("/wallet/transactions");
+    return asList<WalletTransaction>(unwrap(res.data));
+  },
+  async payInvoiceFromWallet(invoiceId: string): Promise<{
+    transactionId: string;
+    invoiceNumber: string;
+    amount: number;
+  }> {
+    const res = await api.post("/wallet/pay-invoice", { invoiceId });
+    return unwrap(res.data) as {
+      transactionId: string;
+      invoiceNumber: string;
+      amount: number;
+    };
   },
 };
 

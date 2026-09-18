@@ -65,8 +65,8 @@ export default function DonePage() {
         {role === "landlord"
           ? "Your trial is active. Download the Property360 app to add your first property, invite tenants, and start collecting rent through Paystack."
           : role === "tenant"
-          ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord, all in one place."
-          : "Download the Property360 app. Once a landlord invites you to manage their property, you'll see it under My properties."}
+            ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord, all in one place."
+            : "Download the Property360 app to list and manage your properties  or Once a landlord invites you to manage their property, you'll see it under My properties."}
       </p>
 
       {/* Primary "continue" CTA, registration already created a session, so
@@ -75,9 +75,7 @@ export default function DonePage() {
       <div className="mt-7 flex flex-wrap items-center gap-3">
         <Link
           href={
-            role === "landlord" || role === "agent"
-              ? "/app/dashboard"
-              : "/me"
+            role === "landlord" || role === "agent" ? "/app/dashboard" : "/me"
           }
           className="group inline-flex items-center gap-2 rounded-full bg-foundation-700 px-5 py-3 text-[13.5px] font-semibold text-paper transition hover:bg-foundation-800"
         >
@@ -130,8 +128,8 @@ export default function DonePage() {
                 Signing in next time
               </p>
               <p className="mt-1 text-[13px] text-ink-muted">
-                Use the email or phone below with the password you just
-                created. The same credentials work in the mobile app and on{" "}
+                Use the email or phone below with the password you just created.
+                The same credentials work in the mobile app and on{" "}
                 <Link
                   href="/app/billing"
                   className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"

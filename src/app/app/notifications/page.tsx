@@ -1,7 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -15,6 +16,7 @@ import { landlordApi } from "@/lib/landlord-api";
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
+  const router = useRouter();
   const q = useQuery({
     queryKey: ["notifications"],
     queryFn: () => landlordApi.notifications(),
@@ -29,7 +31,22 @@ export default function NotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
-  const unread = (q.data ?? []).filter((n) => !n.read).length;
+  const isRead = (n: { read?: boolean; isRead?: boolean }) =>
+    n.read === true || n.isRead === true;
+  const paymentReviewHref = (n: {
+    type: string;
+    data?: Record<string, unknown>;
+  }) => {
+    if (
+      n.type === "payment" &&
+      (n.data?.action === "confirm_payment" ||
+        typeof n.data?.transactionId === "string")
+    ) {
+      return "/app/pending-payments";
+    }
+    return null;
+  };
+  const unread = (q.data ?? []).filter((n) => !isRead(n)).length;
 
   return (
     <>
@@ -71,25 +88,32 @@ export default function NotificationsPage() {
           />
         ) : (
           <Card className="divide-y divide-foundation-700/10">
-            {q.data!.map((n) => (
+            {q.data!.map((n) => {
+              const read = isRead(n);
+              const href = paymentReviewHref(n);
+              return (
               <button
                 key={n._id}
                 type="button"
-                onClick={() => !n.read && markRead.mutate(n._id)}
+                onClick={() => {
+                  if (!read) markRead.mutate(n._id);
+                  if (href) router.push(href);
+                }}
                 className={`group block w-full text-left p-4 transition ${
-                  n.read ? "" : "bg-cryola-50/40 hover:bg-cryola-50"
-                }`}
+                  read ? "hover:bg-foundation-700/5" : "bg-cryola-50/40 hover:bg-cryola-50"
+                } ${href ? "cursor-pointer" : ""}`}
+                aria-label={href ? `${n.title}: review payment` : n.title}
               >
                 <div className="flex items-start gap-3">
                   <Bell
                     className={`mt-0.5 h-4 w-4 shrink-0 ${
-                      n.read ? "text-ink-muted" : "text-foundation-700"
+                      read ? "text-ink-muted" : "text-foundation-700"
                     }`}
                   />
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-[14px] ${
-                        n.read
+                        read
                           ? "text-foundation-700"
                           : "font-semibold text-foundation-700"
                       }`}
@@ -97,18 +121,21 @@ export default function NotificationsPage() {
                       {n.title}
                     </p>
                     <p className="mt-0.5 text-[12.5px] text-ink-muted">
-                      {n.body}
+                      {n.body ?? n.message ?? ""}
                     </p>
                     <p className="mt-1 text-[11px] text-ink-muted">
                       {formatDate(n.createdAt)}
                     </p>
                   </div>
-                  {!n.read && (
+                  {href ? (
+                    <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-ink-muted transition group-hover:translate-x-0.5" />
+                  ) : !read ? (
                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-cryola-500" />
-                  )}
+                  ) : null}
                 </div>
               </button>
-            ))}
+              );
+            })}
           </Card>
         )}
       </PageContainer>

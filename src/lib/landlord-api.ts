@@ -321,6 +321,11 @@ export interface WalletSummary {
   totalEarned: number;
   totalPaidOut: number;
   currency: "NGN";
+  dvaAccountNumber?: string;
+  dvaBankName?: string;
+  dvaProvider?: string;
+  dvaStatus?: "pending" | "active" | "failed";
+  dvaFailureReason?: string;
 }
 
 export interface WalletTransaction {
@@ -631,6 +636,14 @@ export interface TenantProfileRequest {
   updatedAt: string;
 }
 
+export interface TenantIdentityUpdate {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  whatsappVerified: boolean;
+}
+
 /**
  * Profile fields populated on the tenant's User document, what the
  * landlord's "Tenant profile" card on the lease detail page renders.
@@ -699,10 +712,33 @@ export interface Notification {
   _id: string;
   type: string;
   title: string;
-  body: string;
-  read: boolean;
+  /** The API uses `message`/`isRead`; retain the legacy aliases for callers. */
+  body?: string;
+  message?: string;
+  read?: boolean;
+  isRead?: boolean;
   createdAt: string;
   data?: Record<string, unknown>;
+}
+
+export interface PendingPayment {
+  id: string;
+  amount: number;
+  type: string;
+  description?: string;
+  paymentMethod: string;
+  paymentDate: string;
+  notes?: string;
+  reference?: string;
+  createdAt: string;
+  tenant?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  } | null;
+  property?: { name: string } | null;
+  unit?: { unitNumber: string } | null;
 }
 
 /**
@@ -1227,6 +1263,9 @@ export const landlordApi = {
     return unwrap(res.data) as Invoice;
   },
   async createInvoice(body: {
+    tenantId: string;
+    propertyId: string;
+    unitId?: string;
     leaseId: string;
     lineItems: Array<{ description: string; quantity: number; rate: number }>;
     dueDate: string;
@@ -1647,6 +1686,28 @@ export const landlordApi = {
     return unwrap(res.data) as TenantProfileSnapshot;
   },
 
+  /**
+   * Direct landlord/agent edit of the tenant's core identity fields
+   * (name/email/phone). Distinct from fillTenantProfile, which only
+   * covers KYC-adjacent fields. Any subset of the four fields is fine,
+   * partial update.
+   */
+  async updateTenantIdentity(
+    leaseId: string,
+    payload: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+    }
+  ): Promise<TenantIdentityUpdate> {
+    const res = await api.put(
+      `/tenants/lease/${leaseId}/tenant-identity`,
+      payload
+    );
+    return unwrap(res.data) as TenantIdentityUpdate;
+  },
+
   // Agreement templates
   async listAgreementTemplates(
     propertyId?: string
@@ -1788,6 +1849,21 @@ export const landlordApi = {
   },
   async markAllNotificationsRead(): Promise<void> {
     await api.patch("/notifications/read-all");
+  },
+
+  // Payments a tenant has marked as paid and which still need confirmation.
+  async pendingPayments(): Promise<PendingPayment[]> {
+    const res = await api.get("/tenants/payments/pending");
+    return asList<PendingPayment>(unwrap(res.data));
+  },
+  async confirmPendingPayment(transactionId: string): Promise<void> {
+    await api.post(`/tenants/payments/${transactionId}/confirm`);
+  },
+  async rejectPendingPayment(
+    transactionId: string,
+    reason?: string
+  ): Promise<void> {
+    await api.post(`/tenants/payments/${transactionId}/reject`, { reason });
   },
 
   // Chat
