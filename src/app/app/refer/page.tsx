@@ -19,6 +19,7 @@ import {
   ErrorBox,
 } from "@/components/app/ui";
 import { landlordApi } from "@/lib/landlord-api";
+import partnerApi from "@/lib/partner-api";
 import { useToast } from "@/components/ui/Toast";
 
 export default function ReferPage() {
@@ -28,6 +29,11 @@ export default function ReferPage() {
   const q = useQuery({
     queryKey: ["referrals", "me"],
     queryFn: () => landlordApi.getMyReferral(),
+  });
+
+  const partner = useQuery({
+    queryKey: ["partner", "me"],
+    queryFn: () => partnerApi.getMyPartner(),
   });
 
   async function copyShareUrl() {
@@ -177,6 +183,35 @@ export default function ReferPage() {
                 hint={`${q.data.bonusDaysPerSide} days per paid referral`}
               />
             </div>
+
+            {/* Partner earnings, only rendered for landlords who also own a partner code */}
+            {partner.data?.isPartner && (
+              <div className="space-y-3">
+                <h2 className="font-display text-lg font-extrabold text-foundation-700">
+                  Partner earnings
+                </h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <StatCard
+                    icon={Sparkles}
+                    label="Referred signups"
+                    value={partner.data.signups}
+                    hint="Signed up with your partner code"
+                  />
+                  <StatCard
+                    icon={Clock}
+                    label="Paid conversions"
+                    value={partner.data.paidConversions}
+                    hint="Picked a plan, commission credited"
+                  />
+                  <StatCard
+                    icon={Calendar}
+                    label="Total earned (₦)"
+                    value={partner.data.totalEarned}
+                    hint="Credited to your wallet"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* How it works */}
             <Card className="p-6">

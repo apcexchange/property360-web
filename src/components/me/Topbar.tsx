@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogOut, ChevronDown, User } from "lucide-react";
+import { LogOut, ChevronDown, User, Menu } from "lucide-react";
 import { session } from "@/lib/session";
+import { getOverallVerification } from "@/lib/verification-status";
+import { StatusPill } from "@/components/app/ui";
+import { useSidebar } from "@/components/app/SidebarContext";
 
 interface Props {
   title: string;
@@ -17,9 +20,11 @@ interface Props {
  */
 export function TenantTopbar({ title, subtitle, actions }: Props) {
   const router = useRouter();
+  const { toggle: toggleSidebar } = useSidebar();
   const [menuOpen, setMenuOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const user = session.getUser();
+  // Subscribe to session changes so the badge stays in sync live.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -40,13 +45,23 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
   return (
     <header className="sticky top-0 z-30 border-b border-foundation-700/10 bg-paper/95 backdrop-blur">
       <div className="flex items-center justify-between gap-4 px-6 py-4">
-        <div className="min-w-0">
-          <h1 className="truncate font-display text-[22px] font-extrabold tracking-[-0.01em] text-foundation-700">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="mt-0.5 truncate text-[13px] text-ink-muted">{subtitle}</p>
-          )}
+        <div className="flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label="Open menu"
+            className="-ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-full border border-foundation-700/10 bg-surface text-foundation-700 transition hover:bg-foundation-700/5 lg:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-[22px] font-extrabold tracking-[-0.01em] text-foundation-700">
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="mt-0.5 truncate text-[13px] text-ink-muted">{subtitle}</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {actions}
@@ -62,6 +77,11 @@ export function TenantTopbar({ title, subtitle, actions }: Props) {
               <span className="hidden max-w-[160px] truncate sm:inline">
                 {user?.firstName ?? user?.email ?? "Account"}
               </span>
+              {user && getOverallVerification(user).isVerified && (
+                <span className="hidden sm:inline-flex">
+                  <StatusPill label="Verified" tone="good" />
+                </span>
+              )}
               <ChevronDown className="h-4 w-4 text-ink-muted" />
             </button>
             {menuOpen && (

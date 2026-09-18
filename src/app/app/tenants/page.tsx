@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { UserPlus, Phone, Mail, Building2 } from "lucide-react";
+import { UserPlus, Phone, Mail, Building2, Search, X } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -26,6 +26,7 @@ export default function TenantsPage() {
     queryFn: () => landlordApi.getOccupiedUnits({ includePending: true }),
   });
   const [propertyId, setPropertyId] = useState("");
+  const [search, setSearch] = useState("");
 
   const propertyOptions = useMemo(() => {
     const seen = new Map<string, string>();
@@ -37,9 +38,21 @@ export default function TenantsPage() {
     return Array.from(seen, ([id, name]) => ({ id, name }));
   }, [q.data]);
 
-  const filtered = propertyId
-    ? (q.data ?? []).filter((r) => r.property?.id === propertyId)
-    : q.data ?? [];
+  const filtered = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    return (q.data ?? []).filter((row) => {
+      if (propertyId && row.property?.id !== propertyId) return false;
+      if (!query) return true;
+      return [
+        row.tenant.firstName,
+        row.tenant.lastName,
+        row.tenant.email,
+        row.tenant.phone,
+        row.property.name,
+        row.unit.unitNumber,
+      ].some((value) => value?.toLocaleLowerCase().includes(query));
+    });
+  }, [propertyId, q.data, search]);
 
   return (
     <>
@@ -78,33 +91,68 @@ export default function TenantsPage() {
           />
         ) : (
           <>
-            {propertyOptions.length > 1 && (
-              <div className="mb-4 flex items-center gap-3">
-                <Building2 className="h-4 w-4 text-foundation-700" />
-                <select
-                  value={propertyId}
-                  onChange={(e) => setPropertyId(e.target.value)}
-                  className="rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2 text-[13.5px] text-foundation-700"
-                >
-                  <option value="">All properties · {q.data!.length}</option>
-                  {propertyOptions.map((p) => {
-                    const count = q.data!.filter(
-                      (r) => r.property?.id === p.id
-                    ).length;
-                    return (
-                      <option key={p.id} value={p.id}>
-                        {p.name} · {count}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            )}
+            <div className="mb-4 space-y-3">
+              <label className="relative block">
+                <span className="sr-only">Search tenants</span>
+                <Search
+                  aria-hidden
+                  className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted"
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search by tenant, email, phone, property or unit"
+                  className="w-full rounded-xl border border-foundation-700/15 bg-paper py-2.5 pl-10 pr-10 text-[13.5px] text-foundation-700 outline-none transition placeholder:text-ink-muted/70 focus:border-foundation-700/40 focus:ring-2 focus:ring-foundation-700/10"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    aria-label="Clear tenant search"
+                    className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-ink-muted transition hover:bg-foundation-700/5 hover:text-foundation-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </label>
+              {propertyOptions.length > 1 && (
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-4 w-4 shrink-0 text-foundation-700" />
+                  <select
+                    value={propertyId}
+                    onChange={(e) => setPropertyId(e.target.value)}
+                    className="min-w-0 flex-1 rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2 text-[13.5px] text-foundation-700 sm:flex-none"
+                  >
+                    <option value="">All properties · {q.data!.length}</option>
+                    {propertyOptions.map((p) => {
+                      const count = q.data!.filter(
+                        (r) => r.property?.id === p.id
+                      ).length;
+                      return (
+                        <option key={p.id} value={p.id}>
+                          {p.name} · {count}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+              {search && (
+                <p className="text-[12px] text-ink-muted" aria-live="polite">
+                  {filtered.length} tenant{filtered.length === 1 ? "" : "s"} found
+                </p>
+              )}
+            </div>
             {filtered.length === 0 ? (
               <EmptyState
-                title="No tenants in this property"
-                body="Pick a different property or add a tenant to a vacant unit."
-                cta={{ label: "Add tenant", href: "/app/tenants/new" }}
+                title={search ? "No matching tenants" : "No tenants in this property"}
+                body={
+                  search
+                    ? "Try a tenant name, email address, phone number, property, or unit."
+                    : "Pick a different property or add a tenant to a vacant unit."
+                }
+                cta={search ? undefined : { label: "Add tenant", href: "/app/tenants/new" }}
               />
             ) : (
           <Card className="divide-y divide-foundation-700/10">

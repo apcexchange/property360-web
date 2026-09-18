@@ -282,11 +282,25 @@ export default function NewTenantPage() {
                     ]}
                   />
                 </Field>
-                {propertyId && (vacantUnits.data?.length ?? 0) === 0 && !vacantUnits.isLoading && (
-                  <p className="text-[12.5px] text-ink-muted">
-                    No vacant units in this property.
-                  </p>
+                {propertyId && vacantUnits.isError && (
+                  <ErrorBox
+                    title="Couldn't load vacant units"
+                    message={
+                      (vacantUnits.error as AxiosError<{ message?: string }>)
+                        .response?.data?.message ??
+                      (vacantUnits.error as Error).message
+                    }
+                    onRetry={() => vacantUnits.refetch()}
+                  />
                 )}
+                {propertyId &&
+                  !vacantUnits.isError &&
+                  (vacantUnits.data?.length ?? 0) === 0 &&
+                  !vacantUnits.isLoading && (
+                    <p className="text-[12.5px] text-ink-muted">
+                      No vacant units in this property.
+                    </p>
+                  )}
               </>
             )}
           </Card>

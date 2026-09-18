@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import adminApi from "@/lib/admin";
 import { AxiosError } from "axios";
 
@@ -113,12 +114,12 @@ export default function AdminLoginPage() {
             </Field>
 
             <Field label="Password">
-              <input
-                type="password"
+              <PasswordInput
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full border-0 border-b border-rule-strong bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700"
+                className="block w-full border-0 border-b border-rule-strong bg-transparent pl-0 pr-7 py-2.5 text-[15px] text-ink outline-none transition placeholder:text-ink-faint focus:border-foundation-700"
+                toggleClassName="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center text-ink-faint transition hover:text-ink-muted"
                 placeholder="••••••••"
               />
             </Field>

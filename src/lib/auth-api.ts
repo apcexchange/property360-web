@@ -48,6 +48,24 @@ export const authApi = {
     return data;
   },
 
+  /**
+   * Redeem a single-use set-password token (from the email sent after WhatsApp
+   * registration). On success the backend sets the password and returns a
+   * normal auth response, so we sign the user straight in.
+   */
+  async redeemPasswordSetup(
+    token: string,
+    password: string
+  ): Promise<AuthResponse> {
+    const res = await api.post("/auth/set-password/redeem", { token, password });
+    const data = unwrap(res.data) as AuthResponse;
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Set password failed: unexpected response.");
+    }
+    session.set(data.accessToken, data.user);
+    return data;
+  },
+
   /** Send an OTP to the user's phone or email. */
   async sendOtp(type: "phone" | "email", value: string): Promise<void> {
     await api.post("/auth/otp/send", { type, value });
@@ -90,9 +108,14 @@ export const authApi = {
     return data.user;
   },
 
-  /** Send an SMS OTP to the signed-in user's phone (in-app phone-verify modal). */
-  async sendPhoneVerification(): Promise<void> {
-    await api.post("/auth/phone/send-verification");
+  /** Send the phone OTP. WhatsApp-first; the backend may fall back to SMS
+   *  and reports what actually happened via channelUsed. */
+  async sendPhoneVerification(
+    channel: "whatsapp" | "sms" = "whatsapp"
+  ): Promise<{ channelUsed: "whatsapp" | "sms" }> {
+    const res = await api.post("/auth/phone/send-verification", { channel });
+    const data = unwrap(res.data) as { channelUsed?: "whatsapp" | "sms" };
+    return { channelUsed: data?.channelUsed ?? channel };
   },
 
   /** Verify the SMS code; on success flips phoneVerified=true on the user. */
@@ -105,5 +128,37 @@ export const authApi = {
     const token = session.getToken();
     if (token) session.set(token, data.user);
     return data.user;
+  },
+
+  /**
+   * Forgot-password step 1: ask the backend to email a 6-digit reset code.
+   * Always resolves — the backend does not reveal whether the email exists.
+   */
+  async requestPasswordReset(email: string): Promise<void> {
+    await api.post("/auth/password/reset", { email });
+  },
+
+  /**
+   * Forgot-password step 2: exchange the emailed code for a new password.
+   * Rejects (HTTP 400) if the code is wrong or expired.
+   */
+  async confirmPasswordReset(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
+    await api.post("/auth/password/reset/confirm", {
+      email,
+      otp,
+      newPassword,
+    });
+  },
+
+  /** Change the currently signed-in user's password. */
+  async changePassword(
+    currentPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    await api.post("/auth/change-password", { currentPassword, newPassword });
   },
 };

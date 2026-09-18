@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { SmartsuppChat } from "@/components/SmartsuppChat";
+import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
@@ -102,8 +102,10 @@ const jsonLd = {
       logo: `${SITE_URL}/icon.png`,
       address: {
         "@type": "PostalAddress",
-        addressCountry: "NG",
+        streetAddress: "GM Mall, KM 46 Lekki-Epe Expressway, opposite SBI Hotel, Sangotedo",
         addressLocality: "Lagos",
+        addressRegion: "Lagos",
+        addressCountry: "NG",
       },
       contactPoint: [
         {
@@ -147,7 +149,7 @@ export default function RootLayout({
         <ChunkErrorReloader />
         <ToastProvider>{children}</ToastProvider>
         <Analytics />
-        <SmartsuppChat />
+        <SalesChatWidget />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

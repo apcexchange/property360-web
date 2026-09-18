@@ -97,10 +97,10 @@ export default function ContactPage() {
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-4 w-4 text-foundation-700" />
             <div>
-              <p className="text-[14px] font-semibold text-foundation-700">Lagos, Nigeria</p>
+              <p className="text-[14px] font-semibold text-foundation-700">Our office</p>
               <p className="mt-1 text-[13.5px] text-ink-muted">
-                We&apos;re a remote-first team headquartered in Lagos. For meetings,
-                please email ahead.
+                GM Mall, KM 46 Lekki-Epe Expressway, opposite SBI Hotel,
+                Sangotedo, Lagos. Please email ahead to arrange a meeting.
               </p>
             </div>
           </div>

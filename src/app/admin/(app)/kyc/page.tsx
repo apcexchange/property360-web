@@ -82,21 +82,50 @@ export default function AdminKycPage() {
               },
               { key: "status", header: "Status", render: (r) => <StatusBadge value={r.kyc?.status} /> },
               {
+                key: "images",
+                header: "ID / selfie",
+                render: (r) => (
+                  <div className="flex items-center gap-2">
+                    {r.kyc?.document?.imageSignedUrl && (
+                      <a
+                        href={r.kyc.document.imageSignedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Open ID document"
+                      >
+                        <img
+                          src={r.kyc.document.imageSignedUrl}
+                          alt="ID document"
+                          className="h-12 w-12 rounded-md border border-border object-cover"
+                        />
+                      </a>
+                    )}
+                    {r.kyc?.selfieSignedUrl && (
+                      <a
+                        href={r.kyc.selfieSignedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="Open selfie"
+                      >
+                        <img
+                          src={r.kyc.selfieSignedUrl}
+                          alt="Selfie"
+                          className="h-12 w-12 rounded-full border border-border object-cover"
+                        />
+                      </a>
+                    )}
+                    {!r.kyc?.document?.imageSignedUrl && !r.kyc?.selfieSignedUrl && (
+                      <span className="text-xs text-ink-muted">None</span>
+                    )}
+                  </div>
+                ),
+              },
+              {
                 key: "actions",
                 header: "",
                 className: "text-right",
                 render: (r) => (
                   <div className="flex justify-end gap-2">
-                    {r.kyc?.document?.imageUrl && (
-                      <a
-                        href={r.kyc.document.imageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foundation-700 hover:bg-canvas"
-                      >
-                        View doc
-                      </a>
-                    )}
                     <Button
                       size="sm"
                       variant="success"

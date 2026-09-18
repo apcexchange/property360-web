@@ -636,6 +636,14 @@ export interface TenantProfileRequest {
   updatedAt: string;
 }
 
+export interface TenantIdentityUpdate {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  whatsappVerified: boolean;
+}
+
 /**
  * Profile fields populated on the tenant's User document, what the
  * landlord's "Tenant profile" card on the lease detail page renders.
@@ -704,10 +712,33 @@ export interface Notification {
   _id: string;
   type: string;
   title: string;
-  body: string;
-  read: boolean;
+  /** The API uses `message`/`isRead`; retain the legacy aliases for callers. */
+  body?: string;
+  message?: string;
+  read?: boolean;
+  isRead?: boolean;
   createdAt: string;
   data?: Record<string, unknown>;
+}
+
+export interface PendingPayment {
+  id: string;
+  amount: number;
+  type: string;
+  description?: string;
+  paymentMethod: string;
+  paymentDate: string;
+  notes?: string;
+  reference?: string;
+  createdAt: string;
+  tenant?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatar?: string;
+  } | null;
+  property?: { name: string } | null;
+  unit?: { unitNumber: string } | null;
 }
 
 /**
@@ -784,13 +815,15 @@ export interface SharedBill {
 export type KycStatus =
   | "not_started"
   | "pending"
-  | "approved"
+  | "verified"
   | "rejected";
 
 export interface KycSummary {
-  selfieStatus: KycStatus;
-  documentStatus: KycStatus;
-  overallStatus: KycStatus;
+  status: KycStatus;
+  selfieUploaded: boolean;
+  documentUploaded: boolean;
+  selfieUrl?: string;
+  document?: { type?: string; number?: string; imageUrl?: string };
 }
 
 export interface UserProfile {
@@ -801,6 +834,8 @@ export interface UserProfile {
   phone?: string;
   role: "landlord" | "tenant" | "agent";
   avatar?: string;
+  gender?: "male" | "female" | "other";
+  address?: { street?: string; city?: string; state?: string; postalCode?: string };
 }
 
 export type AgentPermissions = {
@@ -1193,6 +1228,9 @@ export const landlordApi = {
     return unwrap(res.data) as Invoice;
   },
   async createInvoice(body: {
+    tenantId: string;
+    propertyId: string;
+    unitId?: string;
     leaseId: string;
     lineItems: Array<{ description: string; quantity: number; rate: number }>;
     dueDate: string;
@@ -1613,6 +1651,28 @@ export const landlordApi = {
     return unwrap(res.data) as TenantProfileSnapshot;
   },
 
+  /**
+   * Direct landlord/agent edit of the tenant's core identity fields
+   * (name/email/phone). Distinct from fillTenantProfile, which only
+   * covers KYC-adjacent fields. Any subset of the four fields is fine,
+   * partial update.
+   */
+  async updateTenantIdentity(
+    leaseId: string,
+    payload: {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      phone?: string;
+    }
+  ): Promise<TenantIdentityUpdate> {
+    const res = await api.put(
+      `/tenants/lease/${leaseId}/tenant-identity`,
+      payload
+    );
+    return unwrap(res.data) as TenantIdentityUpdate;
+  },
+
   // Agreement templates
   async listAgreementTemplates(
     propertyId?: string
@@ -1756,6 +1816,21 @@ export const landlordApi = {
     await api.patch("/notifications/read-all");
   },
 
+  // Payments a tenant has marked as paid and which still need confirmation.
+  async pendingPayments(): Promise<PendingPayment[]> {
+    const res = await api.get("/tenants/payments/pending");
+    return asList<PendingPayment>(unwrap(res.data));
+  },
+  async confirmPendingPayment(transactionId: string): Promise<void> {
+    await api.post(`/tenants/payments/${transactionId}/confirm`);
+  },
+  async rejectPendingPayment(
+    transactionId: string,
+    reason?: string
+  ): Promise<void> {
+    await api.post(`/tenants/payments/${transactionId}/reject`, { reason });
+  },
+
   // Chat
   async chatConversations(): Promise<ChatConversation[]> {
     const res = await api.get("/chat/conversations");
@@ -1809,6 +1884,8 @@ export const landlordApi = {
     email: string;
     phone: string;
     avatar: string;
+    gender: "male" | "female" | "other";
+    address: { street?: string; city?: string; state?: string; postalCode?: string };
   }>): Promise<UserProfile> {
     const res = await api.put("/auth/profile", body);
     return unwrap(res.data) as UserProfile;
@@ -1866,21 +1943,27 @@ export const landlordApi = {
   },
   async uploadKycSelfie(file: File): Promise<KycSummary> {
     const form = new FormData();
-    form.append("file", file);
+    form.append("selfie", file); // backend: upload.single('selfie')
     const res = await api.post("/kyc/selfie", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return unwrap(res.data) as KycSummary;
   },
-  async uploadKycDocument(
-    file: File,
-    type: string,
-    documentNumber: string
-  ): Promise<KycSummary> {
+  async uploadKycDocument(args: {
+    file: File;
+    type: string;
+    documentNumber: string;
+    consent: boolean;
+    gender?: string;
+    address?: { street?: string; city?: string; state?: string; postalCode?: string };
+  }): Promise<KycSummary> {
     const form = new FormData();
-    form.append("file", file);
-    form.append("type", type);
-    form.append("documentNumber", documentNumber);
+    form.append("document", args.file); // backend: upload.single('document')
+    form.append("documentType", args.type); // backend: req.body.documentType
+    form.append("documentNumber", args.documentNumber);
+    form.append("consent", String(args.consent));
+    if (args.gender) form.append("gender", args.gender);
+    if (args.address) form.append("address", JSON.stringify(args.address));
     const res = await api.post("/kyc/document", form, {
       headers: { "Content-Type": "multipart/form-data" },
     });

@@ -4,6 +4,7 @@ import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { OnboardingShell } from "@/components/marketing/OnboardingShell";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { useOnboardingState } from "@/lib/onboarding-state";
 import { authApi } from "@/lib/auth-api";
 import { AxiosError } from "axios";
@@ -227,18 +228,33 @@ function Field({
   placeholder?: string;
   help?: string;
 }) {
+  const inputClassName =
+    "w-full rounded-full border border-foundation-700/15 bg-surface px-4 py-2.5 text-[14.5px] text-foundation-700 outline-none transition focus:border-foundation-700/40";
+
   return (
     <label className="block">
       <span className="eyebrow block text-[10px]">{label}</span>
-      <input
-        type={type}
-        required={required}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-full border border-foundation-700/15 bg-surface px-4 py-2.5 text-[14.5px] text-foundation-700 outline-none transition focus:border-foundation-700/40"
-      />
+      {type === "password" ? (
+        <PasswordInput
+          wrapperClassName="mt-1"
+          required={required}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`${inputClassName} pl-4 pr-11`}
+        />
+      ) : (
+        <input
+          type={type}
+          required={required}
+          autoComplete={autoComplete}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`mt-1 ${inputClassName} px-4`}
+        />
+      )}
       {help && (
         <span className="mt-1 block text-[11.5px] text-ink-muted">{help}</span>
       )}

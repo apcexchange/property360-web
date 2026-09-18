@@ -44,10 +44,17 @@ export default function NewInvoicePage() {
     () => lines.reduce((s, l) => s + l.quantity * l.rate, 0),
     [lines]
   );
+  const selectedLease = tenantsQ.data?.find((row) => row.lease?.id === leaseId);
 
   const create = useMutation({
-    mutationFn: () =>
-      landlordApi.createInvoice({
+    mutationFn: () => {
+      if (!selectedLease?.lease) {
+        throw new Error("Choose a tenant with an active lease before creating an invoice.");
+      }
+      return landlordApi.createInvoice({
+        tenantId: selectedLease.tenant.id,
+        propertyId: selectedLease.property.id,
+        unitId: selectedLease.unit.id,
         leaseId,
         lineItems: lines.map((l) => ({
           description: l.description.trim(),
@@ -56,7 +63,8 @@ export default function NewInvoicePage() {
         })),
         dueDate,
         notes: notes.trim() || undefined,
-      }),
+      });
+    },
     onSuccess: (inv) => {
       router.push(`/app/invoices/${inv._id}`);
     },
@@ -64,12 +72,20 @@ export default function NewInvoicePage() {
 
   const formError = (() => {
     if (!create.isError) return null;
-    const err = create.error as AxiosError<{ message?: string }>;
-    return err.response?.data?.message ?? (err as Error).message;
+    const err = create.error as AxiosError<{
+      message?: string;
+      errors?: Array<{ message?: string }>;
+    }>;
+    return (
+      err.response?.data?.errors?.[0]?.message ??
+      err.response?.data?.message ??
+      (err as Error).message
+    );
   })();
 
   const canSubmit =
     !!leaseId &&
+    !!selectedLease?.lease &&
     lines.length > 0 &&
     lines.every(
       (l) => l.description.trim().length > 0 && l.quantity > 0 && l.rate > 0
