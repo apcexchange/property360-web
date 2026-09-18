@@ -46,7 +46,7 @@ export interface Property {
   updatedAt: string;
 }
 
-export type RentPeriod = "daily" | "monthly" | "annually";
+export type RentPeriod = "daily" | "monthly" | "quarterly" | "annually";
 
 export interface UnitFees {
   securityDeposit?: number;
@@ -1110,6 +1110,41 @@ export const landlordApi = {
     const res = await api.put(`/properties/${id}`, patch);
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
+  },
+
+  async addUnit(
+    propertyId: string,
+    data: {
+      unitNumber: string;
+      bedrooms: number;
+      bathrooms: number;
+      size?: number;
+      rentAmount: number;
+      rentPeriod?: RentPeriod;
+      defaultFees?: UnitFees;
+    }
+  ): Promise<Unit> {
+    const res = await api.post(`/properties/${propertyId}/units`, data);
+    return unwrap(res.data) as Unit;
+  },
+  async updateUnit(
+    propertyId: string,
+    unitId: string,
+    data: Partial<{
+      unitNumber: string;
+      bedrooms: number;
+      bathrooms: number;
+      size?: number;
+      rentAmount: number;
+      rentPeriod: RentPeriod;
+      defaultFees?: UnitFees;
+    }>
+  ): Promise<Unit> {
+    const res = await api.put(`/properties/${propertyId}/units/${unitId}`, data);
+    return unwrap(res.data) as Unit;
+  },
+  async deleteUnit(propertyId: string, unitId: string): Promise<void> {
+    await api.delete(`/properties/${propertyId}/units/${unitId}`);
   },
 
   // Tenants / leases

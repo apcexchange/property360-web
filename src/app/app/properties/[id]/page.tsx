@@ -12,6 +12,8 @@ import {
   FileText,
   Trash2,
   AlertTriangle,
+  Plus,
+  Pencil,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -25,6 +27,7 @@ import {
 } from "@/components/app/ui";
 import { landlordApi, Unit } from "@/lib/landlord-api";
 import { PropertyMediaCard } from "@/components/app/PropertyMedia";
+import { UnitFormModal } from "@/components/app/UnitFormModal";
 import { useToast } from "@/components/ui/Toast";
 
 export default function PropertyDetailPage() {
@@ -34,6 +37,11 @@ export default function PropertyDetailPage() {
   const toast = useToast();
   const [showDelete, setShowDelete] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [unitModal, setUnitModal] = useState<
+    { mode: "add" } | { mode: "edit"; unit: Unit } | null
+  >(null);
+  const [unitToDelete, setUnitToDelete] = useState<Unit | null>(null);
+  const [unitFilter, setUnitFilter] = useState<"all" | "occupied" | "vacant">("all");
   const q = useQuery({
     queryKey: ["properties", id],
     queryFn: () => landlordApi.getProperty(id),
@@ -57,6 +65,24 @@ export default function PropertyDetailPage() {
     },
   });
 
+  const deleteUnitMut = useMutation({
+    mutationFn: (unitId: string) => landlordApi.deleteUnit(id, unitId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["properties", id] });
+      queryClient.invalidateQueries({ queryKey: ["properties"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+      toast.success("Unit deleted");
+      setUnitToDelete(null);
+    },
+    onError: (err) => {
+      const axErr = err as AxiosError<{ message?: string }>;
+      toast.error(
+        axErr.response?.data?.message ??
+          (err instanceof Error ? err.message : "Couldn't delete this unit.")
+      );
+    },
+  });
+
   // Legacy rows can carry a null/empty name; `.trim()` on it would throw and
   // crash the whole page on render. Coerce, and never let an empty name match
   // an empty input (which would silently arm the delete button).
@@ -70,6 +96,9 @@ export default function PropertyDetailPage() {
   const units = q.data?.units ?? [];
 
   const occupiedCount = units.filter((u) => u.isOccupied).length;
+  const filteredUnits = units.filter((u) =>
+    unitFilter === "all" ? true : unitFilter === "occupied" ? u.isOccupied : !u.isOccupied
+  );
 
   return (
     <>
@@ -219,17 +248,48 @@ export default function PropertyDetailPage() {
             </div>
 
             <div className="mt-8">
-              <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-                Units
-              </h2>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                  Units
+                </h2>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={unitFilter}
+                    onChange={(e) =>
+                      setUnitFilter(e.target.value as "all" | "occupied" | "vacant")
+                    }
+                    className="rounded-full border border-foundation-700/15 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700"
+                  >
+                    <option value="all">All · {units.length}</option>
+                    <option value="occupied">Occupied · {occupiedCount}</option>
+                    <option value="vacant">Vacant · {units.length - occupiedCount}</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setUnitModal({ mode: "add" })}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-3 py-1.5 text-[11.5px] font-semibold text-paper transition hover:bg-foundation-800"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> Add unit
+                  </button>
+                </div>
+              </div>
               {units.length === 0 ? (
                 <Card className="p-6 text-center text-[13px] text-ink-muted">
                   No units configured.
                 </Card>
+              ) : filteredUnits.length === 0 ? (
+                <Card className="p-6 text-center text-[13px] text-ink-muted">
+                  No {unitFilter} units.
+                </Card>
               ) : (
                 <Card className="divide-y divide-foundation-700/10">
-                  {units.map((u) => (
-                    <UnitRow key={u._id} u={u} />
+                  {filteredUnits.map((u) => (
+                    <UnitRow
+                      key={u._id}
+                      u={u}
+                      onEdit={() => setUnitModal({ mode: "edit", unit: u })}
+                      onDelete={() => setUnitToDelete(u)}
+                    />
                   ))}
                 </Card>
               )}
@@ -300,13 +360,84 @@ export default function PropertyDetailPage() {
           </div>
         </div>
       )}
+
+      {unitModal && (
+        <UnitFormModal
+          propertyId={id}
+          mode={unitModal.mode}
+          unit={unitModal.mode === "edit" ? unitModal.unit : undefined}
+          suggestedUnitNumber={unitModal.mode === "add" ? `Flat ${units.length + 1}` : undefined}
+          onClose={() => setUnitModal(null)}
+          onSaved={() => {
+            queryClient.invalidateQueries({ queryKey: ["properties", id] });
+            queryClient.invalidateQueries({ queryKey: ["properties"] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", "stats"] });
+            setUnitModal(null);
+          }}
+        />
+      )}
+
+      {unitToDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !deleteUnitMut.isPending && setUnitToDelete(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm overflow-hidden rounded-3xl border border-foundation-700/10 bg-paper shadow-[0_24px_60px_-30px_rgb(15_39_44_/_0.35)]"
+          >
+            <div className="flex items-start gap-3 px-6 pb-4 pt-6">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-100 text-red-700">
+                <AlertTriangle className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-display text-[16px] font-extrabold leading-tight tracking-[-0.01em] text-foundation-700">
+                  Delete {unitToDelete.unitNumber}?
+                </h2>
+                <p className="mt-1 text-[13px] leading-[1.55] text-ink-muted">
+                  This can&apos;t be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-6 pb-6 pt-2">
+              <button
+                type="button"
+                onClick={() => setUnitToDelete(null)}
+                disabled={deleteUnitMut.isPending}
+                className="rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteUnitMut.mutate(unitToDelete._id)}
+                disabled={deleteUnitMut.isPending}
+                className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-[12.5px] font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {deleteUnitMut.isPending ? "Deleting…" : "Delete unit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-function UnitRow({ u }: { u: Unit }) {
+function UnitRow({
+  u,
+  onEdit,
+  onDelete,
+}: {
+  u: Unit;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   return (
-    <div className="flex flex-wrap items-center gap-4 p-4">
+    <div className="flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[14px] font-semibold text-foundation-700">
@@ -322,30 +453,53 @@ function UnitRow({ u }: { u: Unit }) {
           {u.size ? ` · ${u.size}m²` : ""}
         </p>
       </div>
-      <div className="text-right">
-        <p className="text-[13.5px] font-semibold text-foundation-700">
-          {formatNgn(u.rentAmount)}
-        </p>
-        <p className="text-[11.5px] text-ink-muted">
-          /{u.rentPeriod ?? "month"}
-        </p>
+      <div className="flex items-center justify-between gap-3 sm:shrink-0 sm:justify-end sm:gap-4">
+        <div className="shrink-0 text-right">
+          <p className="whitespace-nowrap text-[13.5px] font-semibold text-foundation-700">
+            {formatNgn(u.rentAmount)}
+          </p>
+          <p className="whitespace-nowrap text-[11.5px] text-ink-muted">
+            /{u.rentPeriod ?? "annually"}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {!u.isOccupied && (
+            <Link
+              href={`/app/tenants/new?propertyId=${u.property}&unitId=${u._id}`}
+              className="whitespace-nowrap rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <UserPlus className="mr-1 inline h-3 w-3" /> Assign
+            </Link>
+          )}
+          {u.isOccupied && (
+            <Link
+              href="/app/invoices/new"
+              className="whitespace-nowrap rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <Receipt className="mr-1 inline h-3 w-3" /> Invoice
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={onEdit}
+            title="Edit unit"
+            aria-label="Edit unit"
+            className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-foundation-700 transition hover:bg-foundation-700/5"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={u.isOccupied}
+            title={u.isOccupied ? "Move out the tenant before deleting this unit" : "Delete unit"}
+            aria-label="Delete unit"
+            className="rounded-full border border-foundation-700/10 bg-paper p-1.5 text-ink-muted transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
-      {!u.isOccupied && (
-        <Link
-          href="/app/tenants/new"
-          className="rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-        >
-          <UserPlus className="mr-1 inline h-3 w-3" /> Assign
-        </Link>
-      )}
-      {u.isOccupied && (
-        <Link
-          href="/app/invoices/new"
-          className="rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
-        >
-          <Receipt className="mr-1 inline h-3 w-3" /> Invoice
-        </Link>
-      )}
     </div>
   );
 }

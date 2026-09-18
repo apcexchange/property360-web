@@ -190,6 +190,36 @@ export interface AdminDeletionRequestRow {
   };
 }
 
+export interface AdminSalesLeadRow {
+  _id: string;
+  sessionId: string;
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  role?: string | null;
+  portfolioSize?: string | null;
+  quality?: string | null;
+  status: string;
+  sourcePage?: string | null;
+  attribution?: {
+    source?: string | null;
+    medium?: string | null;
+    campaign?: string | null;
+    content?: string | null;
+    term?: string | null;
+    landingPath?: string | null;
+    referrer?: string | null;
+  } | null;
+  messageCount: number;
+  lastMessageAt?: string | null;
+  createdAt: string;
+}
+
+export interface AdminSalesLeadDetail {
+  lead: AdminSalesLeadRow;
+  messages: { role: "user" | "assistant"; content: string; createdAt: string }[];
+}
+
 export type ReportAction = "message_deleted" | "user_warned" | "user_suspended" | "dismissed";
 
 export interface AdminReportRow {
@@ -262,36 +292,6 @@ export interface AdminKycRow {
     selfieSignedUrl?: string;
   };
   createdAt: string;
-}
-
-export interface AdminSalesLeadRow {
-  _id: string;
-  sessionId: string;
-  name?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  role?: string | null;
-  portfolioSize?: string | null;
-  quality?: string | null;
-  status: string;
-  sourcePage?: string | null;
-  attribution?: {
-    source?: string | null;
-    medium?: string | null;
-    campaign?: string | null;
-    content?: string | null;
-    term?: string | null;
-    landingPath?: string | null;
-    referrer?: string | null;
-  } | null;
-  messageCount: number;
-  lastMessageAt?: string | null;
-  createdAt: string;
-}
-
-export interface AdminSalesLeadDetail {
-  lead: AdminSalesLeadRow;
-  messages: { role: "user" | "assistant"; content: string; createdAt: string }[];
 }
 
 // Row shape returned by GET /admin/partners (owner populated + rollup stats

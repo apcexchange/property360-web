@@ -116,7 +116,7 @@ export default function ReservationDetailPage() {
               {typeof r.unit === "object" && (
                 <p className="mt-1 text-[12.5px] text-ink-muted">
                   {r.unit.bedrooms} bed · {r.unit.bathrooms} bath ·{" "}
-                  {formatNgn(r.unit.rentAmount)}/{r.unit.rentPeriod ?? "year"}
+                  {formatNgn(r.unit.rentAmount)}/{r.unit.rentPeriod ?? "annually"}
                 </p>
               )}
               <p className="mt-2 text-[11.5px] text-ink-muted">
