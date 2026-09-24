@@ -73,6 +73,18 @@ export interface AdminPayoutRow {
   bankAccount?: { _id: string; bankName?: string; accountNumber?: string; accountName?: string };
 }
 
+export interface AdminTenantReferralRow {
+  _id: string;
+  owner: { _id: string; firstName: string; lastName: string; email: string; phone?: string } | null;
+  referee: { _id: string; firstName: string; lastName: string; email: string; role: string } | null;
+  basisAmount: number;
+  rate: number;
+  commissionAmount: number;
+  status: "accrued" | "paid_out" | "reversed";
+  needsReview?: boolean;
+  createdAt: string;
+}
+
 export interface AdminUserDetail {
   user: AdminUserRow & {
     address?: { street?: string; city?: string; state?: string };
@@ -433,6 +445,11 @@ const adminApi = {
     status?: string;
   }): Promise<Paginated<AdminPayoutRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminPayoutRow>>>("/admin/payouts", { params });
+    return unwrap(res.data);
+  },
+
+  async listTenantReferrals(params: { page?: number }): Promise<Paginated<AdminTenantReferralRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminTenantReferralRow>>>("/admin/tenant-referrals", { params });
     return unwrap(res.data);
   },
 
