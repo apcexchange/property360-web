@@ -33,15 +33,17 @@ export default function TenantWalletPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/me/wallet/bank-accounts"
+              aria-label="Bank accounts"
               className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
             >
-              <Landmark className="h-4 w-4" /> Bank accounts
+              <Landmark className="h-4 w-4" /> <span className="hidden sm:inline">Bank accounts</span>
             </Link>
             <Link
               href="/me/wallet/withdraw"
+              aria-label="Withdraw"
               className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
             >
-              <ArrowDownToLine className="h-4 w-4" /> Withdraw
+              <ArrowDownToLine className="h-4 w-4" /> <span className="hidden sm:inline">Withdraw</span>
             </Link>
           </div>
         }

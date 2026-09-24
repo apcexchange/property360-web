@@ -37,10 +37,14 @@ export default function TenantReferPage() {
 
   async function copyLink() {
     if (!q.data) return;
-    await navigator.clipboard.writeText(q.data.shareUrl);
-    setCopied(true);
-    toast.success("Link copied");
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(q.data.shareUrl);
+      setCopied(true);
+      toast.success("Link copied");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Couldn't copy. Long-press the link to copy it manually.");
+    }
   }
 
   function shareOnWhatsApp() {

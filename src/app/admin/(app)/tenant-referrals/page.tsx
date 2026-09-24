@@ -3,11 +3,34 @@
 import { useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
-import { DataTable, StatusBadge } from "@/components/admin/DataTable";
+import { DataTable } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/ui/PageHeader";
 import { Pagination } from "@/components/admin/ui/Pagination";
-import adminApi from "@/lib/admin";
+import adminApi, { AdminTenantReferralRow } from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
+
+function ReferralStatusLabel({ status }: { status: AdminTenantReferralRow["status"] }) {
+  if (status === "reversed") {
+    return (
+      <span className="inline-flex items-center rounded-full bg-foundation-700/10 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-ink-muted">
+        Reversed
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+      {status === "accrued" ? "Credited" : "Paid out"}
+    </span>
+  );
+}
+
+function NeedsReviewLabel() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-red-700">
+      Needs review
+    </span>
+  );
+}
 
 export default function AdminTenantReferralsPage() {
   const [page, setPage] = useState(1);
@@ -43,12 +66,12 @@ export default function AdminTenantReferralsPage() {
                 render: (r) =>
                   r.referee ? `${r.referee.firstName} ${r.referee.lastName} (${r.referee.role})` : "Deleted user",
               },
-              { key: "basisAmount", header: "Paid", render: (r) => formatNgn(r.basisAmount) },
+              { key: "basisAmount", header: "Subscription", render: (r) => formatNgn(r.basisAmount) },
               { key: "commissionAmount", header: "Reward", render: (r) => formatNgn(r.commissionAmount) },
               {
                 key: "status",
                 header: "Status",
-                render: (r) => (r.needsReview ? <StatusBadge value="failed" /> : <StatusBadge value={r.status === "accrued" ? "paid" : r.status} />),
+                render: (r) => (r.needsReview ? <NeedsReviewLabel /> : <ReferralStatusLabel status={r.status} />),
               },
             ]}
           />

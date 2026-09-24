@@ -22,6 +22,7 @@ export function InviteForm() {
   const [relationship, setRelationship] = useState<TenantInviteRelationship>("landlord");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [lastWhatsappUrl, setLastWhatsappUrl] = useState<string | null>(null);
 
   const invite = useMutation({
     mutationFn: () =>
@@ -30,8 +31,12 @@ export function InviteForm() {
         name: name.trim() || undefined,
         phone: phone.trim() || undefined,
       }),
+    onMutate: () => {
+      setLastWhatsappUrl(null);
+    },
     onSuccess: (res) => {
       window.open(res.whatsappUrl, "_blank", "noopener");
+      setLastWhatsappUrl(res.whatsappUrl);
       qc.invalidateQueries({ queryKey: ["me", "referrals"] });
       setName("");
       setPhone("");
@@ -61,6 +66,7 @@ export function InviteForm() {
           <button
             key={r}
             type="button"
+            aria-pressed={relationship === r}
             onClick={() => setRelationship(r)}
             className={`rounded-full px-4 py-1.5 text-[12.5px] font-semibold transition ${
               relationship === r
@@ -77,31 +83,52 @@ export function InviteForm() {
         <input
           className={inputCls}
           placeholder="Their name (optional)"
+          aria-label="Their name"
           value={name}
           maxLength={80}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            invite.reset();
+          }}
         />
         <input
           className={inputCls}
           placeholder="WhatsApp number (optional)"
+          aria-label="Their WhatsApp number"
+          type="tel"
           inputMode="tel"
           value={phone}
           maxLength={20}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            invite.reset();
+          }}
         />
       </div>
 
       {error && <p className="text-[12.5px] text-red-700">{error}</p>}
 
-      <button
-        type="button"
-        disabled={invite.isPending}
-        onClick={() => invite.mutate()}
-        className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-      >
-        <MessageCircle className="h-4 w-4" />
-        {invite.isPending ? "Saving…" : "Send on WhatsApp"}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          disabled={invite.isPending}
+          onClick={() => invite.mutate()}
+          className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {invite.isPending ? "Saving…" : "Send on WhatsApp"}
+        </button>
+        {lastWhatsappUrl && (
+          <a
+            href={lastWhatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[12.5px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+          >
+            Open WhatsApp again
+          </a>
+        )}
+      </div>
     </Card>
   );
 }
