@@ -32,7 +32,10 @@ export const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: "Growth",
-    items: [{ href: "/admin/partners", label: "Partners" }],
+    items: [
+      { href: "/admin/partners", label: "Partners" },
+      { href: "/admin/tenant-referrals", label: "Tenant referrals" },
+    ],
   },
   {
     label: "Marketplace",

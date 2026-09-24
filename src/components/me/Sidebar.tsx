@@ -25,6 +25,7 @@ export const ME_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/me", label: "My home" },
       { href: "/me/notifications", label: "Notifications" },
+      { href: "/me/refer", label: "Refer & Earn" },
     ],
   },
   {

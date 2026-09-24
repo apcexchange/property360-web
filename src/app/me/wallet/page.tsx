@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowDownToLine, Landmark } from "lucide-react";
 import { TenantTopbar } from "@/components/me/Topbar";
 import { tenantApi } from "@/lib/tenant-api";
-import { WalletFundCard } from "@/components/app/WalletFundCard";
 import {
   Card,
   PageContainer,
@@ -17,7 +18,6 @@ export default function TenantWalletPage() {
   const wallet = useQuery({
     queryKey: ["wallet"],
     queryFn: () => tenantApi.getWallet(),
-    refetchInterval: (q) => (q.state.data?.dvaStatus === "pending" ? 12_000 : false),
   });
   const txns = useQuery({
     queryKey: ["walletTransactions"],
@@ -28,7 +28,25 @@ export default function TenantWalletPage() {
     <>
       <TenantTopbar
         title="Wallet"
-        subtitle="Fund your wallet and pay rent or fees straight from the balance"
+        subtitle="Your referral earnings. Withdraw to your bank anytime (minimum ₦1,000)."
+        actions={
+          <div className="flex items-center gap-2">
+            <Link
+              href="/me/wallet/bank-accounts"
+              aria-label="Bank accounts"
+              className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <Landmark className="h-4 w-4" /> <span className="hidden sm:inline">Bank accounts</span>
+            </Link>
+            <Link
+              href="/me/wallet/withdraw"
+              aria-label="Withdraw"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+            >
+              <ArrowDownToLine className="h-4 w-4" /> <span className="hidden sm:inline">Withdraw</span>
+            </Link>
+          </div>
+        }
       />
       <PageContainer>
         {wallet.isLoading ? (
@@ -52,9 +70,15 @@ export default function TenantWalletPage() {
               </p>
             </Card>
 
-            <div className="mt-4">
-              <WalletFundCard wallet={wallet.data} />
-            </div>
+            <p className="mt-4 text-[13px] text-ink-muted">
+              Earn more by inviting your landlord or caretaker.{" "}
+              <Link
+                href="/me/refer"
+                className="font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
+              >
+                Refer & Earn
+              </Link>
+            </p>
           </>
         )}
 
@@ -77,7 +101,7 @@ export default function TenantWalletPage() {
             />
           ) : (txns.data ?? []).length === 0 ? (
             <Card className="p-6 text-center text-[13px] text-ink-muted">
-              No transactions yet.
+              No earnings yet. Invite your landlord or caretaker to start earning.
             </Card>
           ) : (
             <Card className="divide-y divide-foundation-700/10">

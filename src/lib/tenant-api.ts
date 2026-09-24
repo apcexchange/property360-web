@@ -376,6 +376,42 @@ export interface WalletTransaction {
   createdAt: string;
 }
 
+export type TenantInviteStatus = "sent" | "joined" | "paid";
+export type TenantInviteRelationship = "landlord" | "caretaker";
+
+export interface TenantInvite {
+  id: string;
+  name: string | null;
+  phone: string | null;
+  relationship: TenantInviteRelationship;
+  status: TenantInviteStatus;
+  commissionAmount?: number | null;
+  createdAt: string;
+}
+
+export interface TenantReferralOverview {
+  referralCode: string;
+  shareUrl: string;
+  ratePercent: number;
+  invites: TenantInvite[];
+  totals: { invited: number; joined: number; paid: number; earned: number };
+}
+
+export interface CreateTenantInviteResult {
+  invite: TenantInvite;
+  whatsappText: string;
+  whatsappUrl: string;
+}
+
+export interface TenantPayout {
+  _id: string;
+  amount: number;
+  reference: string;
+  status: "pending" | "processing" | "successful" | "failed" | "reversed";
+  createdAt: string;
+  completedAt?: string;
+}
+
 // The backend returns each invitation as { leaseId, property, unit, landlord,
 // lease: { startDate, rentAmount, ...fees } }, the lease id is `leaseId` and
 // the lease/fee fields are nested under `lease`. Flatten that into the shape the
@@ -1075,6 +1111,33 @@ export const tenantApi = {
       invoiceNumber: string;
       amount: number;
     };
+  },
+  async getReferralOverview(): Promise<TenantReferralOverview> {
+    const res = await api.get("/tenant-referrals");
+    return unwrap(res.data) as TenantReferralOverview;
+  },
+  async createReferralInvite(body: {
+    relationship: TenantInviteRelationship;
+    name?: string;
+    phone?: string;
+  }): Promise<CreateTenantInviteResult> {
+    const res = await api.post("/tenant-referrals/invites", body);
+    return unwrap(res.data) as CreateTenantInviteResult;
+  },
+  async setPrimaryBankAccount(id: string): Promise<TenantBankAccount> {
+    const res = await api.patch(`/bank-accounts/${id}/primary`);
+    return unwrap(res.data) as TenantBankAccount;
+  },
+  async deleteBankAccount(id: string): Promise<void> {
+    await api.delete(`/bank-accounts/${id}`);
+  },
+  async requestPayout(body: { amount: number; bankAccountId?: string }): Promise<TenantPayout> {
+    const res = await api.post("/payouts", body);
+    return unwrap(res.data) as TenantPayout;
+  },
+  async listPayouts(): Promise<TenantPayout[]> {
+    const res = await api.get("/payouts");
+    return asList<TenantPayout>(unwrap(res.data));
   },
 };
 
