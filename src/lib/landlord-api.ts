@@ -843,6 +843,7 @@ export type AgentPermissions = {
   canRecordPayment?: boolean;
   canRenewLease?: boolean;
   canUploadAgreements?: boolean;
+  canManageListings?: boolean;
   canManageMaintenance?: boolean;
   canViewPayments?: boolean;
   canViewReports?: boolean;
@@ -1033,6 +1034,7 @@ export const landlordApi = {
     description?: string;
     address: Address;
     propertyType: PropertyType;
+    hasOwnerAuthority: true;
     floors: number;
     totalUnits: number;
     amenities?: string[];
@@ -1058,6 +1060,25 @@ export const landlordApi = {
     const res = await api.post("/properties", payload);
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
+  },
+  async createMarketplaceProperty(body: {
+    name: string;
+    description?: string;
+    address: Address;
+    propertyType: PropertyType;
+    images?: PropertyImage[];
+    units: Array<{
+      unitNumber: string;
+      bedrooms?: number;
+      bathrooms?: number;
+      rentAmount: number;
+      rentPeriod?: RentPeriod;
+    }>;
+  }): Promise<{ property: Property; unitId: string }> {
+    const payload = { ...body, images: body.images?.map((image) => image.url) };
+    const res = await api.post("/properties/marketplace", payload);
+    const data = unwrap(res.data) as { property: Property; unitId: string };
+    return data;
   },
   async uploadPropertyImage(file: File): Promise<{ url: string; publicId: string }> {
     const form = new FormData();
@@ -1809,7 +1830,7 @@ export const landlordApi = {
   },
   async listUnit(
     unitId: string,
-    body?: { description?: string; visibility?: "public" | "unlisted" }
+    body?: { description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet" }
   ): Promise<Listing> {
     const res = await api.post(`/listings/${unitId}/list`, body ?? {});
     return unwrap(res.data) as Listing;

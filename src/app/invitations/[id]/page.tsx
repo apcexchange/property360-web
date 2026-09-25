@@ -26,6 +26,7 @@ const PERMISSIONS: PermissionDef[] = [
   { key: "canRecordPayment", label: "Record payments", desc: "Mark rent or invoices as paid." },
   { key: "canRenewLease", label: "Renew leases", desc: "Extend existing leases on your behalf." },
   { key: "canUploadAgreements", label: "Upload agreements", desc: "Attach tenancy agreements to leases." },
+  { key: "canManageListings", label: "Manage marketplace listings", desc: "Publish, edit, and pause listings for assigned properties." },
   { key: "canManageMaintenance", label: "Maintenance", desc: "Triage and act on maintenance requests." },
   { key: "canViewPayments", label: "View payments", desc: "Read-only access to payment history." },
   { key: "canViewReports", label: "View reports", desc: "Read-only access to financial reports." },

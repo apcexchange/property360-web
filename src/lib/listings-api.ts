@@ -59,6 +59,7 @@ export interface Listing {
   listingTitle?: string;
   listingDescription?: string;
   listingStatus?: "active" | "inactive" | "reserved";
+  listingPurpose?: "rent" | "sale" | "shortlet";
   listedAt?: string;
   defaultFees?: ListingFees;
   inspectionFee?: number;

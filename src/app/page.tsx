@@ -6,7 +6,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Features } from "@/components/landing/Features";
 import { Founding50 } from "@/components/marketing/Founding50";
 import { FoundingBar } from "@/components/marketing/FoundingBar";
-import { Marketplace } from "@/components/landing/Marketplace";
+import { FeaturedProperties } from "@/components/marketing/FeaturedProperties";
 import { Faq } from "@/components/landing/Faq";
 import { FinalCta } from "@/components/landing/FinalCta";
 import { Footer } from "@/components/landing/Footer";
@@ -36,9 +36,7 @@ export default function Home() {
       <HowItWorks />
       <Features />
       <Founding50 />
-      <section id="marketplace">
-        <Marketplace />
-      </section>
+      <FeaturedProperties />
       <Faq />
       <NewsletterBlock source="newsletter-landing" />
       <FinalCta />

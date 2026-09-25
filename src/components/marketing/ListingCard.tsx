@@ -14,6 +14,8 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const img = listingImage(listing);
   const reserved = listing.listingStatus === "reserved";
   const verified = isLandlordVerified(listing);
+  const purpose = listing.listingPurpose ?? "rent";
+  const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
 
   return (
     <Link
@@ -70,7 +72,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <div className="mt-auto flex items-end justify-between pt-5">
           <p className="text-[22px] font-extrabold tracking-[-0.025em] text-foundation-700 tabular">
             {formatNaira(listing.rentAmount)}
-            <span className="ml-1 text-[12px] font-medium text-ink-muted">/year</span>
+            {priceSuffix && <span className="ml-1 text-[12px] font-medium text-ink-muted">{priceSuffix}</span>}
           </p>
           <span className="rounded-full bg-foundation-700/5 px-3 py-1 text-[11px] font-semibold text-foundation-700 transition group-hover:bg-foundation-700 group-hover:text-paper">
             View
