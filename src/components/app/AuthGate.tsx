@@ -20,7 +20,9 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     const token = session.getToken();
     const bounce = () => {
-      const next = encodeURIComponent(pathname || "/app");
+      // Keep the query string so deep links survive sign-in (for example the
+      // sales assistant's one-tap /app/billing?plan=pro&interval=annual link).
+      const next = encodeURIComponent((pathname || "/app") + window.location.search);
       router.replace(`/login?next=${next}`);
     };
     if (!token) {

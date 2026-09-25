@@ -39,8 +39,10 @@ function LoginInner() {
       // (incl. a failed mobile web-handoff) land on the dashboard instead of
       // straight back on billing, that page is a rarer destination than the
       // dashboard and shouldn't be where a normal sign-in dumps you.
+      // Exception: a plan link (?plan=...) from the sales assistant or an
+      // email should land on billing with that plan preselected.
       if (nextParam.startsWith("/app/billing")) {
-        return "/app/dashboard";
+        return nextParam.includes("plan=") ? nextParam : "/app/dashboard";
       }
       return nextParam;
     }
