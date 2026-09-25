@@ -29,7 +29,7 @@ const QUICK_QUESTIONS = [
 // Logged-in surfaces have the account assistant; hide the sales bot there.
 // /chat is the standalone full-page assistant, so the floating bubble is hidden
 // there too (the page renders its own chat).
-const HIDDEN_PREFIXES = ["/app", "/me", "/admin", "/chat"];
+const HIDDEN_PREFIXES = ["/app", "/me", "/admin", "/chat", "/email"];
 
 // Set once the pre-chat lead form has been completed on this browser.
 const LEAD_DONE_KEY = "p360.salesbot.leadDone";

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Nav } from "@/components/landing/Nav";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { authApi } from "@/lib/auth-api";
+import { safeNextPath } from "@/lib/safeNext";
 import { AxiosError } from "axios";
 
 /**
@@ -26,25 +27,10 @@ function LoginInner() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Parsing and the open-redirect rejection rules live in safeNextPath
+  // (src/lib/safeNext.ts), a pure function so they're testable in isolation.
   function safeNext(role: string): string {
-    if (role === "partner") return "/partner";
-    if (nextParam && nextParam.startsWith("/")) {
-      if (role === "tenant") {
-        if (nextParam.startsWith("/me") || nextParam.startsWith("/listings")) {
-          return nextParam;
-        }
-        return "/me";
-      }
-      // Landlords/agents bounced here from an expired /app/billing session
-      // (incl. a failed mobile web-handoff) land on the dashboard instead of
-      // straight back on billing, that page is a rarer destination than the
-      // dashboard and shouldn't be where a normal sign-in dumps you.
-      if (nextParam.startsWith("/app/billing")) {
-        return "/app/dashboard";
-      }
-      return nextParam;
-    }
-    return role === "tenant" ? "/me" : "/app/dashboard";
+    return safeNextPath(nextParam, window.location.origin, role);
   }
 
   async function onSubmit(e: FormEvent) {
