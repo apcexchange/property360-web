@@ -52,16 +52,18 @@ function EmailPreferenceInner({ action }: { action: EmailPrefAction }) {
   const copy = COPY[action];
   return (
     <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 text-center">
-      <h1 className="text-[24px] font-semibold tracking-tight text-foundation-700">
-        {state === "loading" ? copy.loading : state === "done" ? copy.doneTitle : "This link didn't work"}
-      </h1>
-      <p className="mt-3 text-[14.5px] leading-[1.6] text-ink-muted">
-        {state === "done"
-          ? copy.doneBody
-          : state === "error"
-          ? `${message ?? "The link may be incomplete or out of date."} Email hello@property360.africa and we'll sort it out.`
-          : "One moment."}
-      </p>
+      <div role="status" aria-live="polite">
+        <h1 className="text-[24px] font-semibold tracking-tight text-foundation-700">
+          {state === "loading" ? copy.loading : state === "done" ? copy.doneTitle : "This link didn't work"}
+        </h1>
+        <p className="mt-3 text-[14.5px] leading-[1.6] text-ink-muted">
+          {state === "done"
+            ? copy.doneBody
+            : state === "error"
+            ? `${message ?? "The link may be incomplete or out of date."} Email hello@property360.africa and we'll sort it out.`
+            : "One moment."}
+        </p>
+      </div>
       <Link href="/" className="mt-6 text-[14px] font-semibold text-cryola-500 hover:underline">
         Back to property360.africa
       </Link>
@@ -69,10 +71,21 @@ function EmailPreferenceInner({ action }: { action: EmailPrefAction }) {
   );
 }
 
+function EmailPreferenceLoading({ action }: { action: EmailPrefAction }) {
+  return (
+    <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 text-center">
+      <div role="status" aria-live="polite">
+        <h1 className="text-[24px] font-semibold tracking-tight text-foundation-700">{COPY[action].loading}</h1>
+        <p className="mt-3 text-[14.5px] leading-[1.6] text-ink-muted">One moment.</p>
+      </div>
+    </main>
+  );
+}
+
 /** Confirmation page for the signed links in sales emails. */
 export function EmailPreferencePage({ action }: { action: EmailPrefAction }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<EmailPreferenceLoading action={action} />}>
       <EmailPreferenceInner action={action} />
     </Suspense>
   );

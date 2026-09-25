@@ -12,7 +12,7 @@ import { Button, SearchInput, Select } from "@/components/admin/ui/Filters";
 import { ControlsCard } from "@/components/admin/sales-followup/ControlsCard";
 import { FunnelTable } from "@/components/admin/sales-followup/FunnelTable";
 import { JourneyDrawer } from "@/components/admin/sales-followup/JourneyDrawer";
-import { STATUS_LABELS, STOP_REASON_LABELS, TRACK_LABELS } from "@/components/admin/sales-followup/labels";
+import { errorMessage, STATUS_LABELS, STOP_REASON_LABELS, TRACK_LABELS } from "@/components/admin/sales-followup/labels";
 import adminApi, { SalesJourneyRow } from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
 
@@ -53,6 +53,7 @@ export default function AdminSalesFollowUpPage() {
   });
 
   const t = stats.data?.totals;
+  const hasActiveFilters = search.trim() !== "" || status !== "all" || track !== "all" || hotOnly;
 
   return (
     <>
@@ -113,6 +114,7 @@ export default function AdminSalesFollowUpPage() {
             />
             <Select
               value={status}
+              aria-label="Filter by status"
               onChange={(v) => {
                 setStatus(v);
                 setPage(1);
@@ -127,6 +129,7 @@ export default function AdminSalesFollowUpPage() {
             </Select>
             <Select
               value={track}
+              aria-label="Filter by track"
               onChange={(v) => {
                 setTrack(v);
                 setPage(1);
@@ -141,6 +144,7 @@ export default function AdminSalesFollowUpPage() {
             </Select>
             <Button
               variant={hotOnly ? "primary" : "secondary"}
+              aria-pressed={hotOnly}
               onClick={() => {
                 setHotOnly((h) => !h);
                 setPage(1);
@@ -150,11 +154,22 @@ export default function AdminSalesFollowUpPage() {
             </Button>
           </div>
 
+          {journeys.isError ? (
+            <ErrorState
+              title="Could not load journeys"
+              description={errorMessage(journeys.error)}
+              onRetry={() => void journeys.refetch()}
+            />
+          ) : (
           <DataTable<SalesJourneyRow>
             loading={journeys.isLoading}
             rows={journeys.data?.items ?? []}
-            empty="No journeys yet"
-            emptyDescription="Journeys start when landlords or agents sign up, or after the backfill script runs."
+            empty={hasActiveFilters ? "No journeys match these filters" : "No journeys yet"}
+            emptyDescription={
+              hasActiveFilters
+                ? "Try a different search, status or track."
+                : "Journeys start when landlords or agents sign up, or after the backfill script runs."
+            }
             onRowClick={(r) => setViewingId(r._id)}
             columns={[
               {
@@ -195,7 +210,10 @@ export default function AdminSalesFollowUpPage() {
               },
             ]}
           />
-          <Pagination page={page} total={journeys.data?.total ?? 0} limit={limit} onChange={setPage} />
+          )}
+          {!journeys.isError && (
+            <Pagination page={page} total={journeys.data?.total ?? 0} limit={limit} onChange={setPage} />
+          )}
         </div>
       </main>
 

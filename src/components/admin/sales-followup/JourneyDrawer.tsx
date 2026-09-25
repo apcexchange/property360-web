@@ -1,13 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 import { Drawer } from "@/components/admin/ui/Drawer";
 import { Button } from "@/components/admin/ui/Filters";
+import { ErrorState } from "@/components/admin/ui/ErrorState";
 import { StatusBadge } from "@/components/admin/DataTable";
 import adminApi, { SalesJourneyDetail } from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
-import { SKIP_REASON_LABELS, STATUS_LABELS, STOP_REASON_LABELS, stepLabel, TRACK_LABELS } from "./labels";
+import { errorMessage, SKIP_REASON_LABELS, STATUS_LABELS, STOP_REASON_LABELS, stepLabel, TRACK_LABELS } from "./labels";
 
 type TimelineItem =
   | { kind: "touch"; at: string; touch: SalesJourneyDetail["touches"][number] }
@@ -28,8 +28,14 @@ function timeline(d: SalesJourneyDetail): TimelineItem[] {
   return items.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
 }
 
-/** Journey detail: state, timeline of touches and WhatsApp chat, stop and restart. */
-export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null; onClose: () => void }) {
+/**
+ * Journey detail: state, timeline of touches and WhatsApp chat, stop and
+ * restart. Keyed by journeyId from the outer wrapper below so switching to a
+ * different journey (or closing and reopening) always starts with fresh
+ * mutation state, a stale "couldn't stop" error from the previous journey
+ * can never bleed into the next one's footer.
+ */
+function JourneyDrawerInner({ journeyId, onClose }: { journeyId: string | null; onClose: () => void }) {
   const qc = useQueryClient();
   const detail = useQuery({
     queryKey: ["admin", "sales-followup", "journey", journeyId],
@@ -40,11 +46,13 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin", "sales-followup"] });
   const stop = useMutation({ mutationFn: (id: string) => adminApi.stopSalesJourney(id), onSuccess: refresh });
   const restart = useMutation({ mutationFn: (id: string) => adminApi.restartSalesJourney(id), onSuccess: refresh });
-  const actionError = (stop.error ?? restart.error) as AxiosError<{ message?: string }> | null;
+  const actionPending = stop.isPending || restart.isPending;
+  const actionError = stop.error ?? restart.error;
 
   const d = detail.data;
   const j = d?.journey;
   const name = j?.user ? `${j.user.firstName} ${j.user.lastName}` : "Deleted user";
+  const items = d ? timeline(d) : [];
 
   return (
     <Drawer
@@ -56,20 +64,18 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
       footer={
         j && (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[12px] text-error">
-              {actionError ? actionError.response?.data?.message ?? actionError.message : ""}
-            </p>
+            <p className="text-[12px] text-error">{actionError ? errorMessage(actionError) : ""}</p>
             <div className="flex gap-2">
               <Button
                 variant="danger"
-                disabled={stop.isPending || j.status === "stopped" || j.status === "converted"}
+                disabled={actionPending || j.status === "stopped" || j.status === "converted"}
                 onClick={() => stop.mutate(j._id)}
               >
                 Stop
               </Button>
               <Button
                 variant="success"
-                disabled={restart.isPending || j.stopReason === "opt_out" || j.status === "converted"}
+                disabled={actionPending || j.stopReason === "opt_out" || j.status === "converted"}
                 onClick={() => restart.mutate(j._id)}
               >
                 Restart
@@ -79,7 +85,13 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
         )
       }
     >
-      {detail.isLoading || !d || !j ? (
+      {detail.isError ? (
+        <ErrorState
+          title="Could not load this journey"
+          description={errorMessage(detail.error)}
+          onRetry={() => void detail.refetch()}
+        />
+      ) : detail.isLoading || !d || !j ? (
         <p className="text-[13.5px] text-ink-muted">Loading journey…</p>
       ) : (
         <div className="space-y-6">
@@ -152,11 +164,11 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
 
           <div>
             <h4 className="mb-3 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-foundation-700">Timeline</h4>
-            {timeline(d).length === 0 ? (
+            {items.length === 0 ? (
               <p className="text-[13px] text-ink-muted">Nothing yet.</p>
             ) : (
               <ol className="space-y-2">
-                {timeline(d).map((item) =>
+                {items.map((item) =>
                   item.kind === "touch" ? (
                     <li key={`t-${item.touch._id}`} className="border border-rule bg-paper-deep/30 px-3 py-2 text-[12.5px]">
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -181,7 +193,7 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
                       className={`flex ${item.message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] whitespace-pre-wrap px-3 py-2 text-[13px] ${
+                        className={`max-w-[85%] whitespace-pre-wrap break-words px-3 py-2 text-[13px] ${
                           item.message.role === "user"
                             ? "bg-foundation-700 text-paper"
                             : "border border-rule bg-surface text-foundation-700"
@@ -203,4 +215,8 @@ export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null
       )}
     </Drawer>
   );
+}
+
+export function JourneyDrawer({ journeyId, onClose }: { journeyId: string | null; onClose: () => void }) {
+  return <JourneyDrawerInner key={journeyId ?? "closed"} journeyId={journeyId} onClose={onClose} />;
 }

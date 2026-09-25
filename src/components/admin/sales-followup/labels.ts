@@ -1,4 +1,11 @@
+import { AxiosError } from "axios";
 import type { SalesJourneyStatus, SalesTrack } from "@/lib/admin";
+
+/** Prefer the backend's own message (e.g. a 409 "already stopped") over axios's generic one. */
+export function errorMessage(err: unknown): string {
+  const ax = err as AxiosError<{ message?: string }>;
+  return ax?.response?.data?.message ?? (err instanceof Error ? err.message : "Something went wrong.");
+}
 
 /** Human labels for the backend's schedule keys (backend: src/utils/salesFollowUp/schedule.ts). */
 export const TRACK_LABELS: Record<SalesTrack, string> = {
@@ -66,10 +73,14 @@ export const SKIP_REASON_LABELS: Record<string, string> = {
   delivery_failed: "Delivery failed",
   master_switch_off: "WhatsApp switched off",
   provider_not_configured: "WhatsApp not configured",
+  whatsapp_not_configured: "WhatsApp not configured",
   no_template_id: "Template not configured",
+  stale: "Overdue, passed over",
+  email_error: "Email send failed",
 };
 
+/** "n/a" when there's no base to compute a rate from (an empty step never sent), not a misleading "0%". */
 export function pct(part: number, whole: number): string {
-  if (!whole) return "0%";
+  if (!whole) return "n/a";
   return `${Math.round((part / whole) * 100)}%`;
 }

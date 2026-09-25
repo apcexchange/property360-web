@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AxiosError } from "axios";
@@ -118,12 +118,18 @@ export default function BillingPage() {
     }
   }, []);
 
+  // Scroll to the preselected plan card, exactly once. The founding card
+  // only mounts once foundingStatus resolves (a separate, later effect), so
+  // this must re-run when that arrives too, not just retry until the
+  // element exists once.
+  const scrolledRef = useRef(false);
   useEffect(() => {
-    if (loading || !sub || !preselectedPlan) return;
-    document
-      .getElementById(`plan-${preselectedPlan}`)
-      ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [loading, sub, preselectedPlan]);
+    if (scrolledRef.current || loading || !sub || !preselectedPlan) return;
+    const el = document.getElementById(`plan-${preselectedPlan}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    scrolledRef.current = true;
+  }, [loading, sub, preselectedPlan, foundingStatus]);
 
   useEffect(() => {
     // AppAuthGate (which wraps /app/*) has already enforced a valid
@@ -265,7 +271,9 @@ export default function BillingPage() {
           <IntervalToggle value={interval} onChange={setInterval} />
         </div>
 
-        {preselectedPlan && preselectedPlan !== "founding" && (
+        {preselectedPlan &&
+          preselectedPlan !== "founding" &&
+          !(sub.tier === preselectedPlan && sub.billingInterval === interval) && (
           <p className="mt-4 rounded-2xl border border-cryola-300/60 bg-cryola-50 px-4 py-3 text-[13.5px] text-foundation-700">
             We&apos;ve highlighted the{" "}
             <strong className="font-semibold capitalize">{preselectedPlan}</strong> plan

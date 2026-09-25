@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardBody, CardHeader } from "@/components/admin/ui/Card";
 import { Button, Select } from "@/components/admin/ui/Filters";
 import adminApi, { SalesFollowUpSettings, SalesStepInfo, StepVariantSetting } from "@/lib/admin";
-import { stepLabel, TRACK_LABELS } from "./labels";
+import { errorMessage, stepLabel, TRACK_LABELS } from "./labels";
 
 /**
  * Pause and preview switches plus the per-step A/B control. Preview mode is
@@ -73,14 +73,14 @@ export function ControlsCard({ settings, steps }: { settings: SalesFollowUpSetti
         </div>
 
         {showDryRunWarning && (
-          <p className="border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900">
+          <p role="alert" className="border border-amber-300 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900">
             Live mode is on, but WhatsApp dry run is enabled on the server, so WhatsApp steps are
             being used up without sending. Set WHATSAPP_DRY_RUN=false or switch back to preview.
           </p>
         )}
 
         {save.isError && (
-          <p className="text-[12.5px] text-error">Couldn&apos;t save: {(save.error as Error).message}</p>
+          <p className="text-[12.5px] text-error">Couldn&apos;t save: {errorMessage(save.error)}</p>
         )}
 
         <div className="overflow-x-auto border border-rule">
@@ -119,6 +119,7 @@ export function ControlsCard({ settings, steps }: { settings: SalesFollowUpSetti
                   <td className="px-3 py-2">
                     <Select
                       value={s.variantSetting}
+                      aria-label={`Variant for ${stepLabel(s.key)}`}
                       onChange={(v) => save.mutate({ stepVariants: { [s.key]: v as StepVariantSetting } })}
                     >
                       <option value="ab">A/B split</option>
