@@ -23,6 +23,14 @@ import { FOUNDING, naira, foundingSaving } from "@/components/marketing/founding
 
 type CheckoutTier = "solo" | "pro" | "agency" | "founding";
 
+const CHECKOUT_TIERS: CheckoutTier[] = ["solo", "pro", "agency", "founding"];
+
+/** ?plan= (sales assistant and email links) or the older ?tier= (pricing page). */
+function parsePlanParam(raw: string | null | undefined): CheckoutTier | null {
+  const v = (raw ?? "").toLowerCase();
+  return (CHECKOUT_TIERS as string[]).includes(v) ? (v as CheckoutTier) : null;
+}
+
 interface LoadError {
   kind: "not-found" | "network" | "unknown";
   message: string;
@@ -75,6 +83,12 @@ export default function BillingPage() {
     const v = searchParams?.get("interval");
     return v === "monthly" ? "monthly" : "annual";
   }, [searchParams]);
+  // ?plan=pro&interval=annual preselects (highlights and scrolls to) a plan.
+  // It never starts checkout by itself: the user still taps Choose.
+  const preselectedPlan: CheckoutTier | null = useMemo(
+    () => parsePlanParam(searchParams?.get("plan") ?? searchParams?.get("tier")),
+    [searchParams]
+  );
 
   const [sub, setSub] = useState<SubscriptionResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -103,6 +117,13 @@ export default function BillingPage() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (loading || !sub || !preselectedPlan) return;
+    document
+      .getElementById(`plan-${preselectedPlan}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [loading, sub, preselectedPlan]);
 
   useEffect(() => {
     // AppAuthGate (which wraps /app/*) has already enforced a valid
@@ -224,6 +245,7 @@ export default function BillingPage() {
         sub.tier !== "founding" && (
           <FoundingOfferCard
             status={foundingStatus}
+            preselected={preselectedPlan === "founding"}
             pending={pendingTier === "founding"}
             disabled={pendingTier !== null}
             onClaim={() => startCheckout("founding", "annual")}
@@ -243,6 +265,15 @@ export default function BillingPage() {
           <IntervalToggle value={interval} onChange={setInterval} />
         </div>
 
+        {preselectedPlan && preselectedPlan !== "founding" && (
+          <p className="mt-4 rounded-2xl border border-cryola-300/60 bg-cryola-50 px-4 py-3 text-[13.5px] text-foundation-700">
+            We&apos;ve highlighted the{" "}
+            <strong className="font-semibold capitalize">{preselectedPlan}</strong> plan
+            {interval === "annual" ? " (annual)" : " (monthly)"} for you. Tap{" "}
+            <strong className="font-semibold">Choose</strong> on it to continue to secure checkout.
+          </p>
+        )}
+
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {TIERS.map((tier) => (
             <PlanCard
@@ -251,6 +282,7 @@ export default function BillingPage() {
               interval={interval}
               currentTier={sub.tier}
               currentInterval={sub.billingInterval}
+              preselected={preselectedPlan === tier.name.toLowerCase()}
               pending={pendingTier === tier.name.toLowerCase()}
               disabled={pendingTier !== null}
               onSelect={
@@ -469,6 +501,7 @@ function PlanCard({
   interval,
   currentTier,
   currentInterval,
+  preselected,
   pending,
   disabled,
   onSelect,
@@ -477,6 +510,7 @@ function PlanCard({
   interval: BillingInterval;
   currentTier: string;
   currentInterval: BillingInterval;
+  preselected: boolean;
   pending: boolean;
   disabled: boolean;
   onSelect?: () => void;
@@ -488,17 +522,22 @@ function PlanCard({
   const unit = interval === "annual" ? "/year" : "/month";
   return (
     <div
+      id={`plan-${tier.name.toLowerCase()}`}
       className={`relative flex flex-col rounded-2xl border p-6 transition ${
         isHighlight
           ? "border-foundation-700 bg-foundation-700 text-paper"
           : "border-foundation-700/10 bg-surface text-foundation-700"
-      }`}
+      } ${preselected && !isCurrent ? "ring-4 ring-cryola-300 ring-offset-2 ring-offset-canvas" : ""}`}
     >
-      {isCurrent && (
+      {isCurrent ? (
         <span className="absolute -top-3 left-6 rounded-full bg-cryola-300 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foundation-700">
           Your plan
         </span>
-      )}
+      ) : preselected ? (
+        <span className="absolute -top-3 left-6 rounded-full bg-cryola-300 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foundation-700">
+          Suggested for you
+        </span>
+      ) : null}
       <p
         className={`text-[12px] font-semibold uppercase tracking-[0.16em] ${
           isHighlight ? "text-cryola-300" : "text-foundation-700"
@@ -599,11 +638,13 @@ function PlanCard({
 
 function FoundingOfferCard({
   status,
+  preselected,
   pending,
   disabled,
   onClaim,
 }: {
   status: FoundingStatus;
+  preselected: boolean;
   pending: boolean;
   disabled: boolean;
   onClaim: () => void;
@@ -611,8 +652,12 @@ function FoundingOfferCard({
   const showCounter =
     status.claimed > 0 && status.remaining > 0 && status.remaining < status.total;
   return (
-    <section className="mx-auto max-w-6xl px-6 pt-8">
-      <div className="relative overflow-hidden rounded-2xl border border-cryola-300/20 bg-foundation-700 p-6 text-paper shadow-card sm:p-7">
+    <section id="plan-founding" className="mx-auto max-w-6xl px-6 pt-8">
+      <div
+        className={`relative overflow-hidden rounded-2xl border border-cryola-300/20 bg-foundation-700 p-6 text-paper shadow-card sm:p-7 ${
+          preselected ? "ring-4 ring-cryola-300 ring-offset-2 ring-offset-canvas" : ""
+        }`}
+      >
         <div
           aria-hidden
           className="pointer-events-none absolute -top-24 right-0 h-64 w-80 rounded-full bg-cryola-300/15 blur-3xl"
