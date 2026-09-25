@@ -11,11 +11,10 @@ import { session } from "@/lib/session";
  * App Router path change, since client navigations don't trigger the SDK's
  * automatic pageview. UTM/referrer are read from the URL by posthog itself.
  *
- * The /email/* pages (one-click unsubscribe/opt-in links) are never
- * identified or tracked at all: before_send already scrubs the token out of
- * anything that does get sent, but these links are meant to be usable
- * without creating any analytics trail, so we skip capture here entirely
- * rather than rely solely on the scrub.
+ * On the /email/* pages (one-click unsubscribe/opt-in links) we skip identify
+ * and the manual $pageview. The SDK is still initialised, so events such as
+ * $pageleave can still fire there; before_send scrubs the token out of every
+ * event property, $set and $set_once before anything is sent.
  */
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

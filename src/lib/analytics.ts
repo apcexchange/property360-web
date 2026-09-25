@@ -49,7 +49,8 @@ function sanitizeDeep(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(sanitizeDeep);
   }
-  if (value && typeof value === "object") {
+  // Only walk plain objects; leave Dates and other class instances untouched.
+  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
     const out: Record<string, unknown> = {};
     for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
       out[key] = sanitizeDeep(v);
