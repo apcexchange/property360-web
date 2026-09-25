@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
+import { AppAnalytics } from "@/components/AppAnalytics";
 import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { PostHogProvider } from "@/components/PostHogProvider";
@@ -153,7 +153,7 @@ export default function RootLayout({
           <ToastProvider>{children}</ToastProvider>
         </PostHogProvider>
         <ConsentNotice />
-        <Analytics />
+        <AppAnalytics />
         <SalesChatWidget />
         <script
           type="application/ld+json"

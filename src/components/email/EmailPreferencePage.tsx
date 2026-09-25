@@ -39,6 +39,10 @@ function EmailPreferenceInner({ action }: { action: EmailPrefAction }) {
   useEffect(() => {
     if (!token || calledRef.current) return;
     calledRef.current = true;
+    // The token is a one-click credential: get it out of the URL bar (and
+    // so out of browser history and any later copy/share of the link)
+    // straight after we've read it, before the request even resolves.
+    window.history.replaceState(null, "", window.location.pathname);
     applyEmailPreference(action, token).then((res) => {
       setMessage(res.message);
       setState(res.ok ? "done" : "error");

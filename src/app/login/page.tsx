@@ -26,12 +26,32 @@ function LoginInner() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Parse `next` into a same-origin URL, or null if it's missing, malformed,
+   * or points off-site. Rejects the classic `next=//evil.com` open redirect
+   * (protocol-relative: no scheme, but the browser treats `//` as "go to
+   * this host instead") both by string shape and, belt and suspenders, by
+   * checking the parsed origin, since `new URL` resolves `//evil.com`
+   * against our origin to a URL whose origin is actually evil.com.
+   */
+  function parseSafeNext(raw: string | null): URL | null {
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+    try {
+      const u = new URL(raw, window.location.origin);
+      return u.origin === window.location.origin ? u : null;
+    } catch {
+      return null;
+    }
+  }
+
   function safeNext(role: string): string {
     if (role === "partner") return "/partner";
-    if (nextParam && nextParam.startsWith("/")) {
+
+    const u = parseSafeNext(nextParam);
+    if (u) {
       if (role === "tenant") {
-        if (nextParam.startsWith("/me") || nextParam.startsWith("/listings")) {
-          return nextParam;
+        if (u.pathname.startsWith("/me") || u.pathname.startsWith("/listings")) {
+          return u.pathname + u.search;
         }
         return "/me";
       }
@@ -41,10 +61,10 @@ function LoginInner() {
       // dashboard and shouldn't be where a normal sign-in dumps you.
       // Exception: a plan link (?plan=...) from the sales assistant or an
       // email should land on billing with that plan preselected.
-      if (nextParam.startsWith("/app/billing")) {
-        return nextParam.includes("plan=") ? nextParam : "/app/dashboard";
+      if (u.pathname === "/app/billing") {
+        return u.searchParams.has("plan") ? "/app/billing" + u.search : "/app/dashboard";
       }
-      return nextParam;
+      return u.pathname + u.search;
     }
     return role === "tenant" ? "/me" : "/app/dashboard";
   }
