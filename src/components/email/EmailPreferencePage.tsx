@@ -29,7 +29,11 @@ const COPY: Record<EmailPrefAction, Copy> = {
 function EmailPreferenceInner({ action }: { action: EmailPrefAction }) {
   const params = useSearchParams();
   const token = params.get("token") ?? "";
-  const [state, setState] = useState<"loading" | "done" | "error">(token ? "loading" : "error");
+  // A missing token usually means the link was already used (some email
+  // clients and link scanners strip or already consumed the query string),
+  // not that anything is actually broken, so it gets its own, calmer copy
+  // rather than the "This link didn't work" error state.
+  const [state, setState] = useState<"loading" | "done" | "error" | "no-token">(token ? "loading" : "no-token");
   const [message, setMessage] = useState<string | undefined>(undefined);
   // The endpoint changes state (unsubscribes or opts in), so it must run
   // exactly once per page load, not twice under React 19 Strict Mode's
@@ -54,11 +58,19 @@ function EmailPreferenceInner({ action }: { action: EmailPrefAction }) {
     <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center px-6 text-center">
       <div role="status" aria-live="polite">
         <h1 className="text-[24px] font-semibold tracking-tight text-foundation-700">
-          {state === "loading" ? copy.loading : state === "done" ? copy.doneTitle : "This link didn't work"}
+          {state === "loading"
+            ? copy.loading
+            : state === "done"
+            ? copy.doneTitle
+            : state === "no-token"
+            ? "Already handled?"
+            : "This link didn't work"}
         </h1>
         <p className="mt-3 text-[14.5px] leading-[1.6] text-ink-muted">
           {state === "done"
             ? copy.doneBody
+            : state === "no-token"
+            ? "If you already used this link, you're all set. Otherwise, open the link from your email again."
             : state === "error"
             ? `${message ?? "The link may be incomplete or out of date."} Email hello@property360.africa and we'll sort it out.`
             : "One moment."}

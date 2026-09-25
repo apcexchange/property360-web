@@ -36,23 +36,44 @@ function stripTokenParam(value: string): string {
 }
 
 /**
- * PostHog before_send hook: scrubs `token` out of every string property
- * (this covers $current_url, $referrer, $pathname and any custom
- * URL-valued property) before the event leaves the browser, so a leaked
- * event can never carry a live unsubscribe/opt-in credential.
+ * Recursively scrubs `token` out of every string found anywhere inside
+ * `value` (plain objects and arrays, at any depth), stripping only the
+ * `token` query param and keeping every other param, path segment and hash
+ * intact. Non-string, non-object values (numbers, booleans, null) pass
+ * through untouched.
+ */
+function sanitizeDeep(value: unknown): unknown {
+  if (typeof value === "string") {
+    return value.includes(`${TOKEN_PARAM}=`) ? stripTokenParam(value) : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(sanitizeDeep);
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, v] of Object.entries(value as Record<string, unknown>)) {
+      out[key] = sanitizeDeep(v);
+    }
+    return out;
+  }
+  return value;
+}
+
+/**
+ * PostHog before_send hook: scrubs `token` out of `properties` (this covers
+ * $current_url, $referrer, $pathname and any custom URL-valued property, at
+ * any nesting depth) as well as $set and $set_once, before the event leaves
+ * the browser, so a leaked event can never carry a live unsubscribe/opt-in
+ * credential.
  */
 function sanitizeCaptureResult(cr: CaptureResult | null): CaptureResult | null {
-  if (!cr || !cr.properties) return cr;
-  let changed = false;
-  const properties = { ...cr.properties };
-  for (const key of Object.keys(properties)) {
-    const value = properties[key];
-    if (typeof value === "string" && value.includes(`${TOKEN_PARAM}=`)) {
-      properties[key] = stripTokenParam(value);
-      changed = true;
-    }
-  }
-  return changed ? { ...cr, properties } : cr;
+  if (!cr) return cr;
+  return {
+    ...cr,
+    properties: cr.properties ? (sanitizeDeep(cr.properties) as CaptureResult["properties"]) : cr.properties,
+    ...(cr.$set ? { $set: sanitizeDeep(cr.$set) as CaptureResult["$set"] } : {}),
+    ...(cr.$set_once ? { $set_once: sanitizeDeep(cr.$set_once) as CaptureResult["$set_once"] } : {}),
+  };
 }
 
 export function initAnalytics() {

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Nav } from "@/components/landing/Nav";
 import { PasswordInput } from "@/components/ui/PasswordInput";
 import { authApi } from "@/lib/auth-api";
+import { safeNextPath } from "@/lib/safeNext";
 import { AxiosError } from "axios";
 
 /**
@@ -26,47 +27,10 @@ function LoginInner() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Parse `next` into a same-origin URL, or null if it's missing, malformed,
-   * or points off-site. Rejects the classic `next=//evil.com` open redirect
-   * (protocol-relative: no scheme, but the browser treats `//` as "go to
-   * this host instead") both by string shape and, belt and suspenders, by
-   * checking the parsed origin, since `new URL` resolves `//evil.com`
-   * against our origin to a URL whose origin is actually evil.com.
-   */
-  function parseSafeNext(raw: string | null): URL | null {
-    if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
-    try {
-      const u = new URL(raw, window.location.origin);
-      return u.origin === window.location.origin ? u : null;
-    } catch {
-      return null;
-    }
-  }
-
+  // Parsing and the open-redirect rejection rules live in safeNextPath
+  // (src/lib/safeNext.ts), a pure function so they're testable in isolation.
   function safeNext(role: string): string {
-    if (role === "partner") return "/partner";
-
-    const u = parseSafeNext(nextParam);
-    if (u) {
-      if (role === "tenant") {
-        if (u.pathname.startsWith("/me") || u.pathname.startsWith("/listings")) {
-          return u.pathname + u.search;
-        }
-        return "/me";
-      }
-      // Landlords/agents bounced here from an expired /app/billing session
-      // (incl. a failed mobile web-handoff) land on the dashboard instead of
-      // straight back on billing, that page is a rarer destination than the
-      // dashboard and shouldn't be where a normal sign-in dumps you.
-      // Exception: a plan link (?plan=...) from the sales assistant or an
-      // email should land on billing with that plan preselected.
-      if (u.pathname === "/app/billing") {
-        return u.searchParams.has("plan") ? "/app/billing" + u.search : "/app/dashboard";
-      }
-      return u.pathname + u.search;
-    }
-    return role === "tenant" ? "/me" : "/app/dashboard";
+    return safeNextPath(nextParam, window.location.origin, role);
   }
 
   async function onSubmit(e: FormEvent) {
