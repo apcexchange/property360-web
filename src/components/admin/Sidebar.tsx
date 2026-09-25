@@ -35,6 +35,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/admin/partners", label: "Partners" },
       { href: "/admin/tenant-referrals", label: "Tenant referrals" },
+      { href: "/admin/sales-followup", label: "Sales follow-up" },
     ],
   },
   {
