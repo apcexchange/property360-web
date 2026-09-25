@@ -13,13 +13,13 @@ interface Copy {
 
 const COPY: Record<EmailPrefAction, Copy> = {
   unsubscribe: {
-    loading: "Unsubscribing...",
+    loading: "Unsubscribing…",
     doneTitle: "You're unsubscribed",
     doneBody:
       "You won't get any more tips, offers or follow-up emails from Property360. Account emails such as receipts and security codes still arrive as normal.",
   },
   "opt-in": {
-    loading: "Saving your choice...",
+    loading: "Saving your choice…",
     doneTitle: "You're on the list",
     doneBody:
       "We'll send you occasional tips for landlords and the odd offer. Every email has a one-click unsubscribe link.",
