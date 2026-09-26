@@ -12,6 +12,7 @@ import { Button, SearchInput, Select } from "@/components/admin/ui/Filters";
 import { ControlsCard } from "@/components/admin/sales-followup/ControlsCard";
 import { FunnelTable } from "@/components/admin/sales-followup/FunnelTable";
 import { JourneyDrawer } from "@/components/admin/sales-followup/JourneyDrawer";
+import { MessageLibrary } from "@/components/admin/sales-followup/MessageLibrary";
 import { errorMessage, STATUS_LABELS, STOP_REASON_LABELS, TRACK_LABELS } from "@/components/admin/sales-followup/labels";
 import adminApi, { SalesJourneyRow } from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
@@ -24,7 +25,14 @@ function HotBadge() {
   );
 }
 
+const TABS = [
+  { key: "overview", label: "Overview" },
+  { key: "messages", label: "Messages" },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
 export default function AdminSalesFollowUpPage() {
+  const [tab, setTab] = useState<TabKey>("overview");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -66,6 +74,34 @@ export default function AdminSalesFollowUpPage() {
             description="Automated WhatsApp and email follow-up for landlords and agents who are not paying yet, plus the AI sales chat."
           />
 
+          <div role="tablist" aria-label="Sales follow-up sections" className="mb-6 flex gap-1 border-b border-rule">
+            {TABS.map((tabItem) => (
+              <button
+                key={tabItem.key}
+                type="button"
+                role="tab"
+                id={`sales-followup-tab-${tabItem.key}`}
+                aria-selected={tab === tabItem.key}
+                aria-controls={`sales-followup-panel-${tabItem.key}`}
+                tabIndex={tab === tabItem.key ? 0 : -1}
+                onClick={() => setTab(tabItem.key)}
+                className={`border-b-2 px-3.5 py-2 text-[11.5px] font-semibold uppercase tracking-[0.1em] transition ${
+                  tab === tabItem.key
+                    ? "border-foundation-700 text-foundation-700"
+                    : "border-transparent text-ink-muted hover:text-foundation-700"
+                }`}
+              >
+                {tabItem.label}
+              </button>
+            ))}
+          </div>
+
+          {tab === "messages" ? (
+            <div role="tabpanel" id="sales-followup-panel-messages" aria-labelledby="sales-followup-tab-messages">
+              <MessageLibrary />
+            </div>
+          ) : (
+          <div role="tabpanel" id="sales-followup-panel-overview" aria-labelledby="sales-followup-tab-overview">
           {stats.isError ? (
             <ErrorState title="Could not load sales follow-up" onRetry={() => void stats.refetch()} />
           ) : (
@@ -213,6 +249,8 @@ export default function AdminSalesFollowUpPage() {
           )}
           {!journeys.isError && (
             <Pagination page={page} total={journeys.data?.total ?? 0} limit={limit} onChange={setPage} />
+          )}
+          </div>
           )}
         </div>
       </main>
