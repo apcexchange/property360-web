@@ -28,7 +28,7 @@ const ROLES: {
   },
   {
     id: "agent",
-    title: "I'm a property manager",
+    title: "I'm a property manager/Agency/Hotel etc",
     body: "I manage my own portfolio and/or accept invitations from landlords to manage theirs.",
     icon: Briefcase,
   },

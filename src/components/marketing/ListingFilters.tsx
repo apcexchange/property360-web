@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import { NIGERIA_STATES, citiesForState } from "@/lib/nigeria-locations";
 
 const BEDROOM_OPTIONS = [
   { value: "", label: "Any beds" },
@@ -23,12 +24,10 @@ const PRICE_OPTIONS = [
 
 const STATE_OPTIONS = [
   { value: "", label: "Anywhere" },
-  { value: "Lagos", label: "Lagos" },
-  { value: "Abuja", label: "Abuja" },
-  { value: "Rivers", label: "Rivers" },
-  { value: "Oyo", label: "Oyo" },
-  { value: "Kano", label: "Kano" },
-  { value: "Kaduna", label: "Kaduna" },
+  ...NIGERIA_STATES.map((state) => ({
+    value: state.name,
+    label: state.name === "FCT" ? "Federal Capital Territory (Abuja)" : state.name,
+  })),
 ];
 
 export function ListingFilters({
@@ -36,11 +35,17 @@ export function ListingFilters({
   defaultBedrooms = "",
   defaultMaxPrice = "",
   defaultState = "",
+  defaultCity = "",
+  defaultPurpose = "",
+  defaultPropertyType = "",
 }: {
   defaultSearch?: string;
   defaultBedrooms?: string;
   defaultMaxPrice?: string;
   defaultState?: string;
+  defaultCity?: string;
+  defaultPurpose?: string;
+  defaultPropertyType?: string;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -49,12 +54,18 @@ export function ListingFilters({
   const [bedrooms, setBedrooms] = useState(defaultBedrooms);
   const [maxPrice, setMaxPrice] = useState(defaultMaxPrice);
   const [state, setState] = useState(defaultState);
+  const [city, setCity] = useState(defaultCity);
+  const [purpose, setPurpose] = useState(defaultPurpose);
+  const [propertyType, setPropertyType] = useState(defaultPropertyType);
 
   function apply(next: {
     search?: string;
     bedrooms?: string;
     maxPrice?: string;
     state?: string;
+    city?: string;
+    purpose?: string;
+    propertyType?: string;
   }) {
     const merged = new URLSearchParams(params?.toString() ?? "");
     const values = {
@@ -62,6 +73,9 @@ export function ListingFilters({
       bedrooms: next.bedrooms ?? bedrooms,
       maxPrice: next.maxPrice ?? maxPrice,
       state: next.state ?? state,
+      city: next.city ?? city,
+      purpose: next.purpose ?? purpose,
+      propertyType: next.propertyType ?? propertyType,
     };
     for (const [k, v] of Object.entries(values)) {
       if (v) merged.set(k, v);
@@ -79,7 +93,7 @@ export function ListingFilters({
         e.preventDefault();
         apply({});
       }}
-      className="rounded-2xl border border-foundation-700/10 bg-surface p-4 shadow-card md:flex md:items-end md:gap-3"
+      className="rounded-2xl border border-foundation-700/10 bg-surface p-4 shadow-card md:flex md:flex-wrap md:items-end md:gap-3"
     >
       <div className="md:flex-1">
         <label className="eyebrow block text-[10px]">Search</label>
@@ -96,13 +110,36 @@ export function ListingFilters({
       </div>
 
       <Select
+        label="Type"
+        value={purpose}
+        onChange={(v) => { setPurpose(v); apply({ purpose: v }); }}
+        options={[{ value: "", label: "Any listing" }, { value: "rent", label: "For rent" }, { value: "sale", label: "For sale" }, { value: "shortlet", label: "Shortlet" }]}
+      />
+      <Select
+        label="Property"
+        value={propertyType}
+        onChange={(v) => { setPropertyType(v); apply({ propertyType: v }); }}
+        options={[{ value: "", label: "Any property" }, { value: "residential", label: "Homes" }, { value: "shop", label: "Shops" }, { value: "commercial", label: "Commercial" }, { value: "hostel", label: "Hostels" }, { value: "land", label: "Land / plots" }]}
+      />
+      <Select
         label="State"
         value={state}
         onChange={(v) => {
           setState(v);
-          apply({ state: v });
+          setCity("");
+          apply({ state: v, city: "" });
         }}
         options={STATE_OPTIONS}
+      />
+      <Select
+        label="City"
+        value={city}
+        onChange={(v) => { setCity(v); apply({ city: v }); }}
+        options={[
+          { value: "", label: state ? "Any city" : "Choose a state first" },
+          ...citiesForState(state).map((name) => ({ value: name, label: name })),
+        ]}
+        disabled={!state}
       />
       <Select
         label="Beds"
@@ -138,19 +175,22 @@ function Select({
   value,
   onChange,
   options,
+  disabled = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
+  disabled?: boolean;
 }) {
   return (
     <label className="mt-3 block md:mt-0">
       <span className="eyebrow block text-[10px]">{label}</span>
       <select
         value={value}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
-        className="mt-1 w-full rounded-full border border-foundation-700/10 bg-paper/60 px-4 py-2 text-[14px] text-foundation-700 outline-none transition focus:border-foundation-700/30 md:w-auto"
+        className="mt-1 w-full rounded-full border border-foundation-700/10 bg-paper/60 px-4 py-2 text-[14px] text-foundation-700 outline-none transition focus:border-foundation-700/30 disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

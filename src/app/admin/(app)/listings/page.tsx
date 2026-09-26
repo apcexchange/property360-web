@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/admin/ui/PageHeader";
 import { Pagination } from "@/components/admin/ui/Pagination";
 import { SearchInput, Select } from "@/components/admin/ui/Filters";
 import { useState } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import adminApi from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
 
@@ -15,6 +15,12 @@ export default function AdminListingsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const limit = 25;
+  const qc = useQueryClient();
+  const moderate = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "approved" | "rejected" | "paused" }) =>
+      adminApi.setListingModeration(id, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "listings"] }),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "listings", { page, search, status }],
@@ -35,7 +41,7 @@ export default function AdminListingsPage() {
         <div className="mx-auto max-w-6xl">
           <PageHeader
             title="Marketplace listings"
-            description="All units that landlords have listed for rent."
+            description="Review and control public marketplace listings."
             filters={
               <>
                 <SearchInput
@@ -117,7 +123,18 @@ export default function AdminListingsPage() {
               {
                 key: "status",
                 header: "Status",
-                render: (r) => <StatusBadge value={r.listingStatus} />,
+                render: (r) => <StatusBadge value={r.moderationStatus ?? "approved"} />,
+              },
+              {
+                key: "actions",
+                header: "Review",
+                render: (r) => (
+                  <div className="flex flex-wrap gap-1.5">
+                    <button onClick={() => moderate.mutate({ id: r._id, status: "approved" })} disabled={moderate.isPending} className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-50">Approve</button>
+                    <button onClick={() => moderate.mutate({ id: r._id, status: "paused" })} disabled={moderate.isPending} className="rounded-full border border-amber-300 px-2.5 py-1 text-[11px] font-semibold text-amber-800 disabled:opacity-50">Pause</button>
+                    <button onClick={() => moderate.mutate({ id: r._id, status: "rejected" })} disabled={moderate.isPending} className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-700 disabled:opacity-50">Reject</button>
+                  </div>
+                ),
               },
             ]}
           />

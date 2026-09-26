@@ -20,6 +20,7 @@ const PERMISSION_LABELS: Record<string, string> = {
   canRecordPayment: "Record payments",
   canRenewLease: "Renew leases",
   canUploadAgreements: "Upload agreements",
+  canManageListings: "Manage marketplace listings",
   canManageMaintenance: "Maintenance",
   canViewPayments: "View payments",
   canViewReports: "View reports",

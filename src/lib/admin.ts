@@ -141,6 +141,7 @@ export interface AdminListingRow {
   bathrooms?: number;
   listingTitle?: string;
   listingStatus: "active" | "inactive" | "reserved";
+  moderationStatus?: "pending" | "approved" | "rejected" | "paused";
   listedAt?: string;
   inspectionFee?: number;
   inspectionFeeEnabled?: boolean;
@@ -153,6 +154,7 @@ export interface AdminListingRow {
     landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
   };
 }
+export interface AdminListingReportRow { _id: string; reason: string; detail?: string; createdAt: string; unit?: { listingTitle?: string; unitNumber?: string }; reporter?: { firstName?: string; lastName?: string; email?: string }; }
 
 export interface AdminReservationRow {
   _id: string;
@@ -600,6 +602,16 @@ const adminApi = {
     search?: string;
   }): Promise<Paginated<AdminListingRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminListingRow>>>("/admin/listings", { params });
+    return unwrap(res.data);
+  },
+  async listListingReports(params: { page?: number; limit?: number }): Promise<Paginated<AdminListingReportRow>> { const res = await api.get<ApiEnvelope<Paginated<AdminListingReportRow>>>("/admin/listing-reports", { params }); return unwrap(res.data); },
+  async resolveListingReport(id: string, action: "dismissed" | "paused" | "rejected"): Promise<void> { await api.post(`/admin/listing-reports/${id}/resolve`, { action }); },
+  async setListingModeration(
+    unitId: string,
+    status: "approved" | "rejected" | "paused",
+    reason?: string
+  ): Promise<AdminListingRow> {
+    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason });
     return unwrap(res.data);
   },
 

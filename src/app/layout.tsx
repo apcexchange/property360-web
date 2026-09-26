@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import { AppAnalytics } from "@/components/AppAnalytics";
 import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
@@ -7,25 +6,6 @@ import { PostHogProvider } from "@/components/PostHogProvider";
 import { ConsentNotice } from "@/components/ConsentNotice";
 import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  axes: ["opsz", "SOFT"],
-});
-
-const interTight = Inter_Tight({
-  subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-  display: "swap",
-});
 
 const SITE_URL = "https://property360.africa";
 const TITLE = "Property360, Property management for Nigerian landlords";
@@ -145,7 +125,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
+      className=""
     >
       <body className="font-sans">
         <ChunkErrorReloader />

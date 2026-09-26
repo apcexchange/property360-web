@@ -14,6 +14,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const img = listingImage(listing);
   const reserved = listing.listingStatus === "reserved";
   const verified = isLandlordVerified(listing);
+  const purpose = listing.listingPurpose ?? "rent";
+  const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
+  const purposeLabel = purpose === "sale" ? "For sale" : purpose === "shortlet" ? "Shortlet" : "For rent";
+  const isLand = listing.property?.propertyType === "land";
+  const landSize = listing.listingDetails?.landSize;
 
   return (
     <Link
@@ -39,8 +44,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
             Reserved
           </span>
         )}
+        {!reserved && <span className="absolute left-3 top-3 rounded-full bg-paper/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foundation-700 shadow-sm">{purposeLabel}</span>}
         {listing.isNegotiable && !reserved && (
-          <span className="absolute left-3 top-3 rounded-full bg-foundation-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cryola-300">
+          <span className="absolute left-3 top-10 rounded-full bg-foundation-700 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cryola-300">
             Negotiable
           </span>
         )}
@@ -60,17 +66,19 @@ export function ListingCard({ listing }: { listing: Listing }) {
           <MapPin className="h-3 w-3" /> {locationLabel(listing.property?.address)}
         </p>
         <div className="mt-3 flex items-center gap-4 text-[12px] text-ink-muted">
+          {isLand && landSize != null ? <span>{landSize} {listing.listingDetails?.landUnit ?? "sqm"}</span> : <>
           <span className="inline-flex items-center gap-1">
             <BedDouble className="h-3.5 w-3.5" /> {listing.bedrooms ?? "—"} bd
           </span>
           <span className="inline-flex items-center gap-1">
             <Bath className="h-3.5 w-3.5" /> {listing.bathrooms ?? "—"} ba
           </span>
+          </>}
         </div>
         <div className="mt-auto flex items-end justify-between pt-5">
           <p className="text-[22px] font-extrabold tracking-[-0.025em] text-foundation-700 tabular">
             {formatNaira(listing.rentAmount)}
-            <span className="ml-1 text-[12px] font-medium text-ink-muted">/year</span>
+            {priceSuffix && <span className="ml-1 text-[12px] font-medium text-ink-muted">{priceSuffix}</span>}
           </p>
           <span className="rounded-full bg-foundation-700/5 px-3 py-1 text-[11px] font-semibold text-foundation-700 transition group-hover:bg-foundation-700 group-hover:text-paper">
             View

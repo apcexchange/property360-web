@@ -822,6 +822,11 @@ export const tenantApi = {
     const conv = unwrap(res.data) as { _id?: string; id?: string };
     return { id: conv.id ?? conv._id ?? "" };
   },
+  async startListingConversation(unitId: string): Promise<{ id: string }> {
+    const res = await api.post("/chat/conversations", { unitId });
+    const conv = unwrap(res.data) as { _id?: string; id?: string };
+    return { id: conv.id ?? conv._id ?? "" };
+  },
   async listMessages(conversationId: string): Promise<Message[]> {
     const res = await api.get(
       `/chat/conversations/${conversationId}/messages`,
