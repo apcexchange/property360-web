@@ -273,10 +273,20 @@ export default function TransactionsPage() {
   // Day-bucketed net flow for the inline area chart. Buckets are local
   // calendar days; only completed rows contribute so pending entries
   // don't skew the trend.
-  const netFlowSeries = useMemo(() => {
+  const netFlow = useMemo(() => {
+    const completed = filtered.filter(
+      (r) => r.status === "completed" && Number.isFinite(r.ts)
+    );
+    if (completed.length === 0) return { series: [], rangeLabel: "" };
+
+    // Use a real contiguous 30-day reporting window. The old implementation
+    // took the last 30 *distinct transaction dates*, which could stretch over
+    // many months (or years) while the chart still claimed "recent days".
+    const endTs = Math.max(...completed.map((r) => r.ts));
+    const startTs = endTs - 29 * 24 * 60 * 60 * 1000;
     const buckets = new Map<string, { day: string; net: number; sortKey: number }>();
-    for (const r of filtered) {
-      if (r.status !== "completed") continue;
+    for (const r of completed) {
+      if (r.ts < startTs || r.ts > endTs) continue;
       const d = new Date(r.date);
       if (Number.isNaN(d.getTime())) continue;
       const key = d.toISOString().slice(0, 10);
@@ -293,15 +303,18 @@ export default function TransactionsPage() {
     const ordered = Array.from(buckets.values()).sort(
       (a, b) => a.sortKey - b.sortKey
     );
-    const recent = ordered.slice(-30);
-    return recent.map((b) => ({
+    const spansYears = new Date(startTs).getFullYear() !== new Date(endTs).getFullYear();
+    const series = ordered.map((b) => ({
       day: b.day,
       label: new Date(`${b.day}T00:00:00`).toLocaleDateString("en-NG", {
+        year: spansYears ? "numeric" : undefined,
         month: "short",
         day: "numeric",
       }),
       net: b.net,
     }));
+    const rangeLabel = `${new Date(startTs).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })} – ${new Date(endTs).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}`;
+    return { series, rangeLabel };
   }, [filtered]);
 
   function exportCsv() {
@@ -430,7 +443,7 @@ export default function TransactionsPage() {
           </div>
         </Card>
 
-        <NetFlowChart series={netFlowSeries} />
+        <NetFlowChart series={netFlow.series} rangeLabel={netFlow.rangeLabel} />
 
         <div className="mt-6">
           {loading ? (
@@ -478,6 +491,9 @@ export default function TransactionsPage() {
                     </div>
                     <p className="mt-0.5 text-[11.5px] text-ink-muted">
                       {formatDate(r.date)}
+                      {r.ts > Date.now() + 24 * 60 * 60 * 1000 && (
+                        <span className="ml-1 font-semibold text-amber-700">· Future date</span>
+                      )}
                       {r.secondaryLabel && ` · ${r.secondaryLabel}`}
                       {r.reference && ` · ${r.reference}`}
                     </p>
@@ -599,16 +615,19 @@ function DateField({
 
 function NetFlowChart({
   series,
+  rangeLabel,
 }: {
   series: Array<{ day: string; label: string; net: number }>;
+  rangeLabel: string;
 }) {
   if (series.length === 0) return null;
   return (
     <Card className="mt-6 overflow-hidden">
       <div className="border-b border-foundation-700/10 px-5 py-3">
         <h3 className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
-          Net flow (recent days)
+          Net flow · 30-day window
         </h3>
+        <p className="mt-1 text-[11px] text-ink-muted">{rangeLabel}</p>
       </div>
       <div className="px-2 pb-2 pt-3" style={{ height: 120 }}>
         <ResponsiveContainer width="100%" height="100%">
