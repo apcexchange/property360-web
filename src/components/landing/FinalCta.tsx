@@ -24,12 +24,8 @@ export function FinalCta() {
       onMouseMove={handleMove}
       className="cursor-spotlight relative overflow-hidden bg-foundation-700 py-32 text-paper"
     >
-      {/* Static atmospheric layers */}
+      {/* One soft wash gives the closing section depth without a decorative grid. */}
       <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-cryola-300/15 blur-3xl" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(to_right,#BFFF84_1px,transparent_1px),linear-gradient(to_bottom,#BFFF84_1px,transparent_1px)] [background-size:96px_96px]"
-      />
 
       <div className="relative mx-auto max-w-4xl px-6 text-center">
         <motion.h2

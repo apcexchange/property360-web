@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, CreditCard, X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   Card,
@@ -32,6 +33,8 @@ function errorMessage(error: unknown, fallback: string) {
 
 export default function PendingPaymentsPage() {
   const qc = useQueryClient();
+  const searchParams = useSearchParams();
+  const requestedPaymentId = searchParams.get("paymentId");
   const [rejecting, setRejecting] = useState<PendingPayment | null>(null);
   const [reason, setReason] = useState("");
 
@@ -62,6 +65,12 @@ export default function PendingPaymentsPage() {
     : reject.isError
     ? errorMessage(reject.error, "Couldn’t reject this payment.")
     : null;
+  const selectedPayment = requestedPaymentId
+    ? payments.data?.find((payment) => payment.id === requestedPaymentId)
+    : undefined;
+  const orderedPayments = selectedPayment
+    ? [selectedPayment, ...(payments.data ?? []).filter((payment) => payment.id !== selectedPayment.id)]
+    : payments.data ?? [];
 
   return (
     <>
@@ -71,6 +80,13 @@ export default function PendingPaymentsPage() {
       />
       <PageContainer>
         {actionError && <ErrorBox title="Payment not updated" message={actionError} />}
+        {requestedPaymentId && !payments.isLoading && (
+          <div className={`mb-5 border-l-2 px-4 py-1 text-[13px] ${selectedPayment ? "border-cryola-400 text-foundation-700" : "border-amber-400 text-ink-muted"}`}>
+            {selectedPayment
+              ? "Opened from your payment notification. Review the highlighted payment below."
+              : "This payment is no longer awaiting confirmation. It may already have been confirmed or rejected."}
+          </div>
+        )}
         {payments.isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => <Skeleton key={i} className="h-44 w-full" />)}
@@ -84,12 +100,21 @@ export default function PendingPaymentsPage() {
           />
         ) : (
           <div className="space-y-3">
-            {payments.data?.map((payment) => {
+            {orderedPayments.map((payment) => {
               const tenantName = `${payment.tenant?.firstName ?? ""} ${payment.tenant?.lastName ?? ""}`.trim() || "Tenant";
               const place = [payment.property?.name, payment.unit?.unitNumber ? `Unit ${payment.unit.unitNumber}` : undefined].filter(Boolean).join(" · ");
               const busy = confirm.isPending || reject.isPending;
+              const expectedAmount = payment.type === "rent" ? payment.expectedAmount : undefined;
+              const difference = expectedAmount == null ? null : payment.amount - expectedAmount;
+              const comparison = difference == null
+                ? null
+                : difference === 0
+                ? { text: "Matches the lease amount", tone: "text-emerald-700" }
+                : difference < 0
+                ? { text: `${formatNgn(Math.abs(difference))} below the lease amount`, tone: "text-amber-800" }
+                : { text: `${formatNgn(difference)} above the lease amount`, tone: "text-amber-800" };
               return (
-                <Card key={payment.id} className="p-5">
+                <Card key={payment.id} className={`p-5 ${payment.id === requestedPaymentId ? "ring-2 ring-cryola-300 ring-offset-2 ring-offset-paper" : ""}`}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 gap-3">
                       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-cryola-100 text-foundation-700"><CreditCard className="h-5 w-5" /></span>
@@ -104,8 +129,17 @@ export default function PendingPaymentsPage() {
                         </div>
                       </div>
                     </div>
-                    <p className="font-amount text-[24px] font-extrabold tracking-[-0.02em] text-foundation-700">{formatNgn(payment.amount)}</p>
+                    <div className="text-left sm:text-right">
+                      <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Tenant marked paid</p>
+                      <p className="mt-1 font-amount text-[24px] font-extrabold tracking-[-0.02em] text-foundation-700">{formatNgn(payment.amount)}</p>
+                    </div>
                   </div>
+                  {expectedAmount != null && (
+                    <div className="mt-4 grid gap-3 border-y border-foundation-700/10 py-3 text-[12.5px] sm:grid-cols-[1fr_auto] sm:items-center">
+                      <p className="text-ink-muted">Lease rent <span className="font-semibold text-foundation-700">{formatNgn(expectedAmount)}</span>{payment.paymentFrequency ? ` · ${payment.paymentFrequency}` : ""}</p>
+                      {comparison && <p className={`font-semibold ${comparison.tone}`}>{comparison.text}</p>}
+                    </div>
+                  )}
                   {payment.notes && <p className="mt-4 rounded-xl bg-surface px-3 py-2 text-[12.5px] text-ink-muted">{payment.notes}</p>}
                   <div className="mt-5 flex flex-wrap gap-2 border-t border-foundation-700/10 pt-4">
                     <button type="button" disabled={busy} onClick={() => { if (window.confirm(`Confirm ${formatNgn(payment.amount)} from ${tenantName}?`)) confirm.mutate(payment.id); }} className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"><Check className="h-4 w-4" />{confirm.isPending ? "Confirming…" : "Confirm payment"}</button>

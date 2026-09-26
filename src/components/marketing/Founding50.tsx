@@ -61,15 +61,14 @@ export function Founding50() {
   return (
     <section
       id="founding"
-      className="relative overflow-hidden bg-foundation-700 py-24 text-paper sm:py-28"
+      className="relative overflow-hidden border-y border-paper/10 bg-foundation-800 py-24 text-paper sm:py-28"
     >
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-96 w-[40rem] -translate-x-1/2 rounded-full bg-cryola-300/15 blur-3xl" />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(to_right,#BFFF84_1px,transparent_1px),linear-gradient(to_bottom,#BFFF84_1px,transparent_1px)] [background-size:96px_96px]"
-      />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-cryola-300/65" />
+      <div aria-hidden className="pointer-events-none absolute -right-40 top-1/2 h-[32rem] w-[32rem] -translate-y-1/2 rounded-full bg-cryola-300/[0.07] blur-3xl" />
 
-      <div className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div className="relative mx-auto max-w-6xl px-6">
+        <div className="h-px w-12 bg-cryola-300" />
+        <div className="mt-8 grid grid-cols-1 items-start gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         {/* Copy column */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -77,7 +76,7 @@ export function Founding50() {
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-cryola-300/25 bg-foundation-800 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-cryola-300">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-cryola-300">
             <span className="live-dot inline-block h-1.5 w-1.5 rounded-full bg-cryola-300" />
             {soldOut ? "Founding 50 · closed" : `Launch offer · limited to ${total}`}
           </div>
@@ -133,7 +132,7 @@ export function Founding50() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          className="rounded-3xl border border-cryola-300/20 bg-foundation-800/80 p-7 shadow-pop backdrop-blur-sm sm:p-9"
+          className="border-l border-paper/20 pl-6 sm:pl-9 lg:mt-1"
         >
           {soldOut ? (
             <WaitlistCard />
@@ -206,6 +205,7 @@ export function Founding50() {
             </>
           )}
         </motion.div>
+        </div>
       </div>
     </section>
   );

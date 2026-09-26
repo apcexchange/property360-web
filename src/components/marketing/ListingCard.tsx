@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BedDouble, Bath, MapPin, BadgeCheck } from "lucide-react";
+import { BedDouble, Bath, MapPin, BadgeCheck, Clock3, UserRound } from "lucide-react";
 import {
   Listing,
   formatNaira,
@@ -19,6 +19,11 @@ export function ListingCard({ listing }: { listing: Listing }) {
   const purposeLabel = purpose === "sale" ? "For sale" : purpose === "shortlet" ? "Shortlet" : "For rent";
   const isLand = listing.property?.propertyType === "land";
   const landSize = listing.listingDetails?.landSize;
+  const owner = listing.property?.owner;
+  const publisher = owner?.firstName
+    ? `${owner.firstName}${owner.lastName ? ` ${owner.lastName.slice(0, 1)}.` : ""}`
+    : null;
+  const listedLabel = relativeListedAt(listing.listedAt);
 
   return (
     <Link
@@ -53,7 +58,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
         {verified && (
           <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-paper/90 px-2 py-0.5 text-[10px] font-semibold text-foundation-700 shadow-sm backdrop-blur">
             <BadgeCheck className="h-3 w-3 text-emerald-600" />
-            Verified
+            Verified publisher
           </span>
         )}
       </div>
@@ -65,6 +70,18 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <p className="mt-1 inline-flex items-center gap-1 text-[12.5px] text-ink-muted">
           <MapPin className="h-3 w-3" /> {locationLabel(listing.property?.address)}
         </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-ink-muted">
+          {publisher && (
+            <span className="inline-flex items-center gap-1">
+              <UserRound className="h-3 w-3" /> Listed by {publisher}
+            </span>
+          )}
+          {listedLabel && (
+            <span className="inline-flex items-center gap-1">
+              <Clock3 className="h-3 w-3" /> {listedLabel}
+            </span>
+          )}
+        </div>
         <div className="mt-3 flex items-center gap-4 text-[12px] text-ink-muted">
           {isLand && landSize != null ? <span>{landSize} {listing.listingDetails?.landUnit ?? "sqm"}</span> : <>
           <span className="inline-flex items-center gap-1">
@@ -87,6 +104,17 @@ export function ListingCard({ listing }: { listing: Listing }) {
       </div>
     </Link>
   );
+}
+
+function relativeListedAt(value?: string): string | null {
+  if (!value) return null;
+  const time = new Date(value).getTime();
+  if (Number.isNaN(time)) return null;
+  const days = Math.floor((Date.now() - time) / 86_400_000);
+  if (days <= 0) return "Listed today";
+  if (days === 1) return "Listed yesterday";
+  if (days < 30) return `Listed ${days} days ago`;
+  return "Listed recently";
 }
 
 export function ListingCardSkeleton() {
