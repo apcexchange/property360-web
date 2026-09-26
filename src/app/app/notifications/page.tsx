@@ -37,12 +37,15 @@ export default function NotificationsPage() {
     type: string;
     data?: Record<string, unknown>;
   }) => {
+    const transactionId = typeof n.data?.transactionId === "string" ? n.data.transactionId : null;
     if (
       n.type === "payment" &&
       (n.data?.action === "confirm_payment" ||
-        typeof n.data?.transactionId === "string")
+        transactionId)
     ) {
-      return "/app/pending-payments";
+      return transactionId
+        ? `/app/pending-payments?paymentId=${encodeURIComponent(transactionId)}`
+        : "/app/pending-payments";
     }
     return null;
   };

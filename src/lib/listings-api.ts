@@ -33,6 +33,7 @@ export interface ListingProperty {
     firstName?: string;
     lastName?: string;
     avatar?: string;
+    role?: "landlord" | "agent" | "tenant";
     // Browse endpoint projects a flat kycStatus; the detail endpoint populates
     // the nested kyc object. isLandlordVerified() handles both shapes.
     kycStatus?: string;

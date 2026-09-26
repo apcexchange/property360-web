@@ -728,7 +728,11 @@ export interface Notification {
 
 export interface PendingPayment {
   id: string;
+  /** Amount the tenant entered when they marked an offline payment as paid. */
   amount: number;
+  /** Agreed rent amount from the active lease, for confirmation comparison. */
+  expectedAmount?: number;
+  paymentFrequency?: string;
   type: string;
   description?: string;
   paymentMethod: string;

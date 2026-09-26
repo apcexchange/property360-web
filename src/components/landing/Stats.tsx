@@ -31,10 +31,10 @@ export function Stats() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-foundation-600/60 md:grid-cols-4">
+        <div className="mt-14 grid grid-cols-2 border-y border-paper/20 md:grid-cols-4">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 0.08}>
-              <div className="bg-foundation-700 px-6 py-10 text-center">
+              <div className="border-b border-r border-paper/15 px-6 py-10 text-center last:border-r-0 md:border-b-0">
                 <p className="text-[clamp(2.5rem,5vw,3.5rem)] font-extrabold leading-none tracking-[-0.04em] text-cryola-300 tabular">
                   {s.static ? (
                     s.value

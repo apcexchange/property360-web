@@ -60,14 +60,14 @@ export default function AgentsPage() {
             <span className="text-cryola-500">With auditable access.</span>
           </>
         }
-        subtitle="Most agents work on trust and WhatsApp. Property360 gives you the access you need, scoped to the property, and proof of every action you take."
+        subtitle="Work across landlord portfolios with the access you need, proof of every action and a clean path to list available properties for the customers you serve."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link
             href="/onboarding"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-6 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            Sign up →
+            Join as an agent →
           </Link>
           <Link
             href="/for-agencies"
@@ -78,23 +78,25 @@ export default function AgentsPage() {
         </div>
       </PageHero>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {PILLARS.map((p) => {
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <p className="eyebrow">A professional workspace</p>
+          <h2 className="max-w-3xl font-display text-[clamp(2rem,4vw,3rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700">Look after more properties without losing the trust behind each one.</h2>
+        </div>
+        <div className="mt-12 grid border-y border-foundation-700/15 md:grid-cols-2">
+          {PILLARS.map((p, index) => {
             const Icon = p.icon;
             return (
-              <div
+              <article
                 key={p.title}
-                className="rounded-2xl border border-foundation-700/10 bg-surface p-7"
+                className="group border-b border-foundation-700/15 py-8 md:px-9 md:[&:nth-child(odd)]:border-r md:[&:nth-last-child(-n+2)]:border-b-0 md:[&:nth-child(odd)]:pl-0"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-cryola-300 text-foundation-700">
-                  <Icon className="h-4.5 w-4.5" strokeWidth={2.2} />
-                </span>
-                <h3 className="mt-4 text-[16px] font-semibold text-foundation-700">
+                <div className="flex items-center justify-between"><span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-cryola-600">0{index + 1}</span><Icon className="h-5 w-5 text-foundation-700 transition-colors group-hover:text-cryola-600" strokeWidth={1.8} /></div>
+                <h3 className="mt-8 text-[17px] font-semibold tracking-[-0.015em] text-foundation-700">
                   {p.title}
                 </h3>
                 <p className="mt-2 text-[14px] leading-[1.55] text-ink-muted">{p.body}</p>
-              </div>
+              </article>
             );
           })}
         </div>

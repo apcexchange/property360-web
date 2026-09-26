@@ -23,12 +23,7 @@ const pains = [
 
 export function PainPoints() {
   return (
-    <section
-      id="why"
-      className="relative overflow-hidden bg-foundation-700 py-24 text-paper md:py-32"
-    >
-      {/* Soft lime atmospheric wash bottom-left */}
-      <div className="pointer-events-none absolute -bottom-32 -left-24 h-[28rem] w-[28rem] rounded-full bg-cryola-400/10 blur-3xl" />
+    <section id="why" className="bg-foundation-700 py-24 text-paper md:py-32">
 
       <div className="mx-auto max-w-6xl px-6">
         <Reveal>
@@ -42,7 +37,7 @@ export function PainPoints() {
           </h2>
         </Reveal>
 
-        <div className="mt-16 grid grid-cols-1 gap-px overflow-hidden rounded-2xl bg-foundation-600/60 md:grid-cols-3">
+        <div className="mt-16 grid border-y border-paper/20 md:grid-cols-3">
           {pains.map((p, i) => (
             <motion.div
               key={p.title}
@@ -50,7 +45,7 @@ export function PainPoints() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="group relative bg-foundation-700 p-7 transition-colors hover:bg-foundation-800 md:p-8"
+              className="group relative min-h-64 border-b border-paper/15 py-8 last:border-b-0 md:border-b-0 md:border-r md:px-8 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
             >
               <p className="font-mono text-[13px] tracking-tight text-cryola-300/70">
                 {p.n}
@@ -61,17 +56,13 @@ export function PainPoints() {
               <p className="mt-3 text-[14.5px] leading-[1.6] text-paper/65">
                 {p.body}
               </p>
-              {/* Lime corner-tick that grows on hover */}
-              <span
-                aria-hidden
-                className="absolute bottom-7 right-7 h-[2px] w-6 origin-right scale-x-50 bg-cryola-400 transition-transform duration-500 ease-out group-hover:scale-x-100"
-              />
+              <span aria-hidden className="absolute bottom-0 left-0 h-px w-0 bg-cryola-300 transition-all duration-500 group-hover:w-12" />
             </motion.div>
           ))}
         </div>
 
         <Reveal delay={0.2}>
-          <div className="mt-12 inline-flex items-center gap-3 rounded-full border border-cryola-300/30 bg-foundation-800/70 px-5 py-2.5 text-[14px]">
+          <div className="mt-12 inline-flex items-center gap-3 border-l border-cryola-300 pl-4 text-[14px]">
             <span className="live-dot h-2 w-2 rounded-full bg-cryola-300" />
             <span className="text-paper">
               <strong className="text-cryola-300">That all ends</strong> the day you install Property360.

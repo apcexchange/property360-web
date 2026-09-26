@@ -64,11 +64,6 @@
     font-feature-settings: "ss01", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Subtle paper grain — foundation-tinted, harmonizes with the cryola canvas */
-    background-image:
-      radial-gradient(circle at 1px 1px, rgb(15 39 44 / 0.035) 1px, transparent 0);
-    background-size: 22px 22px;
-    background-attachment: fixed;
   }
 
   ::selection {

@@ -27,9 +27,9 @@ export const metadata: Metadata = {
 const REASONS = [
   {
     icon: ShieldCheck,
-    title: "Verified landlords only.",
+    title: "Reviewed listings, clear signals.",
     body:
-      "Every landlord on Property360 is identity-verified. No ghost agents, no scams, no surprise fees added on inspection day.",
+      "New listings are reviewed before they go live. Where a publisher has completed identity verification, you will see that clearly on the listing.",
   },
   {
     icon: CreditCard,
@@ -69,7 +69,7 @@ export default async function TenantPage() {
             <span className="text-cryola-500">Without the runaround.</span>
           </>
         }
-        subtitle="Browse real listings tied to verified landlords. Reserve in two taps. Pay through Paystack. No cash, no caution, no surprise."
+        subtitle="Browse reviewed listings, see publisher trust signals, reserve in a few taps and keep payments and tenancy records together."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link
@@ -87,24 +87,22 @@ export default async function TenantPage() {
         </div>
       </PageHero>
 
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <p className="eyebrow">Why renters trust us</p>
-        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {REASONS.map((r) => {
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end"><p className="eyebrow">A clearer way to rent</p><h2 className="max-w-3xl font-display text-[clamp(2rem,4vw,3rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700">Everything you need to feel informed before—and after—you move in.</h2></div>
+        <div className="mt-12 grid border-y border-foundation-700/15 md:grid-cols-2 lg:grid-cols-4">
+          {REASONS.map((r, index) => {
             const Icon = r.icon;
             return (
-              <div
+              <article
                 key={r.title}
-                className="rounded-2xl border border-foundation-700/10 bg-surface p-6"
+                className="group border-b border-foundation-700/15 py-7 md:px-7 md:[&:nth-child(odd)]:border-r lg:border-b-0 lg:[&:not(:last-child)]:border-r lg:first:pl-0 lg:last:pr-0"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-cryola-300 text-foundation-700">
-                  <Icon className="h-4 w-4" strokeWidth={2.2} />
-                </span>
-                <h3 className="mt-4 text-[15px] font-semibold text-foundation-700">
+                <div className="flex items-center justify-between"><span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-cryola-600">0{index + 1}</span><Icon className="h-5 w-5 text-foundation-700 transition-colors group-hover:text-cryola-600" strokeWidth={1.8} /></div>
+                <h3 className="mt-8 text-[15.5px] font-semibold text-foundation-700">
                   {r.title}
                 </h3>
                 <p className="mt-2 text-[13.5px] leading-[1.55] text-ink-muted">{r.body}</p>
-              </div>
+              </article>
             );
           })}
         </div>

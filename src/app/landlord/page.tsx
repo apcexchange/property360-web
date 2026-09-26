@@ -68,50 +68,54 @@ export default function LandlordPage() {
         eyebrow="For landlords"
         title={
           <>
-            Stop chasing rent.
+            Run the property.
             <br />
-            <span className="text-cryola-500">Start collecting it.</span>
+            <span className="text-cryola-500">Not the chaos around it.</span>
           </>
         }
-        subtitle="Property360 turns your portfolio, one flat or a hundred, into something you actually run instead of firefight. Built for the way Nigeria rents."
+        subtitle="Collect rent, keep tenancies moving, fill vacancies and stay on top of every property—from one flat to a growing portfolio. Built for the way Nigeria rents."
       >
         <div className="flex flex-wrap items-center gap-4">
           <Link
             href="/onboarding"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-6 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
           >
-            Get started free →
+            Manage a property free →
           </Link>
           <Link
             href="/pricing"
             className="inline-flex items-center gap-1 text-[13.5px] font-semibold text-foundation-700 transition hover:text-foundation-900"
           >
-            See pricing →
+            See plans →
           </Link>
         </div>
       </PageHero>
 
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <p className="eyebrow">What you get</p>
-        <h2 className="mt-3 max-w-3xl font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-          Every screen earns its keep.
-        </h2>
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {BENEFITS.map((b) => {
+        <div className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
+          <div>
+            <p className="eyebrow">Your operating desk</p>
+            <h2 className="mt-3 max-w-xl font-display text-[clamp(2rem,4vw,3rem)] font-extrabold leading-[1.02] tracking-[-0.035em] text-foundation-700">The work that makes a portfolio feel under control.</h2>
+          </div>
+          <p className="max-w-xl text-[15px] leading-[1.65] text-ink-muted">Everything sits with the property it belongs to, so you can see what has happened, what is due next and who owns the next action.</p>
+        </div>
+        <div className="mt-12 grid border-y border-foundation-700/15 md:grid-cols-2 lg:grid-cols-3">
+          {BENEFITS.map((b, index) => {
             const Icon = b.icon;
             return (
-              <div
+              <article
                 key={b.title}
-                className="rounded-2xl border border-foundation-700/10 bg-surface p-6"
+                className="group border-b border-foundation-700/15 py-7 md:px-7 md:[&:nth-child(odd)]:border-r lg:border-b-0 lg:[&:nth-child(3n+1)]:px-0 lg:[&:nth-child(3n+2)]:border-r lg:[&:nth-child(3n+2)]:px-7 lg:[&:nth-child(3n+3)]:px-7 lg:[&:nth-child(3n+3)]:border-r-0"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-full bg-cryola-300 text-foundation-700">
-                  <Icon className="h-4 w-4" strokeWidth={2.2} />
-                </span>
-                <h3 className="mt-4 text-[15.5px] font-semibold text-foundation-700">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-cryola-600">0{index + 1}</span>
+                  <Icon className="h-5 w-5 text-foundation-700 transition-colors group-hover:text-cryola-600" strokeWidth={1.8} />
+                </div>
+                <h3 className="mt-8 text-[16px] font-semibold tracking-[-0.015em] text-foundation-700">
                   {b.title}
                 </h3>
                 <p className="mt-2 text-[14px] leading-[1.55] text-ink-muted">{b.body}</p>
-              </div>
+              </article>
             );
           })}
         </div>

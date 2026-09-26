@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { BedDouble, Bath, Square, MapPin, Calendar, Check, BadgeCheck } from "lucide-react";
+import { BedDouble, Bath, Square, MapPin, Calendar, Check, BadgeCheck, CreditCard, Flag, ShieldCheck, UserRound } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
@@ -75,6 +75,11 @@ export default async function ListingDetailPage({
   const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
   const priceLabel = purpose === "sale" ? "Asking price" : purpose === "shortlet" ? "Nightly rate" : "Annual rent";
   const verified = isLandlordVerified(listing);
+  const owner = listing.property?.owner;
+  const publisherName = owner?.firstName
+    ? `${owner.firstName}${owner.lastName ? ` ${owner.lastName.slice(0, 1)}.` : ""}`
+    : "Property360 publisher";
+  const publisherType = owner?.role === "agent" ? "Independent agent" : "Property owner";
 
   // Link the location label to its SEO landing page (prefer state, then city)
   // when the place is one we recognise, to tighten the internal link cluster.
@@ -294,18 +299,24 @@ export default async function ListingDetailPage({
             </div>
 
             <div className="mt-5 rounded-2xl border border-foundation-700/10 bg-paper-deep/60 p-5 text-[13px] leading-relaxed text-ink-muted">
-              <p className="font-semibold text-foundation-700">Why Property360?</p>
-              <ul className="mt-2 space-y-1.5">
+              <p className="font-semibold text-foundation-700">Before you enquire</p>
+              <div className="mt-4 border-b border-foundation-700/10 pb-4">
+                <div className="flex items-start gap-2.5">
+                  <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-foundation-700" />
+                  <p><span className="font-semibold text-foundation-700">{publisherName}</span><br />{publisherType}{verified ? " · identity verified" : ""}</p>
+                </div>
+              </div>
+              <ul className="mt-4 space-y-2.5">
                 {verified ? (
                   <li className="flex items-center gap-1.5 font-medium text-emerald-700">
                     <BadgeCheck className="h-3.5 w-3.5" /> This landlord&apos;s
                     identity is verified.
                   </li>
                 ) : (
-                  <li>· Identity (KYC) verification built into every account.</li>
+                  <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Property360 reviews new marketplace listings before publication.</li>
                 )}
-                <li>· Pay through Paystack, no cash to strangers.</li>
-                <li>· Tenancy agreement signed in-app.</li>
+                <li className="flex items-start gap-2"><CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Use Property360 payments where available. Do not send money to an unknown account.</li>
+                <li className="flex items-start gap-2"><Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Report a listing if the information, price or availability looks wrong.</li>
               </ul>
             </div>
           </aside>

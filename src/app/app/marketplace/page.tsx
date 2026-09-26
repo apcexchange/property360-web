@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Inbox } from "lucide-react";
+import { BadgeCheck, CalendarClock, CircleAlert, ExternalLink, Inbox, Plus } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -45,31 +45,68 @@ export default function MarketplacePage() {
     mutationFn: (unitId: string) => landlordApi.confirmListingAvailability(unitId),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["marketplace", "my-listings"] }); toast.success("Listing availability confirmed for 30 days"); },
   });
+  const activeListings = (listings.data ?? []).filter((listing) => listing.isListed);
+  const now = Date.now();
+  const expiryThreshold = now + 7 * 24 * 60 * 60 * 1000;
+  const pendingReview = activeListings.filter((listing) => listing.moderationStatus === "pending").length;
+  const liveListings = activeListings.filter((listing) => !listing.moderationStatus || listing.moderationStatus === "approved").length;
+  const attentionListings = activeListings.filter((listing) => {
+    const expiry = listing.listingExpiresAt ? new Date(listing.listingExpiresAt).getTime() : null;
+    return listing.moderationStatus === "paused" || listing.moderationStatus === "rejected" || (expiry != null && expiry <= expiryThreshold);
+  }).length;
+  const needsAttention = pendingReview > 0 || attentionListings > 0;
 
   return (
     <>
       <AppTopbar
-        title="Marketplace"
-        subtitle="Listings + incoming reservation requests"
+        title="Your marketplace"
+        subtitle="Manage listings, review status and incoming requests"
         actions={
           <div className="flex flex-wrap gap-2">
             <Link
               href="/app/marketplace/list-unit"
               className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
             >
-              List a vacant unit
+              List an existing unit
             </Link>
             <Link
               href="/app/marketplace/new"
               className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
             >
-              List a client property
+              Post a property free
             </Link>
           </div>
         }
       />
       <PageContainer>
-        <div className="grid gap-6 lg:grid-cols-3">
+        {listings.isLoading ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-28" />)}
+          </div>
+        ) : (
+          <>
+            <div className="grid border-y border-foundation-700/10 sm:grid-cols-2 lg:grid-cols-4">
+              <OverviewMetric icon={<BadgeCheck />} label="Live now" value={liveListings} detail="Visible to customers" />
+              <OverviewMetric icon={<CalendarClock />} label="In review" value={pendingReview} detail="Awaiting approval" />
+              <OverviewMetric icon={<CircleAlert />} label="Needs attention" value={attentionListings} detail="Expiry, pause or rejection" tone={attentionListings > 0 ? "attention" : undefined} />
+              <OverviewMetric icon={<Inbox />} label="Reservation requests" value={(requests.data ?? []).length} detail="Across your listings" />
+            </div>
+
+            <div className={`mt-6 flex flex-col gap-4 border-l-2 px-5 py-1 sm:flex-row sm:items-center sm:justify-between ${needsAttention ? "border-amber-400" : "border-cryola-400"}`}>
+              <div>
+                <p className="text-[14px] font-semibold text-foundation-700">
+                  {pendingReview > 0 ? `${pendingReview} ${pendingReview === 1 ? "listing is" : "listings are"} waiting for review.` : attentionListings > 0 ? "Keep your public listings current." : activeListings.length ? "Your marketplace is up to date." : "Your first listing starts here."}
+                </p>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">
+                  {pendingReview > 0 ? "We will notify you once a listing is approved or needs an update." : attentionListings > 0 ? "Confirm availability before a listing expires, or review any moderation feedback below." : activeListings.length ? "Confirm availability every 30 days so customers only see current properties." : "Post a home, shop, plot, shortlet or hotel room. Standard listings are free."}
+                </p>
+              </div>
+              {!activeListings.length && <Link href="/app/marketplace/new" className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2.5 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"><Plus className="h-3.5 w-3.5" /> Post free</Link>}
+            </div>
+          </>
+        )}
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
               Active listings
@@ -87,7 +124,7 @@ export default function MarketplacePage() {
                 message={(listings.error as Error)?.message}
                 onRetry={() => listings.refetch()}
               />
-            ) : (listings.data ?? []).filter((l) => l.isListed).length === 0 ? (
+            ) : activeListings.length === 0 ? (
               <EmptyState
                 title="No active listings"
                 body="List a vacant unit to receive reservation requests from prospective tenants."
@@ -95,8 +132,7 @@ export default function MarketplacePage() {
               />
             ) : (
               <Card className="divide-y divide-foundation-700/10">
-                {listings
-                  .data!.filter((l) => l.isListed)
+                {activeListings
                   .map((l) => (
                     <ListingRow
                       key={l._id}
@@ -180,6 +216,31 @@ export default function MarketplacePage() {
         </div>
       </PageContainer>
     </>
+  );
+}
+
+function OverviewMetric({
+  icon,
+  label,
+  value,
+  detail,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  detail: string;
+  tone?: "attention";
+}) {
+  return (
+    <div className="border-b border-foundation-700/10 px-5 py-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0">
+      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${tone === "attention" ? "bg-amber-100 text-amber-800" : "bg-foundation-700/6 text-foundation-700"}`}>
+        {icon}
+      </div>
+      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.13em] text-ink-muted">{label}</p>
+      <p className="mt-1 text-[26px] font-semibold leading-none tracking-[-0.03em] text-foundation-700">{value}</p>
+      <p className="mt-1.5 text-[11.5px] text-ink-muted">{detail}</p>
+    </div>
   );
 }
 

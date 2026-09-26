@@ -8,6 +8,7 @@ import { ListingFilters } from "@/components/marketing/ListingFilters";
 import { Pagination } from "@/components/marketing/Pagination";
 import { getListings } from "@/lib/listings-api";
 import { TOP_LOCATIONS } from "@/lib/nigeria-locations";
+import { BadgeCheck, CreditCard, Flag } from "lucide-react";
 
 export const revalidate = 60;
 
@@ -100,6 +101,14 @@ export default async function ListingsPage({
         />
       </PageHero>
 
+      <section className="border-b border-foundation-700/10 bg-surface">
+        <div className="mx-auto grid max-w-6xl divide-y divide-foundation-700/10 px-6 md:grid-cols-3 md:divide-x md:divide-y-0">
+          <TrustPoint icon={<BadgeCheck />} title="Reviewed before public listing" body="New marketplace listings are reviewed before they appear to customers." />
+          <TrustPoint icon={<CreditCard />} title="Keep payments on-platform" body="Use Property360 and Paystack where available—never send money to an unknown account." />
+          <TrustPoint icon={<Flag />} title="Something looks wrong? Report it." body="Logged-in customers can report a suspicious, unavailable or inaccurate listing." />
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-6 pb-24">
         <p className="mb-6 text-[13px] text-ink-muted">
           {result.meta.total > 0
@@ -147,6 +156,18 @@ export default async function ListingsPage({
       </section>
 
       <Footer />
+    </div>
+  );
+}
+
+function TrustPoint({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
+  return (
+    <div className="flex gap-3 py-5 md:px-6 md:first:pl-0 md:last:pr-0">
+      <span className="mt-0.5 text-cryola-600">{icon}</span>
+      <div>
+        <p className="text-[13.5px] font-semibold text-foundation-700">{title}</p>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">{body}</p>
+      </div>
     </div>
   );
 }
