@@ -677,8 +677,8 @@ function CancelDialog({
         <p className="mt-2 text-[14px] leading-[1.55] text-ink-muted">
           Your subscription will stop renewing.{" "}
           {renewsAt
-            ? `You keep access until ${formatDate(renewsAt)}, after which property creation, property manager invitations, and listings will be blocked until you resubscribe.`
-            : "Property creation, property manager invitations, and listings will be blocked once your access ends."}
+            ? `You keep access until ${formatDate(renewsAt)}, after which property-management changes and property manager invitations will be blocked until you resubscribe. Standard marketplace listings remain free.`
+            : "Property-management changes and property manager invitations will be blocked once your access ends. Standard marketplace listings remain free."}
         </p>
 
         <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

@@ -83,18 +83,19 @@ export default async function ListingsPage({
           <>
             Find a home in Nigeria.
             <br />
-            <span className="text-cryola-500">Real listings, verified landlords.</span>
+            <span className="text-cryola-500">Homes, spaces and plots in one place.</span>
           </>
         }
-        subtitle="Every unit on Property360 is tied to a real landlord or agent, no ghost listings, no surprise fees. Browse without signing in; reserve in the app when you're ready."
+        subtitle="Browse rentals, shortlets, properties for sale and land. New listings are reviewed before they go live, and every listing can be reported for review."
       >
+        <Link href="/post-property" className="inline-flex rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800">Post a property free</Link>
         <ListingFilters
           defaultSearch={sp.search ?? ""}
           defaultBedrooms={sp.bedrooms ?? ""}
           defaultMaxPrice={sp.maxPrice ?? ""}
           defaultState={sp.state ?? ""}
-          defaultPurpose={sp.purpose ?? ""}
           defaultCity={sp.city ?? ""}
+          defaultPurpose={sp.purpose ?? ""}
           defaultPropertyType={sp.propertyType ?? ""}
         />
       </PageHero>
@@ -129,7 +130,7 @@ export default async function ListingsPage({
         <div className="mx-auto max-w-6xl px-6">
           <p className="eyebrow">Browse by location</p>
           <h2 className="mt-2 font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-            Find a home in your city.
+            Find a property in your city.
           </h2>
           <div className="mt-6 flex flex-wrap gap-2.5">
             {TOP_LOCATIONS.map((o) => (

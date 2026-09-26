@@ -73,6 +73,18 @@ export interface AdminPayoutRow {
   bankAccount?: { _id: string; bankName?: string; accountNumber?: string; accountName?: string };
 }
 
+export interface AdminTenantReferralRow {
+  _id: string;
+  owner: { _id: string; firstName: string; lastName: string; email: string; phone?: string } | null;
+  referee: { _id: string; firstName: string; lastName: string; email: string; role: string } | null;
+  basisAmount: number;
+  rate: number;
+  commissionAmount: number;
+  status: "accrued" | "paid_out" | "reversed";
+  needsReview?: boolean;
+  createdAt: string;
+}
+
 export interface AdminUserDetail {
   user: AdminUserRow & {
     address?: { street?: string; city?: string; state?: string };
@@ -129,6 +141,7 @@ export interface AdminListingRow {
   bathrooms?: number;
   listingTitle?: string;
   listingStatus: "active" | "inactive" | "reserved";
+  moderationStatus?: "pending" | "approved" | "rejected" | "paused";
   listedAt?: string;
   inspectionFee?: number;
   inspectionFeeEnabled?: boolean;
@@ -141,6 +154,7 @@ export interface AdminListingRow {
     landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
   };
 }
+export interface AdminListingReportRow { _id: string; reason: string; detail?: string; createdAt: string; unit?: { listingTitle?: string; unitNumber?: string }; reporter?: { firstName?: string; lastName?: string; email?: string }; }
 
 export interface AdminReservationRow {
   _id: string;
@@ -436,6 +450,11 @@ const adminApi = {
     return unwrap(res.data);
   },
 
+  async listTenantReferrals(params: { page?: number }): Promise<Paginated<AdminTenantReferralRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<AdminTenantReferralRow>>>("/admin/tenant-referrals", { params });
+    return unwrap(res.data);
+  },
+
   async getFinancialReport(rangeDays = 30): Promise<FinancialReport> {
     const res = await api.get<ApiEnvelope<FinancialReport>>("/admin/reports/financial", {
       params: { range: rangeDays },
@@ -450,6 +469,16 @@ const adminApi = {
     search?: string;
   }): Promise<Paginated<AdminListingRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminListingRow>>>("/admin/listings", { params });
+    return unwrap(res.data);
+  },
+  async listListingReports(params: { page?: number; limit?: number }): Promise<Paginated<AdminListingReportRow>> { const res = await api.get<ApiEnvelope<Paginated<AdminListingReportRow>>>("/admin/listing-reports", { params }); return unwrap(res.data); },
+  async resolveListingReport(id: string, action: "dismissed" | "paused" | "rejected"): Promise<void> { await api.post(`/admin/listing-reports/${id}/resolve`, { action }); },
+  async setListingModeration(
+    unitId: string,
+    status: "approved" | "rejected" | "paused",
+    reason?: string
+  ): Promise<AdminListingRow> {
+    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason });
     return unwrap(res.data);
   },
 

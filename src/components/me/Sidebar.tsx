@@ -25,6 +25,7 @@ export const ME_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: "/me", label: "My home" },
       { href: "/me/notifications", label: "Notifications" },
+      { href: "/me/refer", label: "Refer & Earn" },
     ],
   },
   {
@@ -54,7 +55,10 @@ export const ME_NAV_SECTIONS: NavSection[] = [
   },
   {
     label: "Marketplace",
-    items: [{ href: "/listings", label: "Browse listings" }],
+    items: [
+      { href: "/listings", label: "Browse listings" },
+      { href: "/me/list-property", label: "Post a property" },
+    ],
   },
   {
     label: "Account",

@@ -28,9 +28,9 @@ const ROLES: {
   },
   {
     id: "agent",
-    title: "I'm an agent, agency, or hotel host",
-    body: "I list and manage properties or rooms for myself or clients, including hotels and guesthouses.",
-    icon: Building2,
+    title: "I'm a property manager/Agency/Hotel etc",
+    body: "I manage my own portfolio and/or accept invitations from landlords to manage theirs.",
+    icon: Briefcase,
   },
 ];
 

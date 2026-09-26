@@ -28,6 +28,7 @@ const PERMISSION_LABELS: Array<{ key: keyof AgentPermissions; label: string }> =
   { key: "canRecordPayment", label: "Record payments" },
   { key: "canRenewLease", label: "Renew leases" },
   { key: "canUploadAgreements", label: "Upload agreements" },
+  { key: "canManageListings", label: "Manage marketplace listings" },
   { key: "canManageMaintenance", label: "Manage maintenance" },
   { key: "canViewPayments", label: "View payments" },
   { key: "canViewReports", label: "View reports" },
