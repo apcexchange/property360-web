@@ -25,6 +25,21 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
       const next = encodeURIComponent((pathname || "/app") + window.location.search);
       router.replace(`/login?next=${next}`);
     };
+    const redirectForRole = (role?: string) => {
+      if (role === "tenant") {
+        router.replace("/me");
+        return;
+      }
+      if (role === "partner") {
+        router.replace("/partner");
+        return;
+      }
+      if (role === "admin") {
+        router.replace("/admin");
+        return;
+      }
+      bounce();
+    };
     if (!token) {
       bounce();
       return;
@@ -35,8 +50,10 @@ export function AppAuthGate({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         const user = (res.data?.data ?? res.data) as AdminUser;
         if (!user || (user.role !== "landlord" && user.role !== "agent")) {
-          session.clear();
-          bounce();
+          // This is a valid signed-in user at the wrong portal, not a failed
+          // authentication. Preserve their token and take them to the area
+          // that matches their account instead of creating a login loop.
+          redirectForRole(user?.role);
           return;
         }
         session.set(token, user);

@@ -40,6 +40,7 @@
 
 const DEFAULT_LANDLORD_PATH = "/app/dashboard";
 const DEFAULT_TENANT_PATH = "/me";
+const DEFAULT_ADMIN_PATH = "/admin";
 
 /**
  * Parses `raw` as a `next` redirect target. Returns null (caller falls back
@@ -81,6 +82,12 @@ function parseSameOriginNext(raw: string | null | undefined, origin: string): UR
  * caller's, since this only ever runs client-side).
  */
 export function safeNextPath(raw: string | null | undefined, origin: string, role: string): string {
+  // Staff accounts use the same authentication endpoint as every other
+  // account, but they have their own protected application. Previously an
+  // admin signing in at /login was sent to /app/dashboard (the landlord
+  // fallback), where the app gate correctly rejected the admin role and
+  // immediately sent them back to login.
+  if (role === "admin") return DEFAULT_ADMIN_PATH;
   if (role === "partner") return "/partner";
 
   const fallback = role === "tenant" ? DEFAULT_TENANT_PATH : DEFAULT_LANDLORD_PATH;
