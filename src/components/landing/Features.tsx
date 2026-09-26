@@ -84,14 +84,15 @@ export function Features() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foundation-700">
             Features
           </p>
-          <h2 className="mt-4 max-w-3xl text-[clamp(2rem,5vw,3.5rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-foundation-700">
-            Everything a Nigerian rental needs.
+          <h2 className="mt-4 max-w-4xl font-display text-[clamp(2.25rem,5vw,4rem)] font-extrabold leading-[0.98] tracking-[-0.035em] text-foundation-700">
+            The work behind a
             <br />
-            <span className="text-ink-muted">Nothing it doesn&apos;t.</span>
+            <span className="text-ink-muted">well-run property.</span>
           </h2>
+          <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink-muted">From the first invoice to the final signature, Property360 gives landlords and agents one clear record of every important moment.</p>
         </Reveal>
 
-        <div className="mt-16 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-16 grid border-t border-foundation-700/20 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f, i) => {
             const Icon = f.icon;
             // Wave stagger: each row reveals together, with each column slightly later
@@ -108,18 +109,11 @@ export function Features() {
                   delay: row * 0.12 + col * 0.07,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="tilt-card group relative overflow-hidden rounded-2xl border border-foundation-700/10 bg-surface p-7 transition-shadow hover:shadow-[0_30px_60px_-30px_rgb(15_39_44_/_0.25)]"
+                className="group relative min-h-64 border-b border-r border-foundation-700/15 px-0 py-7 pr-7 transition-colors hover:bg-surface/60 sm:px-7 lg:py-9"
               >
-                {/* Lime corner sweep on hover */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -top-12 -right-12 h-24 w-24 rounded-full bg-cryola-300/0 blur-2xl transition-colors duration-500 group-hover:bg-cryola-300/60"
-                />
-                <div className="relative">
-                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-foundation-700 text-cryola-300 transition-transform duration-500 ease-out group-hover:scale-105 group-hover:rotate-[-3deg]">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <h3 className="mt-6 text-[18px] font-semibold leading-snug text-foundation-700">
+                <div className="relative flex h-full flex-col">
+                  <div className="flex items-center justify-between"><span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-faint">{String(i + 1).padStart(2, "0")}</span><span className="grid h-9 w-9 place-items-center rounded-full border border-foundation-700/15 text-foundation-700 transition-colors group-hover:border-foundation-700 group-hover:bg-foundation-700 group-hover:text-cryola-300"><Icon className="h-4 w-4" /></span></div>
+                  <h3 className="mt-auto pt-10 text-[18px] font-semibold leading-snug text-foundation-700">
                     {f.title}
                   </h3>
                   <p className="mt-2 text-[14.5px] leading-[1.6] text-ink-muted">

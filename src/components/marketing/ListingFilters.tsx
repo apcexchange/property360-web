@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
+import { NIGERIA_STATE_NAMES, NIGERIA_STATES } from "@/lib/nigeria-locations";
 
 const BEDROOM_OPTIONS = [
   { value: "", label: "Any beds" },
@@ -23,12 +24,7 @@ const PRICE_OPTIONS = [
 
 const STATE_OPTIONS = [
   { value: "", label: "Anywhere" },
-  { value: "Lagos", label: "Lagos" },
-  { value: "Abuja", label: "Abuja" },
-  { value: "Rivers", label: "Rivers" },
-  { value: "Oyo", label: "Oyo" },
-  { value: "Kano", label: "Kano" },
-  { value: "Kaduna", label: "Kaduna" },
+  ...NIGERIA_STATE_NAMES.map((name) => ({ value: name, label: name })),
 ];
 
 export function ListingFilters({
@@ -36,11 +32,17 @@ export function ListingFilters({
   defaultBedrooms = "",
   defaultMaxPrice = "",
   defaultState = "",
+  defaultPurpose = "",
+  defaultCity = "",
+  defaultPropertyType = "",
 }: {
   defaultSearch?: string;
   defaultBedrooms?: string;
   defaultMaxPrice?: string;
   defaultState?: string;
+  defaultPurpose?: string;
+  defaultCity?: string;
+  defaultPropertyType?: string;
 }) {
   const router = useRouter();
   const params = useSearchParams();
@@ -49,12 +51,19 @@ export function ListingFilters({
   const [bedrooms, setBedrooms] = useState(defaultBedrooms);
   const [maxPrice, setMaxPrice] = useState(defaultMaxPrice);
   const [state, setState] = useState(defaultState);
+  const [purpose, setPurpose] = useState(defaultPurpose);
+  const [city, setCity] = useState(defaultCity);
+  const [propertyType, setPropertyType] = useState(defaultPropertyType);
+  const cityOptions = state ? (NIGERIA_STATES.find((item) => item.name === state)?.cities ?? []) : [];
 
   function apply(next: {
     search?: string;
     bedrooms?: string;
     maxPrice?: string;
     state?: string;
+    purpose?: string;
+    city?: string;
+    propertyType?: string;
   }) {
     const merged = new URLSearchParams(params?.toString() ?? "");
     const values = {
@@ -62,6 +71,9 @@ export function ListingFilters({
       bedrooms: next.bedrooms ?? bedrooms,
       maxPrice: next.maxPrice ?? maxPrice,
       state: next.state ?? state,
+      purpose: next.purpose ?? purpose,
+      city: next.city ?? city,
+      propertyType: next.propertyType ?? propertyType,
     };
     for (const [k, v] of Object.entries(values)) {
       if (v) merged.set(k, v);
@@ -96,13 +108,31 @@ export function ListingFilters({
       </div>
 
       <Select
+        label="Looking for"
+        value={purpose}
+        onChange={(v) => { setPurpose(v); apply({ purpose: v }); }}
+        options={[{ value: "", label: "Any property" }, { value: "rent", label: "For rent" }, { value: "sale", label: "For sale" }, { value: "shortlet", label: "Shortlet" }]}
+      />
+      <Select
+        label="Property"
+        value={propertyType}
+        onChange={(v) => { setPropertyType(v); apply({ propertyType: v }); }}
+        options={[{ value: "", label: "Any type" }, { value: "residential", label: "Home / apartment" }, { value: "hostel", label: "Hostel" }, { value: "land", label: "Land / plot" }, { value: "shop", label: "Shop" }, { value: "commercial", label: "Commercial" }, { value: "hotel", label: "Hotel / guesthouse" }]}
+      />
+      <Select
         label="State"
         value={state}
         onChange={(v) => {
-          setState(v);
-          apply({ state: v });
+          setState(v); setCity("");
+          apply({ state: v, city: "" });
         }}
         options={STATE_OPTIONS}
+      />
+      <Select
+        label="City"
+        value={city}
+        onChange={(v) => { setCity(v); apply({ city: v }); }}
+        options={[{ value: "", label: state ? "Any city" : "Choose a state" }, ...cityOptions.map((name) => ({ value: name, label: name }))]}
       />
       <Select
         label="Beds"

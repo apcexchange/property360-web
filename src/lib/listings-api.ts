@@ -59,6 +59,8 @@ export interface Listing {
   listingTitle?: string;
   listingDescription?: string;
   listingStatus?: "active" | "inactive" | "reserved";
+  listingPurpose?: "rent" | "sale" | "shortlet";
+  rentPeriod?: "daily" | "monthly" | "quarterly" | "annually";
   listedAt?: string;
   defaultFees?: ListingFees;
   inspectionFee?: number;
@@ -88,6 +90,7 @@ export interface ListingsQuery {
   state?: string;
   city?: string;
   propertyType?: string;
+  purpose?: "rent" | "sale" | "shortlet";
   minPrice?: number;
   maxPrice?: number;
   bedrooms?: number;

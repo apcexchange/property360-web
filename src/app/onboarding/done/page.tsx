@@ -52,7 +52,7 @@ export default function DonePage() {
   }, []);
 
   return (
-    <OnboardingShell currentStep="done" includesPlan={role === "landlord"}>
+    <OnboardingShell currentStep="done" includesPlan={role === "landlord" || role === "agent"}>
       <div className="grid h-12 w-12 place-items-center rounded-full bg-cryola-200 text-foundation-700">
         <CheckCircle2 className="h-6 w-6" />
       </div>
@@ -66,7 +66,7 @@ export default function DonePage() {
           ? "Your trial is active. Download the Property360 app to add your first property, invite tenants, and start collecting rent through Paystack."
           : role === "tenant"
             ? "Download the Property360 app to browse homes, pay rent, and stay in touch with your landlord, all in one place."
-            : "Download the Property360 app to list and manage your properties  or Once a landlord invites you to manage their property, you'll see it under My properties."}
+            : "Start by adding your own property or hotel rooms, or accept a landlord invitation to manage their portfolio. Standard listings are free to publish."}
       </p>
 
       {/* Primary "continue" CTA, registration already created a session, so
@@ -185,7 +185,7 @@ export default function DonePage() {
             Read more about Property360.
           </p>
         </Link>
-        {role === "landlord" && (
+        {(role === "landlord" || role === "agent") && (
           <Link
             href="/app/billing"
             className="rounded-2xl border border-foundation-700/10 bg-surface px-5 py-4 transition hover:bg-foundation-700/5"

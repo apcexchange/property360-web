@@ -49,7 +49,7 @@ export default function MarketplacePage() {
         subtitle="Listings + incoming reservation requests"
         actions={
           <Link
-            href="/app/marketplace/list-unit"
+            href="/app/marketplace/new"
             className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
           >
             List a vacant unit
@@ -79,7 +79,7 @@ export default function MarketplacePage() {
               <EmptyState
                 title="No active listings"
                 body="List a vacant unit to receive reservation requests from prospective tenants."
-                cta={{ label: "List a unit", href: "/app/marketplace/list-unit" }}
+                cta={{ label: "Post a property free", href: "/app/marketplace/new" }}
               />
             ) : (
               <Card className="divide-y divide-foundation-700/10">

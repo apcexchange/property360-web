@@ -21,6 +21,7 @@ export default function AccountPage() {
   const [referralOpen, setReferralOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isPublisher = state.role === "landlord" || state.role === "agent";
 
   useEffect(() => {
     if (!ready) return;
@@ -91,8 +92,9 @@ export default function AccountPage() {
         Create your account.
       </h1>
       <p className="mt-3 text-[15px] text-ink-muted">
-        Use the same email and password to sign into the mobile app when you&apos;re
-        ready.
+        {isPublisher
+          ? "Create your free account, then add and publish your first standard property or room."
+          : "Use the same email and password to sign into the mobile app when you&apos;re ready."}
       </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-4">

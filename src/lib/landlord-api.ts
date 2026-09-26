@@ -23,6 +23,7 @@ export type PropertyType =
   | "hostel"
   | "shop"
   | "commercial"
+  | "hotel"
   // Legacy values pre-existing rows may still carry.
   | "apartment"
   | "house"
@@ -1059,6 +1060,19 @@ export const landlordApi = {
     const data = unwrap(res.data);
     return ((data as { property?: Property }).property ?? data) as Property;
   },
+  async createMarketplaceProperty(body: {
+    name: string;
+    description?: string;
+    address: Address;
+    propertyType: PropertyType;
+    images?: PropertyImage[];
+    hasOwnerAuthority: true;
+    units: Array<{ unitNumber: string; bedrooms: number; bathrooms: number; rentAmount: number; rentPeriod?: RentPeriod }>;
+  }): Promise<{ property: Property; unitId: string }> {
+    const res = await api.post("/properties/marketplace", { ...body, images: body.images?.map((image) => image.url) });
+    const data = unwrap(res.data) as { property: Property; unit: { _id: string; id?: string } };
+    return { property: data.property, unitId: data.unit.id ?? data.unit._id };
+  },
   async uploadPropertyImage(file: File): Promise<{ url: string; publicId: string }> {
     const form = new FormData();
     form.append("image", file);
@@ -1809,7 +1823,7 @@ export const landlordApi = {
   },
   async listUnit(
     unitId: string,
-    body?: { description?: string; visibility?: "public" | "unlisted" }
+    body?: { listingTitle?: string; listingDescription?: string; description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet" }
   ): Promise<Listing> {
     const res = await api.post(`/listings/${unitId}/list`, body ?? {});
     return unwrap(res.data) as Listing;

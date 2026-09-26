@@ -13,6 +13,7 @@ interface Props {
   reserved: boolean;
   /** Used to build the post-login redirect target. */
   listingHref: string;
+  actionLabel?: string;
 }
 
 /**
@@ -25,7 +26,7 @@ interface Props {
  * Reads ?action=reserve from the URL to auto-expand the form on landing
  * (mirroring the mobile deep-link).
  */
-export function ReserveListingCTA({ unitId, reserved, listingHref }: Props) {
+export function ReserveListingCTA({ unitId, reserved, listingHref, actionLabel = "Reserve this unit" }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const wantsReserve = params?.get("action") === "reserve";
@@ -60,7 +61,7 @@ export function ReserveListingCTA({ unitId, reserved, listingHref }: Props) {
         href={`/login?next=${next}`}
         className="flex w-full items-center justify-center rounded-full bg-foundation-700 px-5 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
       >
-        Sign in to reserve
+        Sign in to continue
       </Link>
     );
   }
@@ -79,7 +80,7 @@ export function ReserveListingCTA({ unitId, reserved, listingHref }: Props) {
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] text-emerald-800">
         <p className="flex items-center gap-1.5 font-semibold">
           <Check className="h-4 w-4" />
-          Reservation request sent.
+          Request sent.
         </p>
         <p className="mt-1 text-[12.5px] text-emerald-700/80">
           The landlord will review and respond. Track it in{" "}
@@ -99,7 +100,7 @@ export function ReserveListingCTA({ unitId, reserved, listingHref }: Props) {
         onClick={() => setOpen(true)}
         className="flex w-full items-center justify-center rounded-full bg-foundation-700 px-5 py-3 text-[13px] font-semibold text-paper transition hover:bg-foundation-800"
       >
-        Reserve this unit
+        {actionLabel}
       </button>
     );
   }
@@ -160,7 +161,7 @@ export function ReserveListingCTA({ unitId, reserved, listingHref }: Props) {
           className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-60"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting ? "Sending…" : "Send reservation request"}
+          {submitting ? "Sending…" : "Send request"}
         </button>
       </div>
     </form>
