@@ -46,6 +46,8 @@ export interface SubscriptionView {
   hasCapacityForProperty: boolean;
   hasCapacityForAgentSeat: boolean;
   isEntitled: boolean;
+  /** True only for an agent assigned to at least one landlord on an active paid plan. */
+  hasPaidManagedPortfolioAccess?: boolean;
   /** Per-tier feature flags. Optional on the wire so an older deploy doesn't break. */
   features?: SubscriptionFeatures;
   manageUrl: string;
