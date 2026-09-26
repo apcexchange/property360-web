@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/next";
+import { AppAnalytics } from "@/components/AppAnalytics";
 import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
 import { PostHogProvider } from "@/components/PostHogProvider";
@@ -133,7 +133,7 @@ export default function RootLayout({
           <ToastProvider>{children}</ToastProvider>
         </PostHogProvider>
         <ConsentNotice />
-        <Analytics />
+        <AppAnalytics />
         <SalesChatWidget />
         <script
           type="application/ld+json"

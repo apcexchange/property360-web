@@ -229,6 +229,139 @@ export interface AdminSalesLeadRow {
   createdAt: string;
 }
 
+// -- AI sales follow-up ----------------------------------------------------
+export type SalesTrack = "trial" | "post_trial" | "cancelled" | "past_due";
+export type SalesJourneyStatus = "active" | "paused_reply" | "converted" | "stopped" | "completed";
+export type SalesVariant = "A" | "B";
+export type StepVariantSetting = "ab" | "A" | "B";
+export type SalesTouchStatus = "sent" | "delivered" | "failed" | "skipped" | "dry_run";
+
+export interface SalesFollowUpSettings {
+  paused: boolean;
+  previewMode: boolean;
+  stepVariants: Record<string, StepVariantSetting>;
+  /**
+   * Server-side WHATSAPP_DRY_RUN flag (independent of previewMode). When
+   * true, WhatsApp steps are consumed (counted, marked sent) but nothing
+   * actually reaches the recipient. Surfaced so the admin can tell "live"
+   * apart from "live, but WhatsApp is quietly a no-op".
+   */
+  whatsappDryRun: boolean;
+}
+
+export interface SalesStepInfo {
+  key: string;
+  track: SalesTrack;
+  dayOffset: number;
+  channel: "whatsapp" | "email" | "both";
+  emailFallback: boolean;
+  marketing: boolean;
+  templateKey: string | null;
+  emailKey: string | null;
+  /** An approved Meta template name is configured for variant A / B. */
+  whatsappA: boolean;
+  whatsappB: boolean;
+  variantSetting: StepVariantSetting;
+}
+
+export interface SalesFunnelRow {
+  track: SalesTrack;
+  stepKey: string;
+  variant: SalesVariant;
+  channel: "whatsapp" | "email";
+  sent: number;
+  delivered: number;
+  failed: number;
+  skipped: number;
+  dryRun: number;
+  replied: number;
+  optedOut: number;
+  subscribed: number;
+}
+
+export interface SalesFollowUpStats {
+  settings: SalesFollowUpSettings;
+  steps: SalesStepInfo[];
+  totals: {
+    activeJourneys: number;
+    hotJourneys: number;
+    conversionsThisMonth: number;
+    conversionsViaChatThisMonth: number;
+    revenueThisMonthNgn: number;
+    conversionsAllTime: number;
+    revenueAllTimeNgn: number;
+  };
+  funnel: SalesFunnelRow[];
+}
+
+export interface SalesJourneyRow {
+  _id: string;
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    role: string;
+  } | null;
+  track: SalesTrack;
+  trackStartedAt: string;
+  stepIndex: number;
+  nextStepAt?: string;
+  variant: SalesVariant;
+  status: SalesJourneyStatus;
+  stopReason?: string;
+  stopNote?: string;
+  hot: boolean;
+  hotAt?: string;
+  handoffSummary?: string;
+  lastUserReplyAt?: string;
+  lastWhatsappAt?: string;
+  lastEmailAt?: string;
+  whatsappUnpromptedCount: number;
+  whatsappDisabled: boolean;
+  emailUnsubscribed: boolean;
+  lastPlanLink?: { tier: string; interval: string; at: string };
+  convertedAt?: string;
+  convertedAmountNgn?: number;
+  attributedStep?: string;
+  attributedToChat?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SalesTouchRow {
+  _id: string;
+  stepKey: string;
+  channel: "whatsapp" | "email";
+  variant: SalesVariant;
+  templateOrEmailKey: string;
+  status: SalesTouchStatus;
+  skipReason?: string;
+  repliedAt?: string;
+  optedOutAt?: string;
+  convertedAt?: string;
+  createdAt: string;
+}
+
+export interface SalesJourneyDetail {
+  journey: SalesJourneyRow;
+  touches: SalesTouchRow[];
+  messages: {
+    _id: string;
+    role: "user" | "assistant";
+    content: string;
+    mode?: "normal" | "sales";
+    createdAt: string;
+  }[];
+  subscription: {
+    status: string;
+    tier: string;
+    trialEndsAt?: string | null;
+    renewsAt?: string | null;
+  } | null;
+}
+
 export interface AdminSalesLeadDetail {
   lead: AdminSalesLeadRow;
   messages: { role: "user" | "assistant"; content: string; createdAt: string }[];
@@ -582,6 +715,49 @@ const adminApi = {
 
   async getSalesLead(leadId: string): Promise<AdminSalesLeadDetail> {
     const res = await api.get<ApiEnvelope<AdminSalesLeadDetail>>(`/admin/sales/leads/${leadId}`);
+    return unwrap(res.data);
+  },
+
+  async getSalesFollowUpStats(): Promise<SalesFollowUpStats> {
+    const res = await api.get<ApiEnvelope<SalesFollowUpStats>>("/admin/sales-followup/stats");
+    return unwrap(res.data);
+  },
+
+  async updateSalesFollowUpSettings(body: {
+    paused?: boolean;
+    previewMode?: boolean;
+    stepVariants?: Record<string, StepVariantSetting>;
+  }): Promise<SalesFollowUpSettings> {
+    const res = await api.patch<ApiEnvelope<SalesFollowUpSettings>>("/admin/sales-followup/settings", body);
+    return unwrap(res.data);
+  },
+
+  async listSalesJourneys(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    track?: string;
+    hot?: boolean;
+  }): Promise<Paginated<SalesJourneyRow>> {
+    const res = await api.get<ApiEnvelope<Paginated<SalesJourneyRow>>>("/admin/sales-followup/journeys", {
+      params: { ...params, hot: params.hot ? "true" : undefined },
+    });
+    return unwrap(res.data);
+  },
+
+  async getSalesJourney(id: string): Promise<SalesJourneyDetail> {
+    const res = await api.get<ApiEnvelope<SalesJourneyDetail>>(`/admin/sales-followup/journeys/${id}`);
+    return unwrap(res.data);
+  },
+
+  async stopSalesJourney(id: string): Promise<SalesJourneyRow> {
+    const res = await api.post<ApiEnvelope<SalesJourneyRow>>(`/admin/sales-followup/journeys/${id}/stop`);
+    return unwrap(res.data);
+  },
+
+  async restartSalesJourney(id: string): Promise<SalesJourneyRow> {
+    const res = await api.post<ApiEnvelope<SalesJourneyRow>>(`/admin/sales-followup/journeys/${id}/restart`);
     return unwrap(res.data);
   },
 
