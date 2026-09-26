@@ -7,6 +7,9 @@ import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 import { ReserveListingCTA } from "@/components/marketing/ReserveListingCTA";
+import { HotelBookingForm } from "@/components/marketing/HotelBookingForm";
+import { ReportListingButton } from "@/components/marketing/ReportListingButton";
+import { RequestListingDetailsButton } from "@/components/marketing/RequestListingDetailsButton";
 import {
   getListing,
   formatNaira,
@@ -32,11 +35,12 @@ export async function generateMetadata({
   if (!listing) return { title: "Listing not found" };
 
   const title = `${listingTitle(listing)} · ${locationLabel(listing.property?.address)}`;
+  const purpose = listing.listingPurpose ?? "rent";
+  const priceLabel = purpose === "sale" ? "for sale at" : purpose === "shortlet" ? "shortlet from" : "for rent at";
+  const cadence = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
   const description =
     listing.listingDescription ||
-    `${listing.bedrooms ?? "—"}-bedroom ${listing.property?.propertyType ?? "home"} for ${formatNaira(
-      listing.rentAmount
-    )}/year in ${locationLabel(listing.property?.address)}.`;
+    `${listing.bedrooms ?? "—"}-bedroom ${listing.property?.propertyType ?? "property"} ${priceLabel} ${formatNaira(listing.rentAmount)}${cadence} in ${locationLabel(listing.property?.address)}.`;
   const image = listing.property?.images?.[0];
 
   return {
@@ -65,7 +69,11 @@ export default async function ListingDetailPage({
   const images = listing.property?.images ?? [];
   const amenities = listing.property?.amenities ?? [];
   const fees = listing.defaultFees ?? {};
+  const details = listing.listingDetails ?? {};
   const reserved = listing.listingStatus === "reserved";
+  const purpose = listing.listingPurpose ?? "rent";
+  const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
+  const priceLabel = purpose === "sale" ? "Asking price" : purpose === "shortlet" ? "Nightly rate" : "Annual rent";
   const verified = isLandlordVerified(listing);
 
   // Link the location label to its SEO landing page (prefer state, then city)
@@ -210,7 +218,13 @@ export default async function ListingDetailPage({
             <Section title="Move-in costs">
               <table className="w-full table-fixed text-[14px]">
                 <tbody>
-                  <Row label="Annual rent" value={formatNairaFull(listing.rentAmount)} bold />
+                  <Row label={priceLabel} value={formatNairaFull(listing.rentAmount)} bold />
+                  {details.landSize != null && <Row label="Land size" value={`${details.landSize} ${details.landUnit ?? "sqm"}`} />}
+                  {details.titleDocument && <Row label="Title document" value={details.titleDocument} />}
+                  {details.minimumStayNights != null && <Row label="Minimum stay" value={`${details.minimumStayNights} night${details.minimumStayNights === 1 ? "" : "s"}`} />}
+                  {details.serviceCharge != null && details.serviceCharge > 0 && <Row label="Service charge" value={formatNairaFull(details.serviceCharge)} />}
+                  {details.parkingSpaces != null && <Row label="Parking" value={`${details.parkingSpaces} space${details.parkingSpaces === 1 ? "" : "s"}`} />}
+                  {details.powerBackup && <Row label="Power backup" value="Available" />}
                   {fees.securityDeposit ? (
                     <Row
                       label="Security deposit"
@@ -256,18 +270,21 @@ export default async function ListingDetailPage({
               </p>
               <p className="mt-2 font-display text-[34px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
                 {formatNaira(listing.rentAmount)}
-                <span className="ml-1 text-[14px] font-medium text-ink-muted">/year</span>
+                {priceSuffix && <span className="ml-1 text-[14px] font-medium text-ink-muted">{priceSuffix}</span>}
               </p>
               {listing.isNegotiable && (
                 <p className="mt-1 text-[12px] text-foundation-700">Negotiable</p>
               )}
 
               <div className="mt-5 space-y-3">
-                <ReserveListingCTA
-                  unitId={listing.id}
-                  reserved={reserved}
-                  listingHref={`/listings/${listing.id}`}
-                />
+                {listing.property?.propertyType === "hotel" ? (
+                  <HotelBookingForm unitId={listing.id} nightlyRate={listing.rentAmount} minimumStay={listing.listingDetails?.minimumStayNights} />
+                ) : purpose === "sale" ? (
+                  <><RequestListingDetailsButton unitId={listing.id} /><p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p></>
+                ) : (
+                  <ReserveListingCTA unitId={listing.id} reserved={reserved} listingHref={`/listings/${listing.id}`} />
+                )}
+                <ReportListingButton unitId={listing.id} />
               </div>
               <p className="mt-3 text-[12px] leading-relaxed text-ink-muted">
                 Prefer the mobile app? You can also reserve and chat from

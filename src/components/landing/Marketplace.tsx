@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { MapPin, BedDouble, Bath, Search, Sparkles, ArrowUpRight } from "lucide-react";
-import { Reveal } from "./Reveal";
 
 const listings = [
   {
@@ -37,52 +36,51 @@ const listings = [
 
 export function Marketplace() {
   return (
-    <section className="relative overflow-hidden bg-paper py-28 md:py-36">
-      <div className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-cryola-200/40 blur-3xl" />
+    <section id="marketplace" className="relative overflow-hidden border-y border-foundation-700/10 bg-foundation-700 py-20 text-paper md:py-24">
+      <div className="pointer-events-none absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-cryola-300/30 blur-3xl" />
+      <div className="pointer-events-none absolute -right-28 -top-36 h-96 w-96 rounded-full bg-cryola-500/20 blur-3xl" />
 
       <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-14 px-6 lg:grid-cols-2">
         {/* Copy */}
-        <Reveal>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-foundation-700">
-            Marketplace
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-cryola-300">
+            Property360 marketplace
           </p>
-          <h2 className="mt-4 text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-foundation-700">
-            List a vacant unit.
+          <h2 className="mt-4 text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-paper">
+            Find a place.
             <br />
-            <span className="text-cryola-500">Find your next home.</span>
+            <span className="text-cryola-300">List your property free.</span>
           </h2>
-          <p className="mt-5 max-w-xl text-[16.5px] leading-[1.55] text-ink-muted">
-            Landlords flip a vacant unit into a marketplace listing in two
-            taps. Tenants browse, filter, and reserve, with an inspection
-            fee or a full deposit, without ever leaving the app.
+          <p className="mt-5 max-w-xl text-[16.5px] leading-[1.55] text-paper/75">
+            Browse homes, shortlets, shops, commercial spaces and land across Nigeria. Any owner or independent agent can publish a standard listing free, subject to review.
           </p>
 
           <ul className="mt-8 space-y-4">
             <Bullet
               icon={<Search className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}
-              title="Real listings, not classifieds"
-              body="Every listing is tied to a verified landlord and a real unit on Property360, no scams, no ghost agents."
+              title="Homes, land and commercial spaces"
+              body="Search properties for rent or sale, including shortlets, shops and plots."
             />
             <Bullet
               icon={<MapPin className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}
-              title="Filter by location, price, tenant type"
-              body="Singles, families, students, professionals, landlords pick who they want, tenants only see homes they qualify for."
+              title="Free to publish"
+              body="Post directly as an owner or authorised independent agent. Standard photo listings are free."
             />
             <Bullet
               icon={<Sparkles className="h-3.5 w-3.5 text-foundation-700" strokeWidth={2.5} />}
-              title="Reserve in one tap"
-              body="Pay an inspection fee or the full deposit; the unit is held while paperwork moves forward."
+              title="Reviewed listings"
+              body="Listings are reviewed before they appear and can be reported if something looks wrong."
             />
           </ul>
 
           <Link
             href="/listings"
-            className="group mt-10 inline-flex items-center gap-1.5 text-sm font-semibold text-foundation-700 transition hover:text-foundation-900"
+            className="group mt-10 inline-flex items-center gap-1.5 rounded-full bg-cryola-300 px-5 py-3 text-sm font-bold text-foundation-700 transition hover:bg-cryola-200"
           >
             Browse the marketplace
             <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
-        </Reveal>
+        </div>
 
         {/* Visual: stacked listing cards with sequential side-in reveal */}
         <div className="relative">
@@ -91,12 +89,11 @@ export function Marketplace() {
             {listings.map((l, i) => (
               <motion.div
                 key={l.title}
-                initial={{ opacity: 0, x: 32 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
+                initial={false}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.7, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
                 whileHover={{ y: -3 }}
-                className="group relative overflow-hidden rounded-2xl border border-foundation-700/10 bg-surface p-5 transition-shadow hover:shadow-[0_28px_56px_-30px_rgb(15_39_44_/_0.3)]"
+                className="group relative overflow-hidden rounded-2xl border border-paper/15 bg-paper p-5 transition-shadow hover:shadow-[0_28px_56px_-30px_rgb(0_0_0_/_0.3)]"
               >
                 {/* Lime corner glow on hover */}
                 <span
@@ -156,8 +153,8 @@ function Bullet({
         {icon}
       </span>
       <span className="text-[14.5px]">
-        <span className="font-semibold text-foundation-700">{title}.</span>{" "}
-        <span className="text-ink-muted">{body}</span>
+        <span className="font-semibold text-paper">{title}.</span>{" "}
+        <span className="text-paper/70">{body}</span>
       </span>
     </li>
   );
