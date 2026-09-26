@@ -13,14 +13,14 @@ import { Footer } from "@/components/landing/Footer";
 import { NewsletterBlock } from "@/components/marketing/NewsletterBlock";
 
 export const metadata: Metadata = {
-  title: "Property management software for Nigerian landlords",
+  title: "Find, list and manage property everywhere",
   description:
-    "Property360 is the all-in-one app for Nigerian landlords, tenants, and agents. Collect rent online with Paystack, automate invoices and receipts, manage leases and maintenance, and list vacant units. Start free.",
+    "Property360 is where people list homes, land, shops, shortlets and hotel rooms free, then manage rent, leases, payments and maintenance in one place.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Property360, Property management for Nigerian landlords",
+    title: "Property360, a global property marketplace and management app",
     description:
-      "Collect rent online, automate invoices and receipts, manage leases, and fill vacant units. The all-in-one property platform built for Nigeria.",
+      "List property free, find your next home or stay, and manage everything after move-in.",
     url: "https://property360.africa/",
     type: "website",
   },

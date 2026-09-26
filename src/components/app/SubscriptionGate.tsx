@@ -57,12 +57,40 @@ export function SubscriptionGate({ children }: { children: React.ReactNode }) {
 
   if (view.isEntitled) return <>{children}</>;
 
+  // A property manager's personal subscription governs only property they
+  // own. If a paying landlord has assigned them work, that landlord's plan
+  // funds the managed portfolio; locking the entire desk would prevent the
+  // manager from carrying out duties the landlord explicitly granted.
+  if (
+    session.getUser()?.role === "agent" &&
+    view.hasPaidManagedPortfolioAccess
+  ) {
+    return (
+      <>
+        <ManagedPortfolioNotice />
+        {children}
+      </>
+    );
+  }
+
   // Allow Billing + Profile + the gate view itself.
   if (ALWAYS_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p))) {
     return <>{children}</>;
   }
 
   return <LockedView view={view} />;
+}
+
+function ManagedPortfolioNotice() {
+  return (
+    <div className="border-b border-cryola-400/25 bg-cryola-300/15 px-5 py-2.5 sm:px-8">
+      <p className="mx-auto max-w-6xl text-center text-[12.5px] leading-5 text-foundation-700">
+        <strong>Assigned-work access.</strong>{" "}
+        Your personal plan has ended, but you can continue working in the paid
+        portfolios that have assigned you. Your own portfolio remains paused.
+      </p>
+    </div>
+  );
 }
 
 function LockedView({ view }: { view: SubscriptionView }) {

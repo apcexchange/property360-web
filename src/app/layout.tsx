@@ -8,9 +8,9 @@ import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 const SITE_URL = "https://property360.africa";
-const TITLE = "Property360, Property management for Nigerian landlords";
+const TITLE = "Property360, a global property marketplace and management app";
 const DESCRIPTION =
-  "Property360 helps landlords, tenants, and agents in Nigeria manage properties, leases, rent collection, and payouts in one place. Built in Nigeria, for landlords nationwide.";
+  "List homes, land, shops, shortlets and hotel rooms free. Find a place, book a stay, collect rent, manage leases and handle property life in one app.";
 
 export const viewport: Viewport = {
   themeColor: "#13272C",
@@ -31,13 +31,15 @@ export const metadata: Metadata = {
   // its own canonical instead.
   applicationName: "Property360",
   keywords: [
-    "Nigeria property management",
-    "rent collection Nigeria",
-    "Paystack rent",
-    "landlord app Nigeria",
-    "tenancy agreement Nigeria",
-    "Lagos property",
+    "property management",
+    "rent collection",
+    "landlord app",
+    "tenancy agreements",
+    "property marketplace",
     "agent management",
+    "free property listing",
+    "shortlet booking",
+    "hotel rooms",
   ],
   authors: [{ name: "Property360", url: SITE_URL }],
   creator: "Property360",
@@ -48,7 +50,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     url: SITE_URL,
     siteName: "Property360",
-    locale: "en_NG",
+    locale: "en_US",
     type: "website",
   },
   twitter: {
