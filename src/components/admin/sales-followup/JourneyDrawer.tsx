@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Drawer } from "@/components/admin/ui/Drawer";
 import { Button } from "@/components/admin/ui/Filters";
@@ -26,6 +27,55 @@ function timeline(d: SalesJourneyDetail): TimelineItem[] {
     ...d.messages.map((message) => ({ kind: "message" as const, at: message.createdAt, message })),
   ];
   return items.sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+}
+
+/**
+ * "Show message" disclosure on a touch. Only rendered when the backend sent
+ * back renderedText (sent, dry_run or failed touches). Text only, no
+ * dangerouslySetInnerHTML, matching the WhatsApp chat bubbles above.
+ */
+function TouchMessage({ touch }: { touch: SalesJourneyDetail["touches"][number] }) {
+  const [open, setOpen] = useState(false);
+  if (!touch.renderedText) return null;
+
+  return (
+    <div className="mt-1.5">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className="text-[11px] font-semibold uppercase tracking-[0.1em] text-foundation-700 underline decoration-dotted underline-offset-2 hover:text-foundation-800"
+      >
+        {open ? "Hide message" : "Show message"}
+      </button>
+      {open && (
+        <div className="mt-2 border border-rule bg-surface px-3 py-2.5">
+          {touch.status === "dry_run" && (
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-800">
+              Preview (not sent)
+            </p>
+          )}
+          {touch.channel === "whatsapp" ? (
+            <div className="max-w-[85%] whitespace-pre-wrap break-words bg-cryola-50 px-3 py-2 text-[13px] text-foundation-700">
+              {touch.renderedText}
+            </div>
+          ) : (
+            <div>
+              {touch.renderedSubject && (
+                <p className="font-semibold text-foundation-700">{touch.renderedSubject}</p>
+              )}
+              <p className="mt-1 whitespace-pre-wrap break-words text-[13px] text-ink-body">
+                {touch.renderedText}
+              </p>
+            </div>
+          )}
+          {touch.recipientMasked && (
+            <p className="mt-2 text-[11px] text-ink-muted">To: {touch.recipientMasked}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -186,6 +236,7 @@ function JourneyDrawerInner({ journeyId, onClose }: { journeyId: string | null; 
                         {item.touch.optedOutAt ? " · opted out" : ""}
                         {item.touch.convertedAt ? " · subscribed" : ""}
                       </div>
+                      <TouchMessage touch={item.touch} />
                     </li>
                   ) : (
                     <li
