@@ -75,15 +75,6 @@ export default async function ListingDetailPage({
   const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
   const priceLabel = purpose === "sale" ? "Asking price" : purpose === "shortlet" ? "Nightly rate" : "Annual rent";
   const verified = isLandlordVerified(listing);
-  const purpose = listing.listingPurpose ?? "rent";
-  const pricePeriod = purpose === "sale" ? "asking price" : purpose === "shortlet" ? "/night" : `/${listing.rentPeriod === "monthly" ? "month" : listing.rentPeriod === "quarterly" ? "quarter" : "year"}`;
-  const costsTitle = purpose === "sale" ? "Price and fees" : purpose === "shortlet" ? "Stay costs" : "Move-in costs";
-  const primaryCostLabel = purpose === "sale" ? "Asking price" : purpose === "shortlet" ? "Nightly rate" : `${listing.rentPeriod === "monthly" ? "Monthly" : listing.rentPeriod === "quarterly" ? "Quarterly" : "Annual"} rent`;
-  const hotelId = listing.property?._id ?? listing.property?.id;
-  const hotelReviews = listing.property?.propertyType === "hotel" && hotelId
-    ? await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? "https://api.property360.africa/api/v1"}/hotel-reviews/hotels/${hotelId}`, { next: { revalidate: 60 } }).then((res) => res.ok ? res.json() : null).catch(() => null)
-    : null;
-  const reviewData = hotelReviews?.data as { averageRating: number; reviewCount: number; reviews: Array<{ id: string; rating: number; comment?: string; hostReply?: string; guest?: { firstName?: string } }> } | undefined;
 
   // Link the location label to its SEO landing page (prefer state, then city)
   // when the place is one we recognise, to tighten the internal link cluster.
@@ -224,9 +215,7 @@ export default async function ListingDetailPage({
               </Section>
             )}
 
-            {reviewData && <Section title="Guest reviews"><div className="rounded-2xl border border-foundation-700/10 bg-surface p-5"><p className="font-display text-3xl font-extrabold text-foundation-700">{reviewData.reviewCount ? reviewData.averageRating.toFixed(1) : "New"}<span className="ml-2 text-sm font-sans font-medium text-ink-muted">{reviewData.reviewCount ? `out of 5 · ${reviewData.reviewCount} verified review${reviewData.reviewCount === 1 ? "" : "s"}` : "No completed-stay reviews yet"}</span></p>{reviewData.reviews.slice(0, 3).map((review) => <div key={review.id} className="mt-4 border-t border-foundation-700/10 pt-4"><p className="font-semibold text-foundation-700">{"★".repeat(review.rating)}<span className="ml-2 text-sm font-normal text-ink-muted">{review.guest?.firstName ?? "Verified guest"}</span></p>{review.comment && <p className="mt-1 text-sm leading-relaxed text-ink-body">{review.comment}</p>}{review.hostReply && <div className="mt-3 rounded-xl bg-paper-deep/60 p-3 text-sm"><b>Response from the hotel</b><p className="mt-1 text-ink-muted">{review.hostReply}</p></div>}</div>)}</div></Section>}
-
-            <Section title={costsTitle}>
+            <Section title="Move-in costs">
               <table className="w-full table-fixed text-[14px]">
                 <tbody>
                   <Row label={priceLabel} value={formatNairaFull(listing.rentAmount)} bold />
@@ -268,7 +257,9 @@ export default async function ListingDetailPage({
                   ) : null}
                 </tbody>
               </table>
-              <p className="mt-3 text-[12px] text-ink-muted">{purpose === "shortlet" ? "The total is confirmed after you choose your dates and any applicable charges are shown." : "Costs are set by the advertiser and may be negotiable on inspection."}</p>
+              <p className="mt-3 text-[12px] text-ink-muted">
+                Costs are set by the landlord and may be negotiable on inspection.
+              </p>
             </Section>
           </div>
 
@@ -316,11 +307,6 @@ export default async function ListingDetailPage({
                 <li>· Pay through Paystack, no cash to strangers.</li>
                 <li>· Tenancy agreement signed in-app.</li>
               </ul>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-foundation-700/10 bg-surface p-5 text-[13px] leading-relaxed text-ink-muted">
-              <p className="font-semibold text-foundation-700">What happens next?</p>
-              <p className="mt-2">{purpose === "sale" ? "Send a request to tell the advertiser you are interested. They can then respond and arrange a viewing or discussion." : purpose === "shortlet" ? "Send your stay request with your preferred dates. The host confirms availability before any payment is requested." : "Send a reservation request. The advertiser reviews it and responds before you make a secure payment."}</p>
             </div>
           </aside>
         </div>

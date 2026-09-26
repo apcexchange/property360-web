@@ -91,7 +91,6 @@ export interface ListingsQuery {
   state?: string;
   city?: string;
   propertyType?: string;
-  purpose?: "rent" | "sale" | "shortlet";
   minPrice?: number;
   maxPrice?: number;
   bedrooms?: number;
