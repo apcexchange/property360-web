@@ -33,6 +33,8 @@ type SearchParams = {
   minPrice?: string;
   state?: string;
   city?: string;
+  purpose?: "rent" | "sale" | "shortlet";
+  propertyType?: string;
 };
 
 export default async function ListingsPage({
@@ -56,6 +58,8 @@ export default async function ListingsPage({
     minPrice,
     state: sp.state,
     city: sp.city,
+    purpose: sp.purpose,
+    propertyType: sp.propertyType,
   }).catch(() => ({
     listings: [],
     meta: { total: 0, page: 1, limit: 24, totalPages: 0 },
@@ -67,6 +71,8 @@ export default async function ListingsPage({
   if (sp.maxPrice) baseQuery.set("maxPrice", sp.maxPrice);
   if (sp.state) baseQuery.set("state", sp.state);
   if (sp.city) baseQuery.set("city", sp.city);
+  if (sp.purpose) baseQuery.set("purpose", sp.purpose);
+  if (sp.propertyType) baseQuery.set("propertyType", sp.propertyType);
 
   return (
     <div className="min-h-screen bg-paper text-foundation-700">
@@ -77,16 +83,20 @@ export default async function ListingsPage({
           <>
             Find a home in Nigeria.
             <br />
-            <span className="text-cryola-500">Real listings, verified landlords.</span>
+            <span className="text-cryola-500">Homes, spaces and plots in one place.</span>
           </>
         }
-        subtitle="Every unit on Property360 is tied to a real landlord or agent, no ghost listings, no surprise fees. Browse without signing in; reserve in the app when you're ready."
+        subtitle="Browse rentals, shortlets, properties for sale and land. New listings are reviewed before they go live, and every listing can be reported for review."
       >
+        <Link href="/post-property" className="inline-flex rounded-full bg-foundation-700 px-5 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800">Post a property free</Link>
         <ListingFilters
           defaultSearch={sp.search ?? ""}
           defaultBedrooms={sp.bedrooms ?? ""}
           defaultMaxPrice={sp.maxPrice ?? ""}
           defaultState={sp.state ?? ""}
+          defaultCity={sp.city ?? ""}
+          defaultPurpose={sp.purpose ?? ""}
+          defaultPropertyType={sp.propertyType ?? ""}
         />
       </PageHero>
 
@@ -94,9 +104,9 @@ export default async function ListingsPage({
         <p className="mb-6 text-[13px] text-ink-muted">
           {result.meta.total > 0
             ? `${result.meta.total.toLocaleString("en-NG")} ${
-                result.meta.total === 1 ? "home" : "homes"
+                result.meta.total === 1 ? "property" : "properties"
               } available`
-            : "No homes match those filters yet."}
+            : "No properties match those filters yet."}
         </p>
 
         {result.listings.length === 0 ? (
@@ -120,7 +130,7 @@ export default async function ListingsPage({
         <div className="mx-auto max-w-6xl px-6">
           <p className="eyebrow">Browse by location</p>
           <h2 className="mt-2 font-display text-[clamp(1.5rem,3.5vw,2.25rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-            Find a home in your city.
+            Find a property in your city.
           </h2>
           <div className="mt-6 flex flex-wrap gap-2.5">
             {TOP_LOCATIONS.map((o) => (

@@ -23,6 +23,7 @@ export type PropertyType =
   | "hostel"
   | "shop"
   | "commercial"
+  | "hotel"
   // Legacy values pre-existing rows may still carry.
   | "apartment"
   | "house"
@@ -38,6 +39,7 @@ export interface Property {
   floors: number;
   totalUnits: number;
   amenities?: string[];
+  hotelProfile?: { checkInTime?: string; checkOutTime?: string; cancellationPolicy?: string; contactPhone?: string };
   // Stored on the backend as flat arrays of Cloudinary secure_url strings.
   images?: string[];
   videos?: string[];
@@ -683,6 +685,9 @@ export interface Listing {
   unit: Unit | string;
   property: Property | string;
   isListed: boolean;
+  moderationStatus?: "pending" | "approved" | "rejected" | "paused";
+  moderationReason?: string;
+  listingExpiresAt?: string;
   listedAt?: string;
   reservationCount?: number;
 }
@@ -1034,7 +1039,8 @@ export const landlordApi = {
     description?: string;
     address: Address;
     propertyType: PropertyType;
-    hasOwnerAuthority: true;
+    hotelProfile?: Property["hotelProfile"];
+    hasOwnerAuthority?: true;
     floors: number;
     totalUnits: number;
     amenities?: string[];
@@ -1066,6 +1072,8 @@ export const landlordApi = {
     description?: string;
     address: Address;
     propertyType: PropertyType;
+    hotelProfile?: Property["hotelProfile"];
+    hasOwnerAuthority: true;
     images?: PropertyImage[];
     units: Array<{
       unitNumber: string;
@@ -1126,6 +1134,7 @@ export const landlordApi = {
       videos?: string[];
       amenities?: string[];
       currentValue?: number;
+      hotelProfile?: Property["hotelProfile"];
     }
   ): Promise<Property> {
     const res = await api.put(`/properties/${id}`, patch);
@@ -1830,7 +1839,7 @@ export const landlordApi = {
   },
   async listUnit(
     unitId: string,
-    body?: { description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet" }
+    body?: { listingTitle?: string; listingDescription?: string; description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet"; listingDetails?: { landSize?: number; landUnit?: "sqm" | "plot" | "acre"; titleDocument?: string; minimumStayNights?: number; maxGuests?: number; serviceCharge?: number; parkingSpaces?: number; powerBackup?: boolean } }
   ): Promise<Listing> {
     const res = await api.post(`/listings/${unitId}/list`, body ?? {});
     return unwrap(res.data) as Listing;
@@ -1838,6 +1847,13 @@ export const landlordApi = {
   async unlistUnit(unitId: string): Promise<Listing> {
     const res = await api.delete(`/listings/${unitId}/list`);
     return unwrap(res.data) as Listing;
+  },
+  async confirmListingAvailability(unitId: string): Promise<{ expiresAt?: string; moderationStatus?: string }> {
+    const res = await api.post(`/listings/${unitId}/confirm-availability`);
+    return unwrap(res.data) as { expiresAt?: string; moderationStatus?: string };
+  },
+  async reportListing(unitId: string, reason: "fake" | "unavailable" | "wrong_price" | "duplicate" | "other", detail?: string): Promise<void> {
+    await api.post(`/listings/${unitId}/report`, { reason, detail });
   },
   async landlordReservationRequests(): Promise<ReservationRequest[]> {
     const res = await api.get("/reservations/landlord-requests");

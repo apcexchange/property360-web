@@ -2,9 +2,9 @@
 
 @theme {
   /* Type system — editorial pairing */
-  --font-display: var(--font-display), "Fraunces", "Iowan Old Style", "Apple Garamond", Georgia, serif;
-  --font-sans:    var(--font-sans), "Inter Tight", -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono:    var(--font-mono), "JetBrains Mono", "SF Mono", ui-monospace, "Cascadia Mono", monospace;
+  --font-display: "Iowan Old Style", Baskerville, "Baskerville Old Face", "Palatino Linotype", Georgia, serif;
+  --font-sans:    "Avenir Next", Avenir, "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:    "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
   /* Foundation — primary dark teal (matches mobile theme.ts COLORS.foundation*) */
   --color-foundation-50:  #E9ECED;

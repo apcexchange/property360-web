@@ -6,6 +6,8 @@ import { motion } from "framer-motion";
 import { session } from "@/lib/session";
 
 const links = [
+  { href: "/listings", label: "Marketplace", primary: true },
+  { href: "/post-property", label: "Post free" },
   { href: "/landlord", label: "Landlords" },
   { href: "/tenant", label: "Tenants" },
   { href: "/agents", label: "Agents" },
@@ -83,7 +85,7 @@ export function Nav() {
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-full px-3 py-1.5 text-[13.5px] text-ink-muted transition hover:bg-foundation-700/5 hover:text-foundation-700"
+              className={`rounded-full px-3 py-1.5 text-[13.5px] transition hover:bg-foundation-700/5 hover:text-foundation-700 ${l.primary ? "font-bold text-foundation-700" : "text-ink-muted"}`}
             >
               {l.label}
             </Link>

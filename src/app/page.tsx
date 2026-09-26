@@ -32,11 +32,11 @@ export default function Home() {
       <FoundingBar />
       <Nav />
       <Hero />
+      <FeaturedProperties />
       <RoleSplit />
       <HowItWorks />
       <Features />
       <Founding50 />
-      <FeaturedProperties />
       <Faq />
       <NewsletterBlock source="newsletter-landing" />
       <FinalCta />

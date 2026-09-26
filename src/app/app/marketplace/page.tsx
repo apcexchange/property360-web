@@ -41,6 +41,10 @@ export default function MarketplacePage() {
         body: err instanceof Error ? err.message : undefined,
       }),
   });
+  const confirmListing = useMutation({
+    mutationFn: (unitId: string) => landlordApi.confirmListingAvailability(unitId),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["marketplace", "my-listings"] }); toast.success("Listing availability confirmed for 30 days"); },
+  });
 
   return (
     <>
@@ -102,6 +106,8 @@ export default function MarketplacePage() {
                           unlist.mutate(unitId);
                       }}
                       removing={unlist.isPending}
+                      confirming={confirmListing.isPending}
+                      onConfirm={(unitId) => confirmListing.mutate(unitId)}
                     />
                   ))}
               </Card>
@@ -181,10 +187,14 @@ function ListingRow({
   listing,
   onUnlist,
   removing,
+  confirming,
+  onConfirm,
 }: {
   listing: Listing;
   onUnlist: (unitId: string) => void;
   removing: boolean;
+  confirming: boolean;
+  onConfirm: (unitId: string) => void;
 }) {
   const unit = typeof listing.unit === "object" ? listing.unit : null;
   const property =
@@ -209,8 +219,18 @@ function ListingRow({
               : ""}
           </p>
         )}
+        {listing.moderationStatus && listing.moderationStatus !== "approved" && (
+          <p className="mt-1 text-[11.5px] font-medium text-amber-700">
+            {listing.moderationStatus === "pending" ? "Pending review" : listing.moderationStatus === "paused" ? "Paused" : "Rejected"}
+            {listing.moderationReason ? ` · ${listing.moderationReason}` : ""}
+          </p>
+        )}
+        {listing.listingExpiresAt && (
+          <p className="mt-1 text-[11px] text-ink-muted">Confirm by {formatDate(listing.listingExpiresAt)} to keep this listing live.</p>
+        )}
       </div>
       <div className="flex items-center gap-2">
+        {unitId && <button type="button" onClick={() => onConfirm(unitId)} disabled={confirming} className="rounded-full border border-emerald-200 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-emerald-700 disabled:opacity-50">Confirm available</button>}
         {unitId && (
           <a
             href={`https://property360.africa/listings/${unitId}`}
