@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, MapPin } from "lucide-react";
+import { Plus, MapPin, Building2 } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -13,6 +14,7 @@ import {
 } from "@/components/app/ui";
 import { landlordApi, Property, PropertyType } from "@/lib/landlord-api";
 import { getPropertyCoverImage } from "@/lib/propertyImage";
+import { session } from "@/lib/session";
 
 // Display label for a property type. Legacy values (apartment/house/bungalow)
 // roll up into "Residential" so old buildings keep a sensible label.
@@ -37,10 +39,31 @@ function propertyTypeLabel(t: PropertyType | string | undefined): string {
 }
 
 export default function PropertiesPage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const user = session.getUser();
+  const isAgent = user?.role === "agent";
+  const portfolio = params.get("portfolio") === "managed" ? "managed" : "own";
   const q = useQuery({
     queryKey: ["properties"],
     queryFn: () => landlordApi.listProperties(),
   });
+  const stats = useQuery({
+    queryKey: ["dashboard", "stats"],
+    queryFn: () => landlordApi.dashboardStats(),
+    enabled: isAgent,
+    staleTime: 60_000,
+  });
+  const ownership = stats.data?.propertyOwnership ?? {};
+  const visibleProperties = (q.data ?? []).filter((property) =>
+    !isAgent ? true : (ownership[property._id]?.ownership ?? "self") === portfolio
+  );
+  const ownedCount = (q.data ?? []).filter(
+    (property) => (ownership[property._id]?.ownership ?? "self") === "self"
+  ).length;
+  const managedCount = (q.data ?? []).filter(
+    (property) => ownership[property._id]?.ownership === "managed"
+  ).length;
 
   return (
     <>
@@ -57,6 +80,38 @@ export default function PropertiesPage() {
         }
       />
       <PageContainer>
+        {isAgent && (
+          <div className="mb-6 rounded-2xl border border-foundation-700/10 bg-paper p-1.5">
+            <p className="px-3 pb-2 pt-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+              Portfolio workspace
+            </p>
+            <div className="grid grid-cols-2 gap-1">
+              {(["own", "managed"] as const).map((option) => {
+                const active = portfolio === option;
+                const count = option === "own" ? ownedCount : managedCount;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => router.replace(`/app/properties?portfolio=${option}`)}
+                    className={`rounded-xl px-3 py-2.5 text-left transition ${
+                      active
+                        ? "bg-foundation-700 text-paper"
+                        : "text-foundation-700 hover:bg-foundation-700/5"
+                    }`}
+                  >
+                    <span className="block text-[13px] font-semibold">
+                      {option === "own" ? "My portfolio" : "Managed for landlords"}
+                    </span>
+                    <span className={`mt-0.5 block text-[11.5px] ${active ? "text-paper/70" : "text-ink-muted"}`}>
+                      {count} {count === 1 ? "property" : "properties"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         {q.isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -72,16 +127,16 @@ export default function PropertiesPage() {
             message={(q.error as Error)?.message}
             onRetry={() => q.refetch()}
           />
-        ) : (q.data ?? []).length === 0 ? (
+        ) : visibleProperties.length === 0 ? (
           <EmptyState
-            title="No properties yet"
-            body="Add your first property to start managing units, tenants, and rent collection."
-            cta={{ label: "Add property", href: "/app/properties/new" }}
+            title={portfolio === "managed" ? "No managed properties yet" : "No properties yet"}
+            body={portfolio === "managed" ? "Ask a landlord to assign you to a property, then it will appear here with its owner clearly shown." : "Add your first property to start managing units, tenants, and rent collection."}
+            cta={portfolio === "managed" ? { label: "View landlords", href: "/app/landlords" } : { label: "Add property", href: "/app/properties/new" }}
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {q.data!.map((p) => (
-              <PropertyCard key={p._id} p={p} />
+            {visibleProperties.map((p) => (
+              <PropertyCard key={p._id} p={p} ownership={ownership[p._id]} />
             ))}
           </div>
         )}
@@ -90,7 +145,7 @@ export default function PropertiesPage() {
   );
 }
 
-function PropertyCard({ p }: { p: Property }) {
+function PropertyCard({ p, ownership }: { p: Property; ownership?: { ownership: "self" | "managed"; managedFor?: { landlordName: string } } }) {
   const coverUrl = getPropertyCoverImage(p);
   return (
     <Link
@@ -106,6 +161,11 @@ function PropertyCard({ p }: { p: Property }) {
         />
       </div>
       <div className="p-4">
+        {ownership?.ownership === "managed" && (
+          <p className="mb-2 inline-flex items-center gap-1 rounded-full bg-cryola-200/70 px-2 py-1 text-[10.5px] font-semibold text-foundation-700">
+            <Building2 className="h-3 w-3" /> Managed for {ownership.managedFor?.landlordName ?? "landlord"}
+          </p>
+        )}
         <p className="truncate text-[14.5px] font-semibold text-foundation-700">
           {p.name}
         </p>

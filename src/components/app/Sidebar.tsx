@@ -67,7 +67,10 @@ function buildSections(role: string | undefined): NavSection[] {
     },
     {
       label: "Marketplace",
-      items: [{ href: "/app/marketplace", label: "Listings" }],
+      items: [
+        { href: "/app/marketplace", label: "Listings" },
+        { href: "/app/hotels", label: "Hotel desk" },
+      ],
     },
     {
       label: "Communication",
