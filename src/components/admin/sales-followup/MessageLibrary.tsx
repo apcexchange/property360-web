@@ -45,7 +45,7 @@ function WhatsappVariantBlock({ step, variant }: { step: SalesMessageStep; varia
         <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-foundation-700">
           Variant {variant.variant}
         </span>
-        <span className="text-[11.5px] text-ink-muted">
+        <span className="min-w-0 break-words text-[11.5px] text-ink-muted [overflow-wrap:anywhere]">
           {status.primary}
           {status.secondary ? `, ${status.secondary}` : ""}
         </span>
@@ -83,17 +83,23 @@ function EmailVariantBlock({
           View email
         </Button>
       </div>
-      <p className="mt-2 font-semibold text-foundation-700">{variant.subject}</p>
+      <p className="mt-2 break-words font-semibold text-foundation-700">{variant.subject}</p>
       <p className="mt-1 whitespace-pre-wrap break-words text-[13px] text-ink-body">{variant.text}</p>
     </div>
   );
 }
 
+const CHANNEL_LABELS: Record<SalesMessageStep["channel"], string> = {
+  whatsapp: "WhatsApp",
+  email: "Email",
+  both: "WhatsApp + email",
+};
+
 function ChannelBadge({ step }: { step: SalesMessageStep }) {
   return (
     <span className="inline-flex items-center rounded-full border border-rule-strong px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-foundation-700">
-      {step.channel}
-      {step.emailFallback ? ", email fallback" : ""}
+      {CHANNEL_LABELS[step.channel]}
+      {step.emailFallback ? " + email fallback" : ""}
     </span>
   );
 }

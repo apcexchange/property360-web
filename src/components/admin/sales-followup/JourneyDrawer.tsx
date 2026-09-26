@@ -62,7 +62,7 @@ function TouchMessage({ touch }: { touch: SalesJourneyDetail["touches"][number] 
           ) : (
             <div>
               {touch.renderedSubject && (
-                <p className="font-semibold text-foundation-700">{touch.renderedSubject}</p>
+                <p className="break-words font-semibold text-foundation-700">{touch.renderedSubject}</p>
               )}
               <p className="mt-1 whitespace-pre-wrap break-words text-[13px] text-ink-body">
                 {touch.renderedText}

@@ -342,15 +342,23 @@ export interface SalesTouchRow {
   optedOutAt?: string;
   convertedAt?: string;
   createdAt: string;
-  /** Email only. Present only for status sent, dry_run or failed. */
+  /**
+   * Email only. Set when a message was (or would be) sent: status sent,
+   * dry_run or failed, and kept if a sent touch later becomes delivered.
+   */
   renderedSubject?: string;
   /**
    * WhatsApp: body + "\n\n" + footer. Email: plain text body, links shown as
-   * "[unsubscribe link]" / "[opt-in link]". Present only for status sent,
-   * dry_run or failed.
+   * "[unsubscribe link]" / "[opt-in link]". Set when a message was (or would
+   * be) sent: status sent, dry_run or failed, and kept if a sent touch later
+   * becomes delivered.
    */
   renderedText?: string;
-  /** e.g. "+234 803 *** 4567" or "ch***@gmail.com". Present only for status sent, dry_run or failed. */
+  /**
+   * e.g. "+234 803 *** 4567" or "ch***@gmail.com". Set when a message was
+   * (or would be) sent: status sent, dry_run or failed, and kept if a sent
+   * touch later becomes delivered.
+   */
   recipientMasked?: string;
 }
 
@@ -378,9 +386,9 @@ export interface SalesMessageWhatsappVariant {
   /** Configured env template name, or null when not configured. */
   templateName: string | null;
   configured: boolean;
-  /** True when this variant has no template of its own and falls back to A's. */
+  /** B only: B journeys currently receive A (no B template name set, or no B copy). */
   usesFallbackToA: boolean;
-  /** True when this variant has its own configured wording, distinct from A. */
+  /** Variant has its own copy (always true for A). */
   hasOwnCopy: boolean;
   body: string;
   footer?: string;

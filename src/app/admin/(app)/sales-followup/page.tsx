@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable } from "@/components/admin/DataTable";
@@ -30,6 +30,20 @@ const TABS = [
   { key: "messages", label: "Messages" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
+
+/** Roving-tab-index arrow keys, wrapping at the ends, plus Home/End. */
+function handleTabKeyDown(e: KeyboardEvent<HTMLButtonElement>, index: number, setTab: (key: TabKey) => void) {
+  let nextIndex: number | null = null;
+  if (e.key === "ArrowRight") nextIndex = (index + 1) % TABS.length;
+  else if (e.key === "ArrowLeft") nextIndex = (index - 1 + TABS.length) % TABS.length;
+  else if (e.key === "Home") nextIndex = 0;
+  else if (e.key === "End") nextIndex = TABS.length - 1;
+  if (nextIndex === null) return;
+  e.preventDefault();
+  const next = TABS[nextIndex];
+  setTab(next.key);
+  document.getElementById(`sales-followup-tab-${next.key}`)?.focus();
+}
 
 export default function AdminSalesFollowUpPage() {
   const [tab, setTab] = useState<TabKey>("overview");
@@ -75,16 +89,17 @@ export default function AdminSalesFollowUpPage() {
           />
 
           <div role="tablist" aria-label="Sales follow-up sections" className="mb-6 flex gap-1 border-b border-rule">
-            {TABS.map((tabItem) => (
+            {TABS.map((tabItem, index) => (
               <button
                 key={tabItem.key}
                 type="button"
                 role="tab"
                 id={`sales-followup-tab-${tabItem.key}`}
                 aria-selected={tab === tabItem.key}
-                aria-controls={`sales-followup-panel-${tabItem.key}`}
+                aria-controls={tab === tabItem.key ? `sales-followup-panel-${tabItem.key}` : undefined}
                 tabIndex={tab === tabItem.key ? 0 : -1}
                 onClick={() => setTab(tabItem.key)}
+                onKeyDown={(e) => handleTabKeyDown(e, index, setTab)}
                 className={`border-b-2 px-3.5 py-2 text-[11.5px] font-semibold uppercase tracking-[0.1em] transition ${
                   tab === tabItem.key
                     ? "border-foundation-700 text-foundation-700"
