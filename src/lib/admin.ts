@@ -342,6 +342,16 @@ export interface SalesTouchRow {
   optedOutAt?: string;
   convertedAt?: string;
   createdAt: string;
+  /** Email only. Present only for status sent, dry_run or failed. */
+  renderedSubject?: string;
+  /**
+   * WhatsApp: body + "\n\n" + footer. Email: plain text body, links shown as
+   * "[unsubscribe link]" / "[opt-in link]". Present only for status sent,
+   * dry_run or failed.
+   */
+  renderedText?: string;
+  /** e.g. "+234 803 *** 4567" or "ch***@gmail.com". Present only for status sent, dry_run or failed. */
+  recipientMasked?: string;
 }
 
 export interface SalesJourneyDetail {
@@ -360,6 +370,67 @@ export interface SalesJourneyDetail {
     trialEndsAt?: string | null;
     renewsAt?: string | null;
   } | null;
+}
+
+/** One WhatsApp variant rendered with sample data, for the message library. */
+export interface SalesMessageWhatsappVariant {
+  variant: SalesVariant;
+  /** Configured env template name, or null when not configured. */
+  templateName: string | null;
+  configured: boolean;
+  /** True when this variant has no template of its own and falls back to A's. */
+  usesFallbackToA: boolean;
+  /** True when this variant has its own configured wording, distinct from A. */
+  hasOwnCopy: boolean;
+  body: string;
+  footer?: string;
+}
+
+/** One email variant rendered with sample data, for the message library. */
+export interface SalesMessageEmailVariant {
+  variant: SalesVariant;
+  subject: string;
+  text: string;
+  html: string;
+}
+
+export interface SalesMessageStep {
+  stepKey: string;
+  dayOffset: number;
+  channel: "whatsapp" | "email" | "both";
+  emailFallback: boolean;
+  marketing: boolean;
+  whatsapp?: {
+    templateKey: string;
+    category: "UTILITY" | "MARKETING";
+    /** Always [A, B]. */
+    variants: SalesMessageWhatsappVariant[];
+  };
+  email?: {
+    emailKey: string;
+    /** Always [A, B]. */
+    variants: SalesMessageEmailVariant[];
+  };
+}
+
+export interface SalesMessageTrackGroup {
+  track: SalesTrack;
+  steps: SalesMessageStep[];
+}
+
+export interface SalesFollowUpMessages {
+  tracks: SalesMessageTrackGroup[];
+  sample: {
+    firstName: string;
+    trialDaysLeft: string;
+    trialLengthDays: number;
+    soloMonthlyNgn: number;
+    proMonthlyNgn: number;
+    appUrl: string;
+    billingUrl: string;
+    unsubscribeUrl: string;
+    optInUrl: string;
+  };
 }
 
 export interface AdminSalesLeadDetail {
@@ -720,6 +791,12 @@ const adminApi = {
 
   async getSalesFollowUpStats(): Promise<SalesFollowUpStats> {
     const res = await api.get<ApiEnvelope<SalesFollowUpStats>>("/admin/sales-followup/stats");
+    return unwrap(res.data);
+  },
+
+  /** Every step, rendered with fixed sample data, for the message library tab. */
+  async getSalesFollowUpMessages(): Promise<SalesFollowUpMessages> {
+    const res = await api.get<ApiEnvelope<SalesFollowUpMessages>>("/admin/sales-followup/messages");
     return unwrap(res.data);
   },
 
