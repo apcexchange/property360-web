@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, UserPlus, Receipt, Layers, Mail, Megaphone } from "lucide-react";
+import { Plus, UserPlus, Receipt, Layers, Mail, Megaphone, Search, ArrowRight } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -53,6 +53,12 @@ export default function DashboardPage() {
         actions={
           <div className="hidden items-center gap-2 sm:flex">
             <Link
+              href="/listings"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-bold text-lime-300 transition hover:bg-foundation-800"
+            >
+              <Search className="h-4 w-4" /> Browse listings
+            </Link>
+            <Link
               href="/app/marketplace/new"
               className="inline-flex items-center gap-1.5 rounded-full border border-lime-500/50 bg-lime-50 px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:border-lime-500 hover:bg-lime-100"
             >
@@ -68,25 +74,44 @@ export default function DashboardPage() {
         }
       />
       <PageContainer>
-        <Link
-          href="/app/marketplace/new"
-          className="mb-6 flex items-start gap-3 rounded-2xl border border-lime-500/35 bg-lime-50/70 p-4 transition hover:border-lime-500 hover:bg-lime-50"
-        >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foundation-700 text-lime-300">
-            <Megaphone className="h-5 w-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[14px] font-semibold text-foundation-700">
-              List a property for free
-            </p>
-            <p className="mt-0.5 text-[13px] text-ink-muted">
-              Advertise a home, shop, land, shortlet, or hotel room. Standard listings are free—no plan or rent commission required.
-            </p>
-          </div>
-          <span className="mt-1.5 shrink-0 text-[12px] font-semibold text-foundation-700 underline decoration-lime-500 underline-offset-4">
-            Create listing
-          </span>
-        </Link>
+        <div className="mb-6 grid gap-3 lg:grid-cols-2">
+          <Link
+            href="/listings"
+            className="group flex items-start gap-3 rounded-2xl bg-foundation-700 p-4 transition hover:bg-foundation-800"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-lime-300 text-foundation-700">
+              <Search className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-bold text-paper">
+                Browse available listings
+              </p>
+              <p className="mt-0.5 text-[13px] text-paper/70">
+                See homes, shops, land, shortlets and hotels on the Property360 marketplace, and message owners directly.
+              </p>
+            </div>
+            <ArrowRight className="mt-2 h-4 w-4 shrink-0 text-lime-300 transition group-hover:translate-x-0.5" />
+          </Link>
+          <Link
+            href="/app/marketplace/new"
+            className="flex items-start gap-3 rounded-2xl border border-lime-500/35 bg-lime-50/70 p-4 transition hover:border-lime-500 hover:bg-lime-50"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foundation-700 text-lime-300">
+              <Megaphone className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-semibold text-foundation-700">
+                List a property for free
+              </p>
+              <p className="mt-0.5 text-[13px] text-ink-muted">
+                Advertise a home, shop, land, shortlet, or hotel room. Standard listings are free—no plan or rent commission required.
+              </p>
+            </div>
+            <span className="mt-1.5 shrink-0 text-[12px] font-semibold text-foundation-700 underline decoration-lime-500 underline-offset-4">
+              Create listing
+            </span>
+          </Link>
+        </div>
         {/* Pending landlord invitations, shown to managers whenever any are
            waiting, regardless of whether they already have properties. */}
         {user?.role === "agent" && pendingInvites.length > 0 && (
