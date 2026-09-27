@@ -71,6 +71,16 @@ export default function PendingPaymentsPage() {
   const orderedPayments = selectedPayment
     ? [selectedPayment, ...(payments.data ?? []).filter((payment) => payment.id !== selectedPayment.id)]
     : payments.data ?? [];
+  // Same tenant, type and amount more than once usually means the tenant
+  // marked the same payment as paid twice. Flag it so it isn't confirmed twice.
+  const duplicateKey = (payment: PendingPayment) =>
+    `${payment.tenant?.id ?? ""}|${payment.type}|${payment.amount}`;
+  const duplicateCounts = new Map<string, number>();
+  for (const payment of payments.data ?? []) {
+    const key = duplicateKey(payment);
+    duplicateCounts.set(key, (duplicateCounts.get(key) ?? 0) + 1);
+  }
+  const showOthersHeading = Boolean(requestedPaymentId && !selectedPayment && orderedPayments.length > 0);
 
   return (
     <>
@@ -84,7 +94,7 @@ export default function PendingPaymentsPage() {
           <div className={`mb-5 border-l-2 px-4 py-1 text-[13px] ${selectedPayment ? "border-cryola-400 text-foundation-700" : "border-amber-400 text-ink-muted"}`}>
             {selectedPayment
               ? "Opened from your payment notification. Review the highlighted payment below."
-              : "This payment is no longer awaiting confirmation. It may already have been confirmed or rejected."}
+              : "The payment from your notification has already been confirmed or rejected, so there's nothing left to do for it. If the tenant marked the same payment more than once, the other copy may still be listed below."}
           </div>
         )}
         {payments.isLoading ? (
@@ -100,6 +110,11 @@ export default function PendingPaymentsPage() {
           />
         ) : (
           <div className="space-y-3">
+            {showOthersHeading && (
+              <h2 className="pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                Other payments waiting for your confirmation
+              </h2>
+            )}
             {orderedPayments.map((payment) => {
               const tenantName = `${payment.tenant?.firstName ?? ""} ${payment.tenant?.lastName ?? ""}`.trim() || "Tenant";
               const place = [payment.property?.name, payment.unit?.unitNumber ? `Unit ${payment.unit.unitNumber}` : undefined].filter(Boolean).join(" · ");
@@ -139,6 +154,11 @@ export default function PendingPaymentsPage() {
                       <p className="text-ink-muted">Lease rent <span className="font-semibold text-foundation-700">{formatNgn(expectedAmount)}</span>{payment.paymentFrequency ? ` · ${payment.paymentFrequency}` : ""}</p>
                       {comparison && <p className={`font-semibold ${comparison.tone}`}>{comparison.text}</p>}
                     </div>
+                  )}
+                  {(duplicateCounts.get(duplicateKey(payment)) ?? 0) > 1 && (
+                    <p role="note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[12.5px] text-amber-900">
+                      {tenantName} has {duplicateCounts.get(duplicateKey(payment))} pending {payment.type || "payment"} entries of {formatNgn(payment.amount)}. This may be the same payment marked paid more than once, so check before confirming.
+                    </p>
                   )}
                   {payment.notes && <p className="mt-4 rounded-xl bg-surface px-3 py-2 text-[12.5px] text-ink-muted">{payment.notes}</p>}
                   <div className="mt-5 flex flex-wrap gap-2 border-t border-foundation-700/10 pt-4">
