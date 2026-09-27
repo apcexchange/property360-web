@@ -260,22 +260,16 @@ function LeaseDetailInner() {
                   </div>
                 )}
                 {fullUpcomingPayment && (
-                  <div className="mt-4 rounded-xl border border-amber-300/70 bg-amber-50 px-3.5 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-800">
-                      Full payment received — schedule next term
+                  <div className="mt-4 rounded-xl border border-lime-500/30 bg-lime-50 px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lime-800">
+                      Next term paid
                     </p>
                     <p className="mt-1 text-[13px] font-semibold text-foundation-700">
                       {formatNgn(fullUpcomingPayment.amount)} received on {formatDate(fullUpcomingPayment.paymentDate)}
                     </p>
                     <p className="mt-1 text-[11.5px] text-ink-muted">
-                      The current lease remains active through {formatDate(lease.endDate)}. Apply this payment to the next term to show its dates and prevent another invoice.
+                      The current lease remains active through {formatDate(lease.endDate)}. The paid term starts automatically the next day; edit it only if the rent, frequency, or dates need to change.
                     </p>
-                    <Link
-                      href={`/app/leases/${id}/renew`}
-                      className="mt-2 inline-flex text-[11.5px] font-semibold text-foundation-700 underline decoration-amber-500 underline-offset-4"
-                    >
-                      Schedule paid renewal
-                    </Link>
                   </div>
                 )}
               </Card>
@@ -306,7 +300,7 @@ function LeaseDetailInner() {
                       {scheduledRenewal
                         ? "Paid renewal scheduled"
                         : hasFullUpcomingPayment
-                        ? "Full payment received — schedule renewal"
+                        ? "Edit upcoming renewal"
                         : leaseIsPastDue
                         ? "Renew overdue lease"
                         : "Renew lease"}
@@ -315,7 +309,7 @@ function LeaseDetailInner() {
                       {scheduledRenewal
                         ? "The next term will start automatically"
                         : hasFullUpcomingPayment
-                        ? "Apply it to the next term; avoid a duplicate invoice"
+                        ? "Only needed to change the next term's dates or rent"
                         : leaseIsPastDue
                         ? "The current term has ended"
                         : "Extend the lease window"}
