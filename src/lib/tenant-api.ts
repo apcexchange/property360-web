@@ -20,6 +20,13 @@ export interface TenantLeaseInfo {
     serviceCharge: number;
     otherFee: number;
     otherFeeDescription: string;
+    pendingRenewal?: {
+      startDate: string;
+      endDate: string;
+      rentAmount: number;
+      paymentFrequency: string;
+      payment: string;
+    } | null;
   };
   property: {
     id: string;

@@ -84,6 +84,25 @@ function LeaseDetailInner() {
   });
   const row = occupied.data?.find((r) => r.lease?.id === id);
   const lease = row?.lease ?? null;
+  const scheduledRenewal =
+    lease?.pendingRenewal &&
+    lease.pendingRenewal.startDate &&
+    lease.pendingRenewal.endDate &&
+    lease.pendingRenewal.rentAmount > 0
+      ? lease.pendingRenewal
+      : null;
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const leaseEndDay = lease ? new Date(lease.endDate) : null;
+  if (leaseEndDay) leaseEndDay.setHours(0, 0, 0, 0);
+  const renewalStartDay = scheduledRenewal
+    ? new Date(scheduledRenewal.startDate)
+    : null;
+  if (renewalStartDay) renewalStartDay.setHours(0, 0, 0, 0);
+  const leaseIsPastDue = Boolean(leaseEndDay && leaseEndDay < startOfToday);
+  const paidRenewalAwaitingActivation = Boolean(
+    leaseIsPastDue && renewalStartDay && renewalStartDay <= startOfToday
+  );
 
   const payments = useQuery({
     queryKey: ["lease-payments", id],
@@ -96,7 +115,7 @@ function LeaseDetailInner() {
   }
   const hasFullUpcomingPayment = Boolean(
     lease &&
-      !lease.pendingRenewal &&
+      !scheduledRenewal &&
       (payments.data ?? []).some((payment) => {
         const paidAt = new Date(payment.paymentDate);
         return (
@@ -205,16 +224,39 @@ function LeaseDetailInner() {
                   startDate={lease.startDate}
                   endDate={lease.endDate}
                 />
-                {lease.pendingRenewal && (
+                {leaseIsPastDue && !paidRenewalAwaitingActivation && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-700">
+                      Lease term overdue
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-foundation-700">
+                      This term ended on {formatDate(lease.endDate)}.
+                    </p>
+                    <p className="mt-1 text-[11.5px] text-ink-muted">
+                      Renew the lease or serve the appropriate notice before continuing occupancy.
+                    </p>
+                  </div>
+                )}
+                {paidRenewalAwaitingActivation && (
+                  <div className="mt-4 rounded-xl border border-lime-500/30 bg-lime-50 px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lime-800">
+                      Paid renewal ready to activate
+                    </p>
+                    <p className="mt-1 text-[12.5px] text-ink-muted">
+                      The previous term ended on {formatDate(lease.endDate)}. The paid renewal starts automatically today; no action or duplicate invoice is needed.
+                    </p>
+                  </div>
+                )}
+                {scheduledRenewal && (
                   <div className="mt-4 rounded-xl border border-lime-500/30 bg-lime-50 px-3.5 py-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lime-800">
                       Next term paid
                     </p>
                     <p className="mt-1 text-[13px] font-semibold text-foundation-700">
-                      {formatNgn(lease.pendingRenewal.rentAmount)}/{lease.pendingRenewal.paymentFrequency} · {formatDate(lease.pendingRenewal.startDate)} → {formatDate(lease.pendingRenewal.endDate)}
+                      {formatNgn(scheduledRenewal.rentAmount)}/{scheduledRenewal.paymentFrequency} · {formatDate(scheduledRenewal.startDate)} → {formatDate(scheduledRenewal.endDate)}
                     </p>
                     <p className="mt-1 text-[11.5px] text-ink-muted">
-                      This lease stays active through {formatDate(lease.endDate)}. The paid renewal starts automatically on {formatDate(lease.pendingRenewal.startDate)}; no invoice will be sent for it.
+                      This lease stays active through {formatDate(lease.endDate)}. The paid renewal starts automatically on {formatDate(scheduledRenewal.startDate)}; no invoice will be sent for it.
                     </p>
                   </div>
                 )}
@@ -243,17 +285,21 @@ function LeaseDetailInner() {
                   <RefreshCw className="mt-0.5 h-4 w-4 text-foundation-700" />
                   <div>
                     <p className="text-[13px] font-semibold text-foundation-700">
-                      {lease.pendingRenewal
+                      {scheduledRenewal
                         ? "Paid renewal scheduled"
                         : hasFullUpcomingPayment
                         ? "Full payment received — schedule renewal"
+                        : leaseIsPastDue
+                        ? "Renew overdue lease"
                         : "Renew lease"}
                     </p>
                     <p className="text-[11.5px] text-ink-muted">
-                      {lease.pendingRenewal
+                      {scheduledRenewal
                         ? "The next term will start automatically"
                         : hasFullUpcomingPayment
                         ? "Apply it to the next term; avoid a duplicate invoice"
+                        : leaseIsPastDue
+                        ? "The current term has ended"
                         : "Extend the lease window"}
                     </p>
                   </div>
