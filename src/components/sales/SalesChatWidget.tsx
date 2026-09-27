@@ -86,6 +86,9 @@ export function SalesChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const hidden = HIDDEN_PREFIXES.some((p) => pathname?.startsWith(p));
+  // Listing detail pages pin a "Message the owner" bar to the bottom on
+  // mobile; sit above it instead of covering the button.
+  const aboveListingBar = /^\/listings\/(?!in\/)[^/]+$/.test(pathname ?? "");
 
   // One enabled-probe + transcript restore per mount. The GET is cheap (no
   // LLM); cache the kill-switch verdict for the tab session.
@@ -257,7 +260,7 @@ export function SalesChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end">
+    <div className={`fixed right-5 z-50 flex flex-col items-end ${aboveListingBar ? "bottom-24 lg:bottom-5" : "bottom-5"}`}>
       {open && (
         <div className="relative mb-3 flex h-[min(70vh,560px)] w-[min(92vw,380px)] flex-col overflow-hidden rounded-2xl border border-foundation-700/10 bg-paper shadow-2xl">
           {/* Header */}

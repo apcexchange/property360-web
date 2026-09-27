@@ -80,7 +80,8 @@ export default async function ListingDetailPage({
     ? `${owner.firstName}${owner.lastName ? ` ${owner.lastName.slice(0, 1)}.` : ""}`
     : "Property360 publisher";
   const publisherType = owner?.role === "agent" ? "Independent agent" : "Property owner";
-  const contactLabel = owner?.role === "agent" ? "Message the agent" : "Message the owner";
+  const contactLabel =
+    purpose === "sale" ? "Request details" : owner?.role === "agent" ? "Message the agent" : "Message the owner";
 
   // Link the location label to its SEO landing page (prefer state, then city)
   // when the place is one we recognise, to tighten the internal link cluster.
@@ -120,7 +121,7 @@ export default async function ListingDetailPage({
   };
 
   return (
-    <div className="min-h-screen bg-paper text-foundation-700">
+    <div className="min-h-screen bg-paper pb-24 text-foundation-700 lg:pb-0">
       <Nav />
       <script
         type="application/ld+json"
@@ -135,9 +136,13 @@ export default async function ListingDetailPage({
           ← All listings
         </Link>
 
-        <h1 className="mt-4 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
-          {listingTitle(listing)}
-        </h1>
+        <div className="mt-4 flex items-start justify-between gap-6">
+          <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
+            {listingTitle(listing)}
+          </h1>
+          {/* Desktop: enquiry above the fold. Mobile uses the bottom bar. */}
+          <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" className="hidden w-[260px] shrink-0 lg:block" />
+        </div>
         <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-ink-muted">
           <MapPin className="h-3.5 w-3.5" />
           {locationHref ? (
@@ -290,13 +295,16 @@ export default async function ListingDetailPage({
                   </>
                 ) : purpose === "sale" ? (
                   <>
-                    <ContactOwnerButton unitId={listing.id} label="Request details" />
+                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" />
                     <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p>
                   </>
                 ) : (
                   <>
+                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" />
+                    <p className="text-center text-[12px] leading-relaxed text-ink-muted">
+                      Ask about inspection, price or availability. Replies arrive in your Property360 messages.
+                    </p>
                     <ReserveListingCTA unitId={listing.id} reserved={reserved} listingHref={`/listings/${listing.id}`} />
-                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="outline" />
                   </>
                 )}
                 <ReportListingButton unitId={listing.id} />
@@ -332,6 +340,17 @@ export default async function ListingDetailPage({
           </aside>
         </div>
       </article>
+
+      {/* Mobile: the sidebar sits below the fold, so keep the enquiry in reach. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-foundation-700/10 bg-surface/95 px-4 py-3 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-6xl items-center gap-3">
+          <p className="shrink-0 font-display text-[20px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
+            {formatNaira(listing.rentAmount)}
+            {priceSuffix && <span className="ml-0.5 text-[12px] font-medium text-ink-muted">{priceSuffix}</span>}
+          </p>
+          <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" className="min-w-0 flex-1" />
+        </div>
+      </div>
 
       <Footer />
     </div>
