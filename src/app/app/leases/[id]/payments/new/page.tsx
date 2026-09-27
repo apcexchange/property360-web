@@ -51,7 +51,7 @@ export default function RecordPaymentPage() {
   return (
     <>
       <AppTopbar
-        title="Record payment"
+        title="Record current-term payment"
         subtitle={
           row
             ? `${row.tenant.firstName} ${row.tenant.lastName} · ${row.property.name}, Unit ${row.unit.unitNumber}`
@@ -75,6 +75,9 @@ export default function RecordPaymentPage() {
           }}
         >
           <Card className="space-y-5 p-5">
+            <div className="rounded-xl border border-lime-500/25 bg-lime-50 px-3.5 py-3 text-[12.5px] text-foundation-700">
+              Use this for a payment toward the current lease, including part payments. If the tenant has paid a full upcoming term early, use <Link href={`/app/leases/${id}/renew`} className="font-semibold underline">Renew lease</Link> so the receipt is assigned to the new term and auto-billing does not charge twice.
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">
@@ -95,7 +98,7 @@ export default function RecordPaymentPage() {
                       onClick={() => setAmount(row.lease!.rentAmount)}
                       className="rounded-full border border-foundation-700/15 bg-paper px-3 py-1 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
                     >
-                      One {row.lease.paymentFrequency} ·{" "}
+                      Current-term amount ·{" "}
                       {formatNgn(row.lease.rentAmount)}
                     </button>
                   </div>
@@ -166,7 +169,7 @@ export default function RecordPaymentPage() {
               disabled={!canSubmit || record.isPending}
               className="rounded-full bg-foundation-700 px-6 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
             >
-              {record.isPending ? "Saving…" : `Record ${formatNgn(amount)}`}
+              {record.isPending ? "Saving…" : `Record payment ${formatNgn(amount)}`}
             </button>
           </div>
         </form>

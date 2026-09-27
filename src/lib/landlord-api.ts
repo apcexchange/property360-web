@@ -184,6 +184,13 @@ export interface LeaseSummary {
   gracePeriodDays?: number | null;
   lateFeeType?: LateFeeType;
   lateFeeValue?: number;
+  pendingRenewal?: {
+    startDate: string;
+    endDate: string;
+    rentAmount: number;
+    paymentFrequency: PaymentFrequency;
+    payment: string;
+  } | null;
 }
 
 /** Slimmed property/unit/tenant shapes that /tenants/occupied-units returns. */
@@ -380,6 +387,9 @@ export interface LeasePayment {
   status?: "pending" | "completed" | "failed" | "voided";
   reference?: string;
   notes?: string;
+  appliedTo?: "current_term" | "renewal";
+  coverageStart?: string;
+  coverageEnd?: string;
   createdAt: string;
 }
 
@@ -1238,9 +1248,15 @@ export const landlordApi = {
   },
   async renewLease(
     leaseId: string,
-    body: { newEndDate: string; newRentAmount?: number }
+    body: {
+      newStartDate: string;
+      newEndDate: string;
+      rentAmount: number;
+      paymentFrequency?: PaymentFrequency;
+      paymentId?: string;
+    }
   ): Promise<Lease> {
-    const res = await api.post(`/tenants/lease/${leaseId}/renew`, body);
+    const res = await api.put(`/tenants/lease/${leaseId}/renew`, body);
     return unwrap(res.data) as Lease;
   },
   async recordLeasePayment(
