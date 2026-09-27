@@ -100,6 +100,18 @@ function Content({
       : lease.status === "pending"
       ? "warn"
       : "bad";
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const leaseEndDay = new Date(lease.endDate);
+  leaseEndDay.setHours(0, 0, 0, 0);
+  const leaseIsPastDue = leaseEndDay < startOfToday;
+  const renewalStartDay = lease.pendingRenewal?.startDate
+    ? new Date(lease.pendingRenewal.startDate)
+    : null;
+  if (renewalStartDay) renewalStartDay.setHours(0, 0, 0, 0);
+  const paidRenewalAwaitingActivation = Boolean(
+    leaseIsPastDue && renewalStartDay && renewalStartDay <= startOfToday
+  );
 
   return (
     <div className="space-y-6">
@@ -145,6 +157,47 @@ function Content({
             value={unit.bathrooms ? `${unit.bathrooms}` : "—"}
           />
         </div>
+
+        {leaseIsPastDue && !paidRenewalAwaitingActivation && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-red-700">
+              Lease term overdue
+            </p>
+            <p className="mt-1 text-[13px] font-semibold text-foundation-700">
+              Your lease ended on {formatDate(lease.endDate)}.
+            </p>
+            <p className="mt-1 text-[12.5px] text-ink-muted">
+              Please contact your landlord or property manager to renew your lease or confirm the next steps.
+            </p>
+          </div>
+        )}
+        {paidRenewalAwaitingActivation && (
+          <div className="mt-5 rounded-xl border border-lime-500/30 bg-lime-50 px-4 py-3.5">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-lime-800">
+              Your paid renewal is starting
+            </p>
+            <p className="mt-1 text-[12.5px] text-ink-muted">
+              Your previous term ended on {formatDate(lease.endDate)}. Your already-paid renewal will activate automatically; you do not need to pay again.
+            </p>
+          </div>
+        )}
+
+        {lease.pendingRenewal &&
+          lease.pendingRenewal.startDate &&
+          lease.pendingRenewal.endDate &&
+          lease.pendingRenewal.rentAmount > 0 && (
+            <div className="mt-5 rounded-xl border border-lime-500/30 bg-lime-50 px-4 py-3.5">
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-lime-800">
+                Your next term is paid
+              </p>
+              <p className="mt-1 text-[14px] font-semibold text-foundation-700">
+                {formatNgn(lease.pendingRenewal.rentAmount)} / {lease.pendingRenewal.paymentFrequency} · {formatDate(lease.pendingRenewal.startDate)} → {formatDate(lease.pendingRenewal.endDate)}
+              </p>
+              <p className="mt-1 text-[12.5px] text-ink-muted">
+                Your current lease remains active until {formatDate(lease.endDate)}. You do not need to make another rent payment for the next term.
+              </p>
+            </div>
+          )}
       </Card>
 
       <Card className="p-5">
