@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, UserPlus, Receipt, Layers, Mail } from "lucide-react";
+import { Plus, UserPlus, Receipt, Layers, Mail, Megaphone } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -51,15 +51,42 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle="Your portfolio at a glance"
         actions={
-          <Link
-            href="/app/properties/new"
-            className="hidden items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800 sm:inline-flex"
-          >
-            <Plus className="h-4 w-4" /> Add property
-          </Link>
+          <div className="hidden items-center gap-2 sm:flex">
+            <Link
+              href="/app/marketplace/new"
+              className="inline-flex items-center gap-1.5 rounded-full border border-lime-500/50 bg-lime-50 px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:border-lime-500 hover:bg-lime-100"
+            >
+              <Megaphone className="h-4 w-4" /> List for free
+            </Link>
+            <Link
+              href="/app/properties/new"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+            >
+              <Plus className="h-4 w-4" /> Add managed property
+            </Link>
+          </div>
         }
       />
       <PageContainer>
+        <Link
+          href="/app/marketplace/new"
+          className="mb-6 flex items-start gap-3 rounded-2xl border border-lime-500/35 bg-lime-50/70 p-4 transition hover:border-lime-500 hover:bg-lime-50"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-foundation-700 text-lime-300">
+            <Megaphone className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold text-foundation-700">
+              List a property for free
+            </p>
+            <p className="mt-0.5 text-[13px] text-ink-muted">
+              Advertise a home, shop, land, shortlet, or hotel room. Standard listings are free—no plan or rent commission required.
+            </p>
+          </div>
+          <span className="mt-1.5 shrink-0 text-[12px] font-semibold text-foundation-700 underline decoration-lime-500 underline-offset-4">
+            Create listing
+          </span>
+        </Link>
         {/* Pending landlord invitations, shown to managers whenever any are
            waiting, regardless of whether they already have properties. */}
         {user?.role === "agent" && pendingInvites.length > 0 && (
@@ -227,10 +254,16 @@ export default function DashboardPage() {
             <SectionHeader title="Quick actions" />
             <div className="space-y-3">
               <QuickAction
+                href="/app/marketplace/new"
+                icon={<Megaphone className="h-4 w-4" />}
+                title="List property for free"
+                body="Advertise publicly. No subscription or rent commission."
+              />
+              <QuickAction
                 href="/app/properties/new"
                 icon={<Plus className="h-4 w-4" />}
-                title="Add property"
-                body="Create a new property with units."
+                title="Add managed property"
+                body="Set up units, tenants, rent, and operations."
               />
               <QuickAction
                 href="/app/tenants/new"
