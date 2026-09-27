@@ -18,9 +18,17 @@ import { session } from "@/lib/session";
 
 export default function DashboardPage() {
   const user = session.getUser();
+  // Dashboard totals are a portfolio snapshot, never a continuation of a
+  // date filter chosen on another page. Include the current calendar month
+  // in this cache key so the month-sensitive hints (for example, "added this
+  // month") cannot reuse a snapshot from a previous month in a long-lived
+  // browser session.
+  const now = new Date();
+  const dashboardMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const stats = useQuery({
-    queryKey: ["dashboard", "stats"],
+    queryKey: ["dashboard", "stats", dashboardMonth],
     queryFn: () => landlordApi.dashboardStats(),
+    refetchOnMount: "always",
   });
   const activities = useQuery({
     queryKey: ["dashboard", "activities"],
