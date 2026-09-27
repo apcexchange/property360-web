@@ -43,6 +43,9 @@ function buildSections(role: string | undefined): NavSection[] {
       label: "Overview",
       items: [
         { href: "/app/dashboard", label: "Dashboard" },
+        // Public marketplace, so landlords and managers can see what's
+        // available after signing in (tenants get the same link under /me).
+        { href: "/listings", label: "Browse listings" },
         { href: "/app/notifications", label: "Notifications" },
       ],
     },
@@ -68,9 +71,6 @@ function buildSections(role: string | undefined): NavSection[] {
     {
       label: "Marketplace",
       items: [
-        // Public marketplace, so landlords and managers can see what's
-        // available after signing in (tenants get the same link under /me).
-        { href: "/listings", label: "Browse listings" },
         { href: "/app/marketplace", label: "My listings" },
         { href: "/app/hotels", label: "Hotel desk" },
       ],
