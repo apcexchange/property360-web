@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -14,11 +14,12 @@ import {
   formatNgn,
   formatDate,
 } from "@/components/app/ui";
-import { landlordApi } from "@/lib/landlord-api";
+import { landlordApi, LeasePayment } from "@/lib/landlord-api";
 
 export default function RenewLeasePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const occupied = useQuery({
     queryKey: ["tenants", "occupied-units"],
@@ -26,9 +27,15 @@ export default function RenewLeasePage() {
   });
   const row = occupied.data?.find((r) => r.lease?.id === id);
   const lease = row?.lease;
+  const payments = useQuery({
+    queryKey: ["lease-payments", id],
+    queryFn: () => landlordApi.leasePayments(id) as Promise<LeasePayment[]>,
+    enabled: !!lease,
+  });
 
   const [newEndDate, setNewEndDate] = useState("");
   const [newRentAmount, setNewRentAmount] = useState<number | "">("");
+  const [paymentId, setPaymentId] = useState("");
 
   // Default the new end date to current end + 12 months when lease loads.
   if (lease && !newEndDate) {
@@ -40,16 +47,38 @@ export default function RenewLeasePage() {
     setNewRentAmount(lease.rentAmount);
   }
 
+  const nextTermStart = lease ? new Date(lease.endDate) : null;
+  if (nextTermStart) nextTermStart.setUTCDate(nextTermStart.getUTCDate() + 1);
+  const renewalWindowStart = lease ? new Date(lease.endDate) : null;
+  if (renewalWindowStart) renewalWindowStart.setUTCDate(renewalWindowStart.getUTCDate() - 90);
+  const termRent = Number(newRentAmount || lease?.rentAmount || 0);
+  const eligiblePayments = (payments.data ?? []).filter((payment) => {
+    const paidAt = new Date(payment.paymentDate);
+    return (
+      payment.status === "completed" &&
+      payment.appliedTo !== "renewal" &&
+      payment.amount >= termRent &&
+      !!renewalWindowStart &&
+      paidAt >= renewalWindowStart
+    );
+  });
+
   const renew = useMutation({
     mutationFn: () =>
       landlordApi.renewLease(id, {
+        newStartDate: nextTermStart?.toISOString().slice(0, 10) ?? "",
         newEndDate,
-        newRentAmount:
-          newRentAmount === "" || newRentAmount === lease?.rentAmount
-            ? undefined
-            : Number(newRentAmount),
+        rentAmount: termRent,
+        paymentFrequency: lease?.paymentFrequency,
+        paymentId: paymentId || undefined,
       }),
-    onSuccess: () => router.push(`/app/leases/${id}`),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["tenants", "occupied-units"] }),
+        queryClient.invalidateQueries({ queryKey: ["lease-payments", id] }),
+      ]);
+      router.push(`/app/leases/${id}`);
+    },
   });
 
   const formError = (() => {
@@ -91,6 +120,53 @@ export default function RenewLeasePage() {
                 {formatDate(lease.startDate)} → {formatDate(lease.endDate)} ·{" "}
                 {formatNgn(lease.rentAmount)}/{lease.paymentFrequency}
               </p>
+              {nextTermStart && (
+                <p className="pt-1 text-[12px] text-ink-muted">
+                  New term starts {formatDate(nextTermStart.toISOString())}. The current lease remains active until then.
+                </p>
+              )}
+            </Card>
+
+            <Card className="space-y-3 p-5">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                  Payment for the new term
+                </p>
+                <p className="mt-1 text-[13px] text-foundation-700">
+                  If the tenant already paid the full rent, apply that payment here. We will mark it as covering this renewal and skip the next auto-invoice.
+                </p>
+              </div>
+              {payments.isLoading ? (
+                <p className="text-[12px] text-ink-muted">Checking payment history…</p>
+              ) : eligiblePayments.length === 0 ? (
+                <p className="rounded-xl bg-foundation-700/5 px-3 py-2.5 text-[12px] text-ink-muted">
+                  No eligible full payment was found in the 90 days before this lease ends. Continue without one for an unpaid renewal, or record a current/part payment separately.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {eligiblePayments.map((payment) => (
+                    <label
+                      key={payment._id}
+                      className="flex cursor-pointer items-start gap-3 rounded-xl border border-foundation-700/10 p-3 transition has-[:checked]:border-lime-500 has-[:checked]:bg-lime-50"
+                    >
+                      <input
+                        type="radio"
+                        name="renewal-payment"
+                        value={payment._id}
+                        checked={paymentId === payment._id}
+                        onChange={(e) => setPaymentId(e.target.value)}
+                        className="mt-1 accent-foundation-700"
+                      />
+                      <span className="text-[13px] text-foundation-700">
+                        <strong>{formatNgn(payment.amount)}</strong> received {formatDate(payment.paymentDate)}
+                        <span className="block text-[11.5px] text-ink-muted">
+                          Apply to {nextTermStart ? formatDate(nextTermStart.toISOString()) : "the next term"} → {formatDate(newEndDate)}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card className="grid gap-4 p-5 sm:grid-cols-2">
@@ -139,7 +215,7 @@ export default function RenewLeasePage() {
                 disabled={!newEndDate || renew.isPending}
                 className="rounded-full bg-foundation-700 px-6 py-2.5 text-[13px] font-semibold text-paper transition hover:bg-foundation-800 disabled:opacity-50"
               >
-                {renew.isPending ? "Renewing…" : "Renew lease"}
+                {renew.isPending ? "Renewing…" : paymentId ? "Confirm paid renewal" : "Renew lease"}
               </button>
             </div>
           </form>

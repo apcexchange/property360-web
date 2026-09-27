@@ -90,6 +90,24 @@ function LeaseDetailInner() {
     queryFn: () => landlordApi.leasePayments(id) as Promise<LeasePayment[]>,
     enabled: !!id,
   });
+  const renewalWindowStart = lease ? new Date(lease.endDate) : null;
+  if (renewalWindowStart) {
+    renewalWindowStart.setUTCDate(renewalWindowStart.getUTCDate() - 90);
+  }
+  const hasFullUpcomingPayment = Boolean(
+    lease &&
+      !lease.pendingRenewal &&
+      (payments.data ?? []).some((payment) => {
+        const paidAt = new Date(payment.paymentDate);
+        return (
+          payment.status === "completed" &&
+          payment.appliedTo !== "renewal" &&
+          payment.amount >= lease.rentAmount &&
+          !!renewalWindowStart &&
+          paidAt >= renewalWindowStart
+        );
+      })
+  );
   const guarantor = useQuery({
     queryKey: ["guarantor", id],
     queryFn: () => landlordApi.getGuarantor(id),
@@ -187,6 +205,19 @@ function LeaseDetailInner() {
                   startDate={lease.startDate}
                   endDate={lease.endDate}
                 />
+                {lease.pendingRenewal && (
+                  <div className="mt-4 rounded-xl border border-lime-500/30 bg-lime-50 px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-lime-800">
+                      Next term paid
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-foundation-700">
+                      {formatNgn(lease.pendingRenewal.rentAmount)}/{lease.pendingRenewal.paymentFrequency} · {formatDate(lease.pendingRenewal.startDate)} → {formatDate(lease.pendingRenewal.endDate)}
+                    </p>
+                    <p className="mt-1 text-[11.5px] text-ink-muted">
+                      This lease stays active through {formatDate(lease.endDate)}. The paid renewal starts automatically on {formatDate(lease.pendingRenewal.startDate)}; no invoice will be sent for it.
+                    </p>
+                  </div>
+                )}
               </Card>
               <div className="space-y-3">
                 <button
@@ -212,10 +243,18 @@ function LeaseDetailInner() {
                   <RefreshCw className="mt-0.5 h-4 w-4 text-foundation-700" />
                   <div>
                     <p className="text-[13px] font-semibold text-foundation-700">
-                      Renew lease
+                      {lease.pendingRenewal
+                        ? "Paid renewal scheduled"
+                        : hasFullUpcomingPayment
+                        ? "Full payment received — schedule renewal"
+                        : "Renew lease"}
                     </p>
                     <p className="text-[11.5px] text-ink-muted">
-                      Extend the lease window
+                      {lease.pendingRenewal
+                        ? "The next term will start automatically"
+                        : hasFullUpcomingPayment
+                        ? "Apply it to the next term; avoid a duplicate invoice"
+                        : "Extend the lease window"}
                     </p>
                   </div>
                 </Link>
@@ -226,10 +265,10 @@ function LeaseDetailInner() {
                   <Receipt className="mt-0.5 h-4 w-4 text-foundation-700" />
                   <div>
                     <p className="text-[13px] font-semibold text-foundation-700">
-                      Record payment
+                      Record current-term payment
                     </p>
                     <p className="text-[11.5px] text-ink-muted">
-                      Cash, transfer, or Paystack
+                      Full or part payment for this term
                     </p>
                   </div>
                 </Link>
@@ -733,6 +772,9 @@ function PaymentHistorySection({
                   <p className="text-[11.5px] text-ink-muted">
                     {formatDate(p.paymentDate)} · {methodText}
                     {p.reference && ` · ${p.reference}`}
+                    {p.appliedTo === "renewal" && p.coverageStart && p.coverageEnd && (
+                      <> · Renewal: {formatDate(p.coverageStart)} → {formatDate(p.coverageEnd)}</>
+                    )}
                   </p>
                 </div>
                 {p.notes && (
@@ -1465,4 +1507,3 @@ function GuarantorRequestsList({ leaseId }: { leaseId: string }) {
     </div>
   );
 }
-
