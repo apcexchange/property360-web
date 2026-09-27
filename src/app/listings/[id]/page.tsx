@@ -9,7 +9,7 @@ import { AppStoreButtons } from "@/components/marketing/AppStoreButtons";
 import { ReserveListingCTA } from "@/components/marketing/ReserveListingCTA";
 import { HotelBookingForm } from "@/components/marketing/HotelBookingForm";
 import { ReportListingButton } from "@/components/marketing/ReportListingButton";
-import { RequestListingDetailsButton } from "@/components/marketing/RequestListingDetailsButton";
+import { ContactOwnerButton } from "@/components/marketing/ContactOwnerButton";
 import {
   getListing,
   formatNaira,
@@ -80,6 +80,7 @@ export default async function ListingDetailPage({
     ? `${owner.firstName}${owner.lastName ? ` ${owner.lastName.slice(0, 1)}.` : ""}`
     : "Property360 publisher";
   const publisherType = owner?.role === "agent" ? "Independent agent" : "Property owner";
+  const contactLabel = owner?.role === "agent" ? "Message the agent" : "Message the owner";
 
   // Link the location label to its SEO landing page (prefer state, then city)
   // when the place is one we recognise, to tighten the internal link cluster.
@@ -283,11 +284,20 @@ export default async function ListingDetailPage({
 
               <div className="mt-5 space-y-3">
                 {listing.property?.propertyType === "hotel" ? (
-                  <HotelBookingForm unitId={listing.id} nightlyRate={listing.rentAmount} minimumStay={listing.listingDetails?.minimumStayNights} />
+                  <>
+                    <HotelBookingForm unitId={listing.id} nightlyRate={listing.rentAmount} minimumStay={listing.listingDetails?.minimumStayNights} />
+                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="outline" />
+                  </>
                 ) : purpose === "sale" ? (
-                  <><RequestListingDetailsButton unitId={listing.id} /><p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p></>
+                  <>
+                    <ContactOwnerButton unitId={listing.id} label="Request details" />
+                    <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p>
+                  </>
                 ) : (
-                  <ReserveListingCTA unitId={listing.id} reserved={reserved} listingHref={`/listings/${listing.id}`} />
+                  <>
+                    <ReserveListingCTA unitId={listing.id} reserved={reserved} listingHref={`/listings/${listing.id}`} />
+                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="outline" />
+                  </>
                 )}
                 <ReportListingButton unitId={listing.id} />
               </div>
