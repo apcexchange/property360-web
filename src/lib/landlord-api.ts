@@ -779,11 +779,19 @@ export interface ChatConversation {
     unitNumber?: string;
     rentAmount?: number;
     listingTitle?: string;
+    listingPurpose?: "rent" | "sale" | "shortlet";
+    /** False once the unit leaves the marketplace (e.g. a lease thread). */
+    isListed?: boolean;
+    listingStatus?: string;
+    bedrooms?: number;
   } | null;
   property?: {
     id: string;
     name?: string;
     image?: string | null;
+    propertyType?: string;
+    city?: string;
+    state?: string;
   } | null;
   lastMessage?: {
     text: string;
