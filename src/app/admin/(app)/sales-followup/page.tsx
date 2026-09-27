@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Topbar } from "@/components/admin/Topbar";
 import { DataTable } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/ui/PageHeader";
@@ -53,6 +53,8 @@ export default function AdminSalesFollowUpPage() {
   const [track, setTrack] = useState("all");
   const [hotOnly, setHotOnly] = useState(false);
   const [viewingId, setViewingId] = useState<string | null>(null);
+  const [backfillSummary, setBackfillSummary] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const limit = 25;
 
   const stats = useQuery({
@@ -76,6 +78,26 @@ export default function AdminSalesFollowUpPage() {
 
   const t = stats.data?.totals;
   const hasActiveFilters = search.trim() !== "" || status !== "all" || track !== "all" || hotOnly;
+  const backfill = useMutation({
+    mutationFn: () => adminApi.backfillSalesJourneys(),
+    onSuccess: (result) => {
+      setBackfillSummary(
+        `${result.created} new ${result.created === 1 ? "journey" : "journeys"} added. ` +
+          `${result.exists} already existed and ${result.skipped} were not eligible.` +
+          (result.failed > 0 ? ` ${result.failed} could not be added; please try again.` : "")
+      );
+      void queryClient.invalidateQueries({ queryKey: ["admin", "sales-followup"] });
+    },
+    onError: () => setBackfillSummary("Could not add existing users. Please try again."),
+  });
+
+  function addExistingUsers() {
+    if (!window.confirm("Add all eligible existing landlords and agents to sales follow-up? Existing journeys will not be changed, and messages will be paced over time.")) {
+      return;
+    }
+    setBackfillSummary(null);
+    backfill.mutate();
+  }
 
   return (
     <>
@@ -87,6 +109,21 @@ export default function AdminSalesFollowUpPage() {
             title="Sales follow-up"
             description="Automated WhatsApp and email follow-up for landlords and agents who are not paying yet, plus the AI sales chat."
           />
+
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border border-rule bg-surface px-4 py-3">
+            <div>
+              <p className="text-[13px] font-semibold text-foundation-700">Add existing users to follow-up</p>
+              <p className="mt-0.5 text-[12px] text-ink-muted">Use this once to enrol landlords and agents who signed up before follow-up was enabled. New users are enrolled automatically.</p>
+            </div>
+            <Button variant="success" onClick={addExistingUsers} disabled={backfill.isPending}>
+              {backfill.isPending ? "Adding…" : "Add existing users"}
+            </Button>
+            {backfillSummary && (
+              <p className={`basis-full text-[12px] ${backfill.isError ? "text-error" : "text-ink-muted"}`}>
+                {backfillSummary} Follow-ups are paced and checked every 15 minutes.
+              </p>
+            )}
+          </div>
 
           <div role="tablist" aria-label="Sales follow-up sections" className="mb-6 flex gap-1 border-b border-rule">
             {TABS.map((tabItem, index) => (

@@ -817,6 +817,23 @@ const adminApi = {
     return unwrap(res.data);
   },
 
+  async backfillSalesJourneys(): Promise<{
+    scanned: number;
+    created: number;
+    exists: number;
+    skipped: number;
+    failed: number;
+  }> {
+    const res = await api.post<ApiEnvelope<{
+      scanned: number;
+      created: number;
+      exists: number;
+      skipped: number;
+      failed: number;
+    }>>("/admin/sales-followup/backfill");
+    return unwrap(res.data);
+  },
+
   async listSalesJourneys(params: {
     page?: number;
     limit?: number;
