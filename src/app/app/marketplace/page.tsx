@@ -64,6 +64,12 @@ export default function MarketplacePage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/listings"
+              className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/15 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> Browse all listings
+            </Link>
+            <Link
               href="/app/marketplace/list-unit"
               className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
             >
