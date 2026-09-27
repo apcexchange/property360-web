@@ -113,10 +113,8 @@ function LeaseDetailInner() {
   if (renewalWindowStart) {
     renewalWindowStart.setUTCDate(renewalWindowStart.getUTCDate() - 90);
   }
-  const hasFullUpcomingPayment = Boolean(
-    lease &&
-      !scheduledRenewal &&
-      (payments.data ?? []).some((payment) => {
+  const fullUpcomingPayment = lease && !scheduledRenewal
+    ? (payments.data ?? []).find((payment) => {
         const paidAt = new Date(payment.paymentDate);
         return (
           payment.status === "completed" &&
@@ -126,7 +124,8 @@ function LeaseDetailInner() {
           paidAt >= renewalWindowStart
         );
       })
-  );
+    : undefined;
+  const hasFullUpcomingPayment = Boolean(fullUpcomingPayment);
   const guarantor = useQuery({
     queryKey: ["guarantor", id],
     queryFn: () => landlordApi.getGuarantor(id),
@@ -258,6 +257,25 @@ function LeaseDetailInner() {
                     <p className="mt-1 text-[11.5px] text-ink-muted">
                       This lease stays active through {formatDate(lease.endDate)}. The paid renewal starts automatically on {formatDate(scheduledRenewal.startDate)}; no invoice will be sent for it.
                     </p>
+                  </div>
+                )}
+                {fullUpcomingPayment && (
+                  <div className="mt-4 rounded-xl border border-amber-300/70 bg-amber-50 px-3.5 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-800">
+                      Full payment received — schedule next term
+                    </p>
+                    <p className="mt-1 text-[13px] font-semibold text-foundation-700">
+                      {formatNgn(fullUpcomingPayment.amount)} received on {formatDate(fullUpcomingPayment.paymentDate)}
+                    </p>
+                    <p className="mt-1 text-[11.5px] text-ink-muted">
+                      The current lease remains active through {formatDate(lease.endDate)}. Apply this payment to the next term to show its dates and prevent another invoice.
+                    </p>
+                    <Link
+                      href={`/app/leases/${id}/renew`}
+                      className="mt-2 inline-flex text-[11.5px] font-semibold text-foundation-700 underline decoration-amber-500 underline-offset-4"
+                    >
+                      Schedule paid renewal
+                    </Link>
                   </div>
                 )}
               </Card>
