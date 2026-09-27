@@ -12,8 +12,12 @@ const noopSubscribe = () => () => {};
 interface Props {
   unitId: string;
   label?: string;
-  /** Solid for the primary action, outline when it sits under another CTA. */
-  variant?: "solid" | "outline";
+  /**
+   * accent: the page's primary enquiry action (brand cryola, bold).
+   * solid: dark primary button. outline: secondary, under another CTA.
+   */
+  variant?: "accent" | "solid" | "outline";
+  className?: string;
 }
 
 /**
@@ -22,7 +26,7 @@ interface Props {
  * enquire; each lands in their own inbox (tenants under /me, everyone else
  * under /app). Signed-out visitors are sent to login and brought back here.
  */
-export function ContactOwnerButton({ unitId, label = "Message the owner", variant = "solid" }: Props) {
+export function ContactOwnerButton({ unitId, label = "Message the owner", variant = "solid", className = "" }: Props) {
   const router = useRouter();
   // Session lives in localStorage, so read it on the client only.
   const role = useSyncExternalStore(
@@ -53,20 +57,21 @@ export function ContactOwnerButton({ unitId, label = "Message the owner", varian
     }
   };
 
-  const styles =
-    variant === "solid"
-      ? "bg-foundation-700 text-paper hover:bg-foundation-800"
-      : "border border-foundation-700/15 bg-paper text-foundation-700 hover:bg-foundation-700/5";
+  const styles = {
+    accent: "border border-foundation-700/10 bg-cryola-300 py-3.5 text-[14.5px] font-bold text-foundation-700 shadow-card hover:bg-cryola-400",
+    solid: "bg-foundation-700 py-3 text-[13px] font-semibold text-paper hover:bg-foundation-800",
+    outline: "border border-foundation-700/15 bg-paper py-3 text-[13px] font-semibold text-foundation-700 hover:bg-foundation-700/5",
+  }[variant];
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       <button
         type="button"
         onClick={onClick}
         disabled={loading}
-        className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full px-5 py-3 text-[13px] font-semibold transition disabled:opacity-60 ${styles}`}
+        className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-5 transition disabled:opacity-60 ${styles}`}
       >
-        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className={variant === "accent" ? "h-5 w-5" : "h-4 w-4"} />}
         {loading ? "Opening chat…" : label}
       </button>
       {error && (
