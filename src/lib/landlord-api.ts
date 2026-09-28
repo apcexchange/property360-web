@@ -426,6 +426,9 @@ export interface LandlordTransaction {
   paymentMethod: LandlordTransactionPaymentMethod;
   paymentDate: string;
   createdAt: string;
+  /** Set only when the payment was applied to a specific (renewal) term. */
+  coverageStart?: string;
+  coverageEnd?: string;
   reference?: string;
   description?: string;
   notes?: string;

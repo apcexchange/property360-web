@@ -119,7 +119,15 @@ function rentToRow(t: LandlordTransaction): Row {
   if (propertyName) secondaryParts.push(propertyName);
   if (unitNumber) secondaryParts.push(`Unit ${unitNumber}`);
   if (t.paymentMethod) secondaryParts.push(prettyMethod(t.paymentMethod));
-  const date = t.paymentDate ?? t.createdAt;
+  // Only renewal-applied payments store their own period. Lease dates are
+  // not used: a renewal rewrites them, so older rows would show the new term.
+  if (t.coverageStart && t.coverageEnd) {
+    secondaryParts.push(`Covers ${formatDate(t.coverageStart)} – ${formatDate(t.coverageEnd)}`);
+  }
+  // When it happened in Property360, not paymentDate: onboarding used to
+  // default paymentDate to the lease start, so it often reads as the day the
+  // rent period begins.
+  const date = t.createdAt;
   return {
     id: `rent:${t._id}`,
     source: "rent",
@@ -491,9 +499,6 @@ export default function TransactionsPage() {
                     </div>
                     <p className="mt-0.5 text-[11.5px] text-ink-muted">
                       {formatDate(r.date)}
-                      {r.ts > Date.now() + 24 * 60 * 60 * 1000 && (
-                        <span className="ml-1 font-semibold text-amber-700">· Future date</span>
-                      )}
                       {r.secondaryLabel && ` · ${r.secondaryLabel}`}
                       {r.reference && ` · ${r.reference}`}
                     </p>

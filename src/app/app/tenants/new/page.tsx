@@ -125,17 +125,11 @@ function NewTenantPageInner() {
   const [activateImmediately, setActivateImmediately] = useState(false);
   const [paidItems, setPaidItems] = useState<Set<PaidFeeKey>>(new Set());
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
-  // Payment date follows the lease start date until the landlord edits it.
-  const [paymentDate, setPaymentDate] = useState(
-    new Date().toISOString().slice(0, 10)
-  );
-  const [paymentDateTouched, setPaymentDateTouched] = useState(false);
-
-  // Keep the payment date in sync with the lease start date until the landlord
-  // manually edits it.
-  useEffect(() => {
-    if (!paymentDateTouched) setPaymentDate(leaseStartDate);
-  }, [leaseStartDate, paymentDateTouched]);
+  // The day the money was received, defaulting to today. Deliberately not
+  // tied to the lease start date: that is when the rent period begins, not
+  // when it was paid, and defaulting to it mis-dated transactions.
+  const today = new Date().toISOString().slice(0, 10);
+  const [paymentDate, setPaymentDate] = useState(today);
 
   // When the chosen unit changes, prefill rent + any default fees from the unit.
   useEffect(() => {
@@ -512,14 +506,12 @@ function NewTenantPageInner() {
                           options={PAYMENT_METHODS}
                         />
                       </Field>
-                      <Field label="Payment date">
+                      <Field label="Date paid">
                         <Input
                           value={paymentDate}
-                          onChange={(v) => {
-                            setPaymentDate(v);
-                            setPaymentDateTouched(true);
-                          }}
+                          onChange={setPaymentDate}
                           type="date"
+                          max={today}
                         />
                       </Field>
                     </div>
@@ -592,15 +584,18 @@ function Input({
   onChange,
   placeholder,
   type = "text",
+  max,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   type?: "text" | "number" | "email" | "date";
+  max?: string;
 }) {
   return (
     <input
       type={type}
+      max={max}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
