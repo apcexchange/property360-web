@@ -35,9 +35,14 @@ import {
   meta as docsMeta,
   Body as DocsBody,
 } from "./documents-to-rent-an-apartment-nigeria";
+import {
+  meta as EarlyRentMeta,
+  Body as EarlyRentBody,
+} from "./what-happens-when-rent-is-paid-early";
 
 // Newest first. Order here is the order shown on /guides.
 export const guides: Guide[] = [
+  { meta: EarlyRentMeta, Body: EarlyRentBody },
   { meta: scamsMeta, Body: ScamsBody },
   { meta: lagosCostMeta, Body: LagosCostBody },
   { meta: agentFeesMeta, Body: AgentFeesBody },
