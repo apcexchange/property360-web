@@ -414,11 +414,17 @@ export default function NewMarketplacePropertyPage() {
           <Card className="grid gap-4 p-5 sm:grid-cols-2">
             <Field label="Price before discount (optional, ₦)">
               <input
-                min="1"
-                type="number"
-                value={originalPrice}
-                onChange={(e) => setOriginalPrice(e.target.value)}
-                placeholder="Enter only when offering a discount"
+                type="text"
+                inputMode="numeric"
+                value={
+                  originalPrice
+                    ? Number(originalPrice).toLocaleString("en-NG")
+                    : ""
+                }
+                onChange={(e) =>
+                  setOriginalPrice(e.target.value.replace(/[^0-9]/g, ""))
+                }
+                placeholder="e.g. 9,800,000"
               />
             </Field>
             <Field
@@ -430,10 +436,15 @@ export default function NewMarketplacePropertyPage() {
             >
               <input
                 required
-                min="1"
-                type="number"
-                value={rentAmount}
-                onChange={(e) => setRentAmount(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={
+                  rentAmount ? Number(rentAmount).toLocaleString("en-NG") : ""
+                }
+                onChange={(e) =>
+                  setRentAmount(e.target.value.replace(/[^0-9]/g, ""))
+                }
+                placeholder="e.g. 6,250,043"
               />
             </Field>
             {originalPrice.trim() && !priceDiscountIsValid && (
