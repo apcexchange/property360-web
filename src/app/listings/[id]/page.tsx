@@ -82,6 +82,8 @@ export default async function ListingDetailPage({
   const salePlan = details.saleInstallmentPlan?.enabled ? details.saleInstallmentPlan : null;
   const depositAmount = salePlan ? (listing.rentAmount * salePlan.depositPercentage) / 100 : 0;
   const installmentAmount = salePlan ? (listing.rentAmount * salePlan.installmentPercentage) / 100 : 0;
+  const hasDiscount =
+    listing.originalPrice != null && listing.originalPrice > listing.rentAmount;
   const reserved = listing.listingStatus === "reserved";
   const purpose = listing.listingPurpose ?? "rent";
   const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
@@ -178,16 +180,36 @@ export default async function ListingDetailPage({
         )}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6">
-          <ListingGallery images={images} alt={listingTitle(listing)} unitId={listing.id} />
+          <ListingGallery
+            images={images}
+            alt={listingTitle(listing)}
+            unitId={listing.id}
+          />
           <aside className="mt-6 hidden rounded-[1.5rem] border border-foundation-700/10 bg-surface p-5 shadow-card lg:block lg:mt-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
               {reserved ? "Currently reserved" : "Available now"}
             </p>
-            <p className="mt-2 font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
-              {formatNaira(listing.rentAmount)}
-              {priceSuffix && <span className="ml-1 text-[13px] font-medium text-ink-muted">{priceSuffix}</span>}
-            </p>
-            {listing.isNegotiable && <p className="mt-1 text-[12px] text-emerald-700">Price is negotiable</p>}
+            <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <p className="font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
+                {formatNaira(listing.rentAmount)}
+                {priceSuffix && (
+                  <span className="ml-1 text-[13px] font-medium text-ink-muted">
+                    {priceSuffix}
+                  </span>
+                )}
+              </p>
+              {hasDiscount && (
+                <span className="text-[14px] text-ink-muted line-through">
+                  {formatNaira(listing.originalPrice!)}
+                  {priceSuffix}
+                </span>
+              )}
+            </div>
+            {listing.isNegotiable && (
+              <p className="mt-1 text-[12px] text-emerald-700">
+                Price is negotiable
+              </p>
+            )}
             <div className="mt-5">
               <ListingEnquiryComposer
                 unitId={listing.id}
@@ -195,11 +217,18 @@ export default async function ListingDetailPage({
                 publisherName={publisherName}
                 publisherType={publisherType}
                 verified={verified}
-                purpose={purpose === "sale" ? "sale" : purpose === "shortlet" ? "shortlet" : "rent"}
+                purpose={
+                  purpose === "sale"
+                    ? "sale"
+                    : purpose === "shortlet"
+                      ? "shortlet"
+                      : "rent"
+                }
               />
             </div>
             <p className="mt-3 text-[11.5px] leading-relaxed text-ink-muted">
-              Messages stay in Property360, so you have one clear record of the enquiry.
+              Messages stay in Property360, so you have one clear record of the
+              enquiry.
             </p>
           </aside>
         </div>
@@ -228,11 +257,14 @@ export default async function ListingDetailPage({
                 <Stat
                   icon={<Calendar className="h-4 w-4" />}
                   label="Available"
-                  value={new Date(listing.availableFrom).toLocaleDateString("en-NG", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  value={new Date(listing.availableFrom).toLocaleDateString(
+                    "en-NG",
+                    {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )}
                 />
               ) : null}
             </div>
@@ -264,13 +296,42 @@ export default async function ListingDetailPage({
             <Section title="Move-in costs">
               <table className="w-full table-fixed text-[14px]">
                 <tbody>
-                  <Row label={priceLabel} value={formatNairaFull(listing.rentAmount)} bold />
-                  {details.landSize != null && <Row label="Land size" value={`${details.landSize} ${details.landUnit ?? "sqm"}`} />}
-                  {details.titleDocument && <Row label="Title document" value={details.titleDocument} />}
-                  {details.minimumStayNights != null && <Row label="Minimum stay" value={`${details.minimumStayNights} night${details.minimumStayNights === 1 ? "" : "s"}`} />}
-                  {details.serviceCharge != null && details.serviceCharge > 0 && <Row label="Service charge" value={formatNairaFull(details.serviceCharge)} />}
-                  {details.parkingSpaces != null && <Row label="Parking" value={`${details.parkingSpaces} space${details.parkingSpaces === 1 ? "" : "s"}`} />}
-                  {details.powerBackup && <Row label="Power backup" value="Available" />}
+                  <Row
+                    label={priceLabel}
+                    value={formatNairaFull(listing.rentAmount)}
+                    bold
+                  />
+                  {details.landSize != null && (
+                    <Row
+                      label="Land size"
+                      value={`${details.landSize} ${details.landUnit ?? "sqm"}`}
+                    />
+                  )}
+                  {details.titleDocument && (
+                    <Row label="Title document" value={details.titleDocument} />
+                  )}
+                  {details.minimumStayNights != null && (
+                    <Row
+                      label="Minimum stay"
+                      value={`${details.minimumStayNights} night${details.minimumStayNights === 1 ? "" : "s"}`}
+                    />
+                  )}
+                  {details.serviceCharge != null &&
+                    details.serviceCharge > 0 && (
+                      <Row
+                        label="Service charge"
+                        value={formatNairaFull(details.serviceCharge)}
+                      />
+                    )}
+                  {details.parkingSpaces != null && (
+                    <Row
+                      label="Parking"
+                      value={`${details.parkingSpaces} space${details.parkingSpaces === 1 ? "" : "s"}`}
+                    />
+                  )}
+                  {details.powerBackup && (
+                    <Row label="Power backup" value="Available" />
+                  )}
                   {fees.securityDeposit ? (
                     <Row
                       label="Security deposit"
@@ -278,16 +339,28 @@ export default async function ListingDetailPage({
                     />
                   ) : null}
                   {fees.cautionFee ? (
-                    <Row label="Caution fee" value={formatNairaFull(fees.cautionFee)} />
+                    <Row
+                      label="Caution fee"
+                      value={formatNairaFull(fees.cautionFee)}
+                    />
                   ) : null}
                   {fees.agentFee ? (
-                    <Row label="Agent fee" value={formatNairaFull(fees.agentFee)} />
+                    <Row
+                      label="Agent fee"
+                      value={formatNairaFull(fees.agentFee)}
+                    />
                   ) : null}
                   {fees.agreementFee ? (
-                    <Row label="Agreement fee" value={formatNairaFull(fees.agreementFee)} />
+                    <Row
+                      label="Agreement fee"
+                      value={formatNairaFull(fees.agreementFee)}
+                    />
                   ) : null}
                   {fees.legalFee ? (
-                    <Row label="Legal fee" value={formatNairaFull(fees.legalFee)} />
+                    <Row
+                      label="Legal fee"
+                      value={formatNairaFull(fees.legalFee)}
+                    />
                   ) : null}
                   {fees.serviceCharge ? (
                     <Row
@@ -304,7 +377,8 @@ export default async function ListingDetailPage({
                 </tbody>
               </table>
               <p className="mt-3 text-[12px] text-ink-muted">
-                Costs are set by the landlord and may be negotiable on inspection.
+                Costs are set by the landlord and may be negotiable on
+                inspection.
               </p>
             </Section>
           </div>
@@ -314,20 +388,41 @@ export default async function ListingDetailPage({
               <p className="text-[12px] uppercase tracking-[0.16em] text-foundation-700">
                 {reserved ? "Reserved" : "Available"}
               </p>
-              <p className="mt-2 font-display text-[34px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
-                {formatNaira(listing.rentAmount)}
-                {priceSuffix && <span className="ml-1 text-[14px] font-medium text-ink-muted">{priceSuffix}</span>}
-              </p>
+              <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                <p className="font-display text-[34px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
+                  {formatNaira(listing.rentAmount)}
+                  {priceSuffix && (
+                    <span className="ml-1 text-[14px] font-medium text-ink-muted">
+                      {priceSuffix}
+                    </span>
+                  )}
+                </p>
+                {hasDiscount && (
+                  <span className="text-[16px] text-ink-muted line-through">
+                    {formatNaira(listing.originalPrice!)}
+                    {priceSuffix}
+                  </span>
+                )}
+              </div>
               {listing.isNegotiable && (
-                <p className="mt-1 text-[12px] text-foundation-700">Negotiable</p>
+                <p className="mt-1 text-[12px] text-foundation-700">
+                  Negotiable
+                </p>
               )}
               {purpose === "sale" && salePlan && (
                 <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-800">Instalment plan available</p>
-                  <p className="mt-2 text-[16px] font-bold text-foundation-700">{salePlan.depositPercentage}% deposit · {formatNairaFull(depositAmount)}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-800">
+                    Instalment plan available
+                  </p>
+                  <p className="mt-2 text-[16px] font-bold text-foundation-700">
+                    {salePlan.depositPercentage}% deposit ·{" "}
+                    {formatNairaFull(depositAmount)}
+                  </p>
                   <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
-                    Then {salePlan.installmentCount} {salePlan.frequency} payments of {salePlan.installmentPercentage}% ({formatNairaFull(installmentAmount)}).
-                    Allocation starts after {salePlan.allocationPercentage}% is confirmed.
+                    Then {salePlan.installmentCount} {salePlan.frequency}{" "}
+                    payments of {salePlan.installmentPercentage}% (
+                    {formatNairaFull(installmentAmount)}). Allocation starts
+                    after {salePlan.allocationPercentage}% is confirmed.
                   </p>
                 </div>
               )}
@@ -335,8 +430,16 @@ export default async function ListingDetailPage({
               <div className="mt-5 space-y-3">
                 {listing.property?.propertyType === "hotel" ? (
                   <>
-                    <HotelBookingForm unitId={listing.id} nightlyRate={listing.rentAmount} minimumStay={listing.listingDetails?.minimumStayNights} />
-                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="outline" />
+                    <HotelBookingForm
+                      unitId={listing.id}
+                      nightlyRate={listing.rentAmount}
+                      minimumStay={listing.listingDetails?.minimumStayNights}
+                    />
+                    <ContactOwnerButton
+                      unitId={listing.id}
+                      label={contactLabel}
+                      variant="outline"
+                    />
                   </>
                 ) : purpose === "sale" ? (
                   <>
@@ -350,8 +453,16 @@ export default async function ListingDetailPage({
                         purpose="sale"
                       />
                     </div>
-                    {salePlan && <StartPurchasePlanCTA unitId={listing.id} listingHref={`/listings/${listing.id}`} />}
-                    <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p>
+                    {salePlan && (
+                      <StartPurchasePlanCTA
+                        unitId={listing.id}
+                        listingHref={`/listings/${listing.id}`}
+                      />
+                    )}
+                    <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">
+                      Request details through Property360 before arranging an
+                      inspection.
+                    </p>
                   </>
                 ) : (
                   <>
@@ -366,7 +477,8 @@ export default async function ListingDetailPage({
                       />
                     </div>
                     <p className="text-center text-[12px] leading-relaxed text-ink-muted">
-                      Ask about inspection, price or availability. Replies arrive in your Property360 messages.
+                      Ask about inspection, price or availability. Replies
+                      arrive in your Property360 messages.
                     </p>
                     <ReserveListingCTA
                       unitId={listing.id}
@@ -386,11 +498,20 @@ export default async function ListingDetailPage({
             </div>
 
             <div className="mt-5 rounded-2xl border border-foundation-700/10 bg-paper-deep/60 p-5 text-[13px] leading-relaxed text-ink-muted">
-              <p className="font-semibold text-foundation-700">Before you enquire</p>
+              <p className="font-semibold text-foundation-700">
+                Before you enquire
+              </p>
               <div className="mt-4 border-b border-foundation-700/10 pb-4">
                 <div className="flex items-start gap-2.5">
                   <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-foundation-700" />
-                  <p><span className="font-semibold text-foundation-700">{publisherName}</span><br />{publisherType}{verified ? " · identity verified" : ""}</p>
+                  <p>
+                    <span className="font-semibold text-foundation-700">
+                      {publisherName}
+                    </span>
+                    <br />
+                    {publisherType}
+                    {verified ? " · identity verified" : ""}
+                  </p>
                 </div>
               </div>
               <ul className="mt-4 space-y-2.5">
@@ -400,10 +521,22 @@ export default async function ListingDetailPage({
                     identity is verified.
                   </li>
                 ) : (
-                  <li className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Property360 reviews new marketplace listings before publication.</li>
+                  <li className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />
+                    Property360 reviews new marketplace listings before
+                    publication.
+                  </li>
                 )}
-                <li className="flex items-start gap-2"><CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Use Property360 payments where available. Do not send money to an unknown account.</li>
-                <li className="flex items-start gap-2"><Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />Report a listing if the information, price or availability looks wrong.</li>
+                <li className="flex items-start gap-2">
+                  <CreditCard className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />
+                  Use Property360 payments where available. Do not send money to
+                  an unknown account.
+                </li>
+                <li className="flex items-start gap-2">
+                  <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-foundation-700" />
+                  Report a listing if the information, price or availability
+                  looks wrong.
+                </li>
               </ul>
             </div>
           </aside>
@@ -413,11 +546,20 @@ export default async function ListingDetailPage({
           <section className="mt-16 border-t border-foundation-700/10 pt-10">
             <p className="eyebrow">More to consider</p>
             <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-              <h2 className="font-display text-[28px] font-extrabold tracking-[-0.02em] text-foundation-700">Similar properties nearby</h2>
-              <Link href={`/listings?purpose=${purpose}`} className="text-[13px] font-semibold text-foundation-700 underline underline-offset-4">View all listings</Link>
+              <h2 className="font-display text-[28px] font-extrabold tracking-[-0.02em] text-foundation-700">
+                Similar properties nearby
+              </h2>
+              <Link
+                href={`/listings?purpose=${purpose}`}
+                className="text-[13px] font-semibold text-foundation-700 underline underline-offset-4"
+              >
+                View all listings
+              </Link>
             </div>
             <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {similar.map((item) => <ListingCard key={item.id} listing={item} />)}
+              {similar.map((item) => (
+                <ListingCard key={item.id} listing={item} />
+              ))}
             </div>
           </section>
         )}
@@ -426,11 +568,28 @@ export default async function ListingDetailPage({
       {/* Mobile: the sidebar sits below the fold, so keep the enquiry in reach. */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-foundation-700/10 bg-surface/95 px-4 py-3 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
-          <p className="shrink-0 font-display text-[20px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
-            {formatNaira(listing.rentAmount)}
-            {priceSuffix && <span className="ml-0.5 text-[12px] font-medium text-ink-muted">{priceSuffix}</span>}
-          </p>
-          <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" className="min-w-0 flex-1" />
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+            <p className="font-display text-[20px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
+              {formatNaira(listing.rentAmount)}
+              {priceSuffix && (
+                <span className="ml-0.5 text-[12px] font-medium text-ink-muted">
+                  {priceSuffix}
+                </span>
+              )}
+            </p>
+            {hasDiscount && (
+              <span className="text-[12px] text-ink-muted line-through">
+                {formatNaira(listing.originalPrice!)}
+                {priceSuffix}
+              </span>
+            )}
+          </div>
+          <ContactOwnerButton
+            unitId={listing.id}
+            label={contactLabel}
+            variant="accent"
+            className="min-w-0 flex-1"
+          />
         </div>
       </div>
 

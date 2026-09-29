@@ -1036,7 +1036,9 @@ export const landlordApi = {
     const res = await api.get("/properties");
     return asList<Property>(unwrap(res.data));
   },
-  async getProperty(id: string): Promise<{ property: Property; units: Unit[] }> {
+  async getProperty(
+    id: string,
+  ): Promise<{ property: Property; units: Unit[] }> {
     const res = await api.get(`/properties/${id}`);
     const data = unwrap(res.data) as
       | { property?: Property; units?: Unit[] }
@@ -1102,6 +1104,7 @@ export const landlordApi = {
       bedrooms?: number;
       bathrooms?: number;
       rentAmount: number;
+      originalPrice?: number;
       rentPeriod?: RentPeriod;
     }>;
   }): Promise<{ property: Property; unitId: string }> {
@@ -1110,7 +1113,9 @@ export const landlordApi = {
     const data = unwrap(res.data) as { property: Property; unitId: string };
     return data;
   },
-  async uploadPropertyImage(file: File): Promise<{ url: string; publicId: string }> {
+  async uploadPropertyImage(
+    file: File,
+  ): Promise<{ url: string; publicId: string }> {
     const form = new FormData();
     form.append("image", file);
     const res = await api.post("/properties/upload-image", form, {
@@ -1126,7 +1131,9 @@ export const landlordApi = {
     }
     return { url: data.imageUrl, publicId: data.publicId ?? "" };
   },
-  async uploadPropertyVideo(file: File): Promise<{ url: string; publicId: string }> {
+  async uploadPropertyVideo(
+    file: File,
+  ): Promise<{ url: string; publicId: string }> {
     const form = new FormData();
     form.append("video", file);
     const res = await api.post("/properties/upload-video", form, {
@@ -1157,7 +1164,7 @@ export const landlordApi = {
       amenities?: string[];
       currentValue?: number;
       hotelProfile?: Property["hotelProfile"];
-    }
+    },
   ): Promise<Property> {
     const res = await api.put(`/properties/${id}`, patch);
     const data = unwrap(res.data);
@@ -1174,7 +1181,7 @@ export const landlordApi = {
       rentAmount: number;
       rentPeriod?: RentPeriod;
       defaultFees?: UnitFees;
-    }
+    },
   ): Promise<Unit> {
     const res = await api.post(`/properties/${propertyId}/units`, data);
     return unwrap(res.data) as Unit;
@@ -1190,9 +1197,12 @@ export const landlordApi = {
       rentAmount: number;
       rentPeriod: RentPeriod;
       defaultFees?: UnitFees;
-    }>
+    }>,
   ): Promise<Unit> {
-    const res = await api.put(`/properties/${propertyId}/units/${unitId}`, data);
+    const res = await api.put(
+      `/properties/${propertyId}/units/${unitId}`,
+      data,
+    );
     return unwrap(res.data) as Unit;
   },
   async deleteUnit(propertyId: string, unitId: string): Promise<void> {
@@ -1200,21 +1210,25 @@ export const landlordApi = {
   },
 
   // Tenants / leases
-  async listTenants(): Promise<Array<{
-    tenant: TenantSummary;
-    property: PropertySummary;
-    unit: UnitSummary;
-    lease: LeaseSummary | null;
-  }>> {
+  async listTenants(): Promise<
+    Array<{
+      tenant: TenantSummary;
+      property: PropertySummary;
+      unit: UnitSummary;
+      lease: LeaseSummary | null;
+    }>
+  > {
     const res = await api.get("/tenants/occupied-units");
     return asList(unwrap(res.data));
   },
-  async getOccupiedUnits(opts?: { includePending?: boolean }): Promise<Array<{
-    tenant: TenantSummary;
-    property: PropertySummary;
-    unit: UnitSummary;
-    lease: LeaseSummary | null;
-  }>> {
+  async getOccupiedUnits(opts?: { includePending?: boolean }): Promise<
+    Array<{
+      tenant: TenantSummary;
+      property: PropertySummary;
+      unit: UnitSummary;
+      lease: LeaseSummary | null;
+    }>
+  > {
     // includePending also returns pending invitations, used by the Tenants
     // page so a just-invited tenant is visible. Other callers (invoicing,
     // payments, renewals) omit it and get active leases only.
@@ -1249,7 +1263,7 @@ export const landlordApi = {
         date?: string;
         paidItems: PaidFeeKey[];
       };
-    }
+    },
   ): Promise<unknown> {
     const res = await api.post(`/tenants/unit/${unitId}/assign`, body);
     return unwrap(res.data);
@@ -1262,7 +1276,7 @@ export const landlordApi = {
       rentAmount: number;
       paymentFrequency?: PaymentFrequency;
       paymentId?: string;
-    }
+    },
   ): Promise<Lease> {
     const res = await api.put(`/tenants/lease/${leaseId}/renew`, body);
     return unwrap(res.data) as Lease;
@@ -1275,7 +1289,7 @@ export const landlordApi = {
       paymentMethod: "cash" | "bank_transfer" | "paystack" | "other";
       reference?: string;
       notes?: string;
-    }
+    },
   ): Promise<unknown> {
     const res = await api.post(`/tenants/lease/${leaseId}/payments`, body);
     return unwrap(res.data);
@@ -1291,7 +1305,7 @@ export const landlordApi = {
       gracePeriodDays?: number;
       lateFeeType?: LateFeeType;
       lateFeeValue?: number;
-    }
+    },
   ): Promise<{
     leaseId: string;
     autoGenerateInvoice: boolean;
@@ -1344,7 +1358,9 @@ export const landlordApi = {
     const res = await api.post(`/invoices/${id}/send`);
     return unwrap(res.data) as Invoice;
   },
-  async emailInvoice(id: string): Promise<{ emailedTo: string; pdfUrl: string }> {
+  async emailInvoice(
+    id: string,
+  ): Promise<{ emailedTo: string; pdfUrl: string }> {
     const res = await api.post(`/invoices/${id}/email`);
     return unwrap(res.data) as { emailedTo: string; pdfUrl: string };
   },
@@ -1367,7 +1383,9 @@ export const landlordApi = {
     const res = await api.get(`/receipts/${id}`);
     return unwrap(res.data) as Receipt;
   },
-  async emailReceipt(id: string): Promise<{ emailedTo: string; pdfUrl: string }> {
+  async emailReceipt(
+    id: string,
+  ): Promise<{ emailedTo: string; pdfUrl: string }> {
     const res = await api.post(`/receipts/${id}/email`);
     return unwrap(res.data) as { emailedTo: string; pdfUrl: string };
   },
@@ -1397,7 +1415,7 @@ export const landlordApi = {
       status?: MaintenanceStatus;
       priority?: MaintenancePriority;
       assignedTo?: string | null;
-    }
+    },
   ): Promise<MaintenanceRequest> {
     const res = await api.patch(`/maintenance/${id}`, body);
     return unwrap(res.data) as MaintenanceRequest;
@@ -1518,7 +1536,7 @@ export const landlordApi = {
   },
   async acceptInvitation(
     id: string,
-    body?: { propertyIds?: string[]; permissions?: AgentPermissions }
+    body?: { propertyIds?: string[]; permissions?: AgentPermissions },
   ): Promise<InvitationDetail> {
     const res = await api.post(`/agents/invitations/${id}/accept`, body ?? {});
     return unwrap(res.data) as InvitationDetail;
@@ -1559,9 +1577,12 @@ export const landlordApi = {
   },
   async addEmergencyContact(
     leaseId: string,
-    body: EmergencyContact
+    body: EmergencyContact,
   ): Promise<EmergencyContact[]> {
-    const res = await api.post(`/tenants/lease/${leaseId}/emergency-contacts`, body);
+    const res = await api.post(
+      `/tenants/lease/${leaseId}/emergency-contacts`,
+      body,
+    );
     return asList<EmergencyContact>(unwrap(res.data));
   },
 
@@ -1589,7 +1610,7 @@ export const landlordApi = {
       documentHash: string;
       signatureImage?: Blob | null;
       signatureMethod?: "uploaded" | "drawn";
-    }
+    },
   ): Promise<TenancyAgreement> {
     if (body.signatureImage) {
       const form = new FormData();
@@ -1601,12 +1622,12 @@ export const landlordApi = {
       form.append(
         "signatureImage",
         body.signatureImage,
-        body.signatureMethod === "drawn" ? "signature.png" : "signature"
+        body.signatureMethod === "drawn" ? "signature.png" : "signature",
       );
       const res = await api.post(
         `/tenancy-agreements/${id}/landlord-sign`,
         form,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        { headers: { "Content-Type": "multipart/form-data" } },
       );
       return unwrap(res.data) as TenancyAgreement;
     }
@@ -1618,15 +1639,13 @@ export const landlordApi = {
   },
   async uploadAgreement(
     leaseId: string,
-    file: File
+    file: File,
   ): Promise<TenancyAgreement> {
     const form = new FormData();
     form.append("document", file);
-    const res = await api.post(
-      `/tenancy-agreements/lease/${leaseId}`,
-      form,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    const res = await api.post(`/tenancy-agreements/lease/${leaseId}`, form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     return unwrap(res.data) as TenancyAgreement;
   },
 
@@ -1658,7 +1677,7 @@ export const landlordApi = {
       reason: QuitNoticeReason;
       reasonDetail?: string;
       noticePeriodDays?: number;
-    }
+    },
   ): Promise<QuitNotice> {
     const form = new FormData();
     form.append("document", file);
@@ -1672,10 +1691,7 @@ export const landlordApi = {
     });
     return unwrap(res.data) as QuitNotice;
   },
-  async withdrawQuitNotice(
-    id: string,
-    reason?: string
-  ): Promise<QuitNotice> {
+  async withdrawQuitNotice(id: string, reason?: string): Promise<QuitNotice> {
     const res = await api.post(`/quit-notices/${id}/withdraw`, { reason });
     return unwrap(res.data) as QuitNotice;
   },
@@ -1702,7 +1718,7 @@ export const landlordApi = {
 
   // Tenant profile-info requests
   async getTenantProfileForLease(
-    leaseId: string
+    leaseId: string,
   ): Promise<TenantProfileSnapshot> {
     const res = await api.get(`/tenants/lease/${leaseId}/tenant-profile`);
     return unwrap(res.data) as TenantProfileSnapshot;
@@ -1716,14 +1732,12 @@ export const landlordApi = {
     return unwrap(res.data) as TenantProfileRequest;
   },
   async listTenantProfileRequests(
-    leaseId: string
+    leaseId: string,
   ): Promise<TenantProfileRequest[]> {
     const res = await api.get(`/tenant-profile-requests/by-lease/${leaseId}`);
     return asList<TenantProfileRequest>(unwrap(res.data));
   },
-  async cancelTenantProfileRequest(
-    id: string
-  ): Promise<TenantProfileRequest> {
+  async cancelTenantProfileRequest(id: string): Promise<TenantProfileRequest> {
     const res = await api.post(`/tenant-profile-requests/${id}/cancel`);
     return unwrap(res.data) as TenantProfileRequest;
   },
@@ -1734,12 +1748,12 @@ export const landlordApi = {
    */
   async fillTenantProfile(
     leaseId: string,
-    payload: FormData
+    payload: FormData,
   ): Promise<TenantProfileSnapshot> {
     const res = await api.put(
       `/tenants/lease/${leaseId}/tenant-profile`,
       payload,
-      { headers: { "Content-Type": "multipart/form-data" } }
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
     return unwrap(res.data) as TenantProfileSnapshot;
   },
@@ -1757,18 +1771,18 @@ export const landlordApi = {
       lastName?: string;
       email?: string;
       phone?: string;
-    }
+    },
   ): Promise<TenantIdentityUpdate> {
     const res = await api.put(
       `/tenants/lease/${leaseId}/tenant-identity`,
-      payload
+      payload,
     );
     return unwrap(res.data) as TenantIdentityUpdate;
   },
 
   // Agreement templates
   async listAgreementTemplates(
-    propertyId?: string
+    propertyId?: string,
   ): Promise<AgreementTemplate[]> {
     const res = await api.get("/agreement-templates", {
       params: propertyId ? { propertyId } : undefined,
@@ -1792,7 +1806,7 @@ export const landlordApi = {
     propertyId: string,
     name: string,
     file: File,
-    notes?: string
+    notes?: string,
   ): Promise<AgreementTemplate> {
     const form = new FormData();
     form.append("document", file);
@@ -1806,7 +1820,7 @@ export const landlordApi = {
   },
   async updateTextAgreementTemplate(
     id: string,
-    body: { name?: string; body?: string; notes?: string }
+    body: { name?: string; body?: string; notes?: string },
   ): Promise<AgreementTemplate> {
     const res = await api.put(`/agreement-templates/${id}`, body);
     return unwrap(res.data) as AgreementTemplate;
@@ -1816,7 +1830,7 @@ export const landlordApi = {
   },
   async sendAgreementTemplateToTenant(
     id: string,
-    leaseId: string
+    leaseId: string,
   ): Promise<TenancyAgreement> {
     const res = await api.post(`/agreement-templates/${id}/send`, { leaseId });
     return unwrap(res.data) as TenancyAgreement;
@@ -1867,7 +1881,31 @@ export const landlordApi = {
   },
   async listUnit(
     unitId: string,
-    body?: { listingTitle?: string; listingDescription?: string; description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet"; listingDetails?: { landSize?: number; landUnit?: "sqm" | "plot" | "acre"; titleDocument?: string; minimumStayNights?: number; maxGuests?: number; serviceCharge?: number; parkingSpaces?: number; powerBackup?: boolean; saleInstallmentPlan?: { enabled: boolean; depositPercentage: number; installmentPercentage: number; installmentCount: number; frequency: "monthly" | "quarterly"; allocationPercentage: number } } }
+    body?: {
+      listingTitle?: string;
+      listingDescription?: string;
+      description?: string;
+      visibility?: "public" | "unlisted";
+      listingPurpose?: "rent" | "sale" | "shortlet";
+      listingDetails?: {
+        landSize?: number;
+        landUnit?: "sqm" | "plot" | "acre";
+        titleDocument?: string;
+        minimumStayNights?: number;
+        maxGuests?: number;
+        serviceCharge?: number;
+        parkingSpaces?: number;
+        powerBackup?: boolean;
+        saleInstallmentPlan?: {
+          enabled: boolean;
+          depositPercentage: number;
+          installmentPercentage: number;
+          installmentCount: number;
+          frequency: "monthly" | "quarterly";
+          allocationPercentage: number;
+        };
+      };
+    },
   ): Promise<Listing> {
     const res = await api.post(`/listings/${unitId}/list`, body ?? {});
     return unwrap(res.data) as Listing;
@@ -1876,11 +1914,20 @@ export const landlordApi = {
     const res = await api.delete(`/listings/${unitId}/list`);
     return unwrap(res.data) as Listing;
   },
-  async confirmListingAvailability(unitId: string): Promise<{ expiresAt?: string; moderationStatus?: string }> {
+  async confirmListingAvailability(
+    unitId: string,
+  ): Promise<{ expiresAt?: string; moderationStatus?: string }> {
     const res = await api.post(`/listings/${unitId}/confirm-availability`);
-    return unwrap(res.data) as { expiresAt?: string; moderationStatus?: string };
+    return unwrap(res.data) as {
+      expiresAt?: string;
+      moderationStatus?: string;
+    };
   },
-  async reportListing(unitId: string, reason: "fake" | "unavailable" | "wrong_price" | "duplicate" | "other", detail?: string): Promise<void> {
+  async reportListing(
+    unitId: string,
+    reason: "fake" | "unavailable" | "wrong_price" | "duplicate" | "other",
+    detail?: string,
+  ): Promise<void> {
     await api.post(`/listings/${unitId}/report`, { reason, detail });
   },
   async landlordReservationRequests(): Promise<ReservationRequest[]> {
@@ -1893,7 +1940,7 @@ export const landlordApi = {
   },
   async declineReservation(
     id: string,
-    reason?: string
+    reason?: string,
   ): Promise<ReservationRequest> {
     const res = await api.post(`/reservations/${id}/decline`, { reason });
     return unwrap(res.data) as ReservationRequest;
@@ -1901,16 +1948,21 @@ export const landlordApi = {
   async proposeReservationViewing(
     id: string,
     proposedViewingAt: string,
-    note?: string
+    note?: string,
   ): Promise<ReservationRequest> {
-    const res = await api.post(`/reservations/${id}/propose-viewing`, { proposedViewingAt, note });
+    const res = await api.post(`/reservations/${id}/propose-viewing`, {
+      proposedViewingAt,
+      note,
+    });
     return unwrap(res.data) as ReservationRequest;
   },
   async recordReservationViewingOutcome(
     id: string,
-    outcome: "completed" | "no_show" | "reschedule_needed"
+    outcome: "completed" | "no_show" | "reschedule_needed",
   ): Promise<ReservationRequest> {
-    const res = await api.post(`/reservations/${id}/viewing-outcome`, { outcome });
+    const res = await api.post(`/reservations/${id}/viewing-outcome`, {
+      outcome,
+    });
     return unwrap(res.data) as ReservationRequest;
   },
 
@@ -1922,7 +1974,7 @@ export const landlordApi = {
   async unreadNotificationCount(): Promise<number> {
     const res = await api.get("/notifications/unread-count");
     const data = unwrap(res.data) as { count?: number } | number;
-    return typeof data === "number" ? data : data?.count ?? 0;
+    return typeof data === "number" ? data : (data?.count ?? 0);
   },
   async markNotificationRead(id: string): Promise<void> {
     await api.patch(`/notifications/${id}/read`);
@@ -1941,7 +1993,7 @@ export const landlordApi = {
   },
   async rejectPendingPayment(
     transactionId: string,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     await api.post(`/tenants/payments/${transactionId}/reject`, { reason });
   },
@@ -1955,10 +2007,13 @@ export const landlordApi = {
     const res = await api.get(`/chat/conversations/${conversationId}/messages`);
     return asList<ChatMessage>(unwrap(res.data));
   },
-  async sendMessage(conversationId: string, text: string): Promise<ChatMessage> {
+  async sendMessage(
+    conversationId: string,
+    text: string,
+  ): Promise<ChatMessage> {
     const res = await api.post(
       `/chat/conversations/${conversationId}/messages`,
-      { text }
+      { text },
     );
     return unwrap(res.data) as ChatMessage;
   },
@@ -1975,7 +2030,7 @@ export const landlordApi = {
   async unreadChatCount(): Promise<number> {
     const res = await api.get("/chat/unread-count");
     const data = unwrap(res.data) as { count?: number } | number;
-    return typeof data === "number" ? data : data?.count ?? 0;
+    return typeof data === "number" ? data : (data?.count ?? 0);
   },
 
   // Building community (landlord can view but not create bills)
@@ -1993,15 +2048,22 @@ export const landlordApi = {
     const res = await api.get("/auth/profile");
     return unwrap(res.data) as UserProfile;
   },
-  async updateProfile(body: Partial<{
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    avatar: string;
-    gender: "male" | "female" | "other";
-    address: { street?: string; city?: string; state?: string; postalCode?: string };
-  }>): Promise<UserProfile> {
+  async updateProfile(
+    body: Partial<{
+      firstName: string;
+      lastName: string;
+      email: string;
+      phone: string;
+      avatar: string;
+      gender: "male" | "female" | "other";
+      address: {
+        street?: string;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+      };
+    }>,
+  ): Promise<UserProfile> {
     const res = await api.put("/auth/profile", body);
     return unwrap(res.data) as UserProfile;
   },
@@ -2042,7 +2104,7 @@ export const landlordApi = {
       from?: string;
       to?: string;
       propertyId?: string;
-    }
+    },
   ): Promise<Blob> {
     const res = await api.get(`/reports/summary.${format}`, {
       params,
@@ -2070,7 +2132,12 @@ export const landlordApi = {
     documentNumber: string;
     consent: boolean;
     gender?: string;
-    address?: { street?: string; city?: string; state?: string; postalCode?: string };
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      postalCode?: string;
+    };
   }): Promise<KycSummary> {
     const form = new FormData();
     form.append("document", args.file); // backend: upload.single('document')
