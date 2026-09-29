@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { AxiosError } from "axios";
@@ -58,15 +58,38 @@ export default function NewMarketplacePropertyPage() {
   const [photoError, setPhotoError] = useState("");
   const isLandListing = propertyType === "land";
   const propertyPrice = Number(rentAmount) || 0;
-  const planTotalPercentage = Number(depositPercentage) + Number(installmentPercentage) * Number(installmentCount);
-  const salePlanIsValid = !planEnabled || (
-    Number(depositPercentage) >= 0 &&
-    Number(installmentPercentage) > 0 &&
-    Number(installmentCount) >= 1 &&
-    Math.abs(planTotalPercentage - 100) < 0.0001 &&
-    Number(allocationPercentage) > 0 &&
-    Number(allocationPercentage) <= 100
+  const safeDepositPercentage = Math.min(
+    Math.max(Number(depositPercentage) || 0, 0),
+    100,
   );
+  const safeInstallmentCount = Math.max(Number(installmentCount) || 0, 0);
+  const computedInstallmentPercentage =
+    safeInstallmentCount > 0
+      ? (100 - safeDepositPercentage) / safeInstallmentCount
+      : 0;
+
+  useEffect(() => {
+    if (!planEnabled) return;
+    setInstallmentPercentage(
+      Number.isFinite(computedInstallmentPercentage)
+        ? computedInstallmentPercentage
+            .toFixed(2)
+            .replace(/\.0+$|(?<=\.\d)0+$/g, "")
+        : "0",
+    );
+  }, [computedInstallmentPercentage, planEnabled]);
+
+  const planTotalPercentage =
+    safeDepositPercentage +
+    computedInstallmentPercentage * safeInstallmentCount;
+  const salePlanIsValid =
+    !planEnabled ||
+    (safeDepositPercentage >= 0 &&
+      safeDepositPercentage <= 100 &&
+      safeInstallmentCount >= 1 &&
+      Math.abs(planTotalPercentage - 100) < 0.0001 &&
+      Number(allocationPercentage) > 0 &&
+      Number(allocationPercentage) <= 100);
 
   const publish = useMutation({
     mutationFn: async () => {
@@ -477,13 +500,12 @@ export default function NewMarketplacePropertyPage() {
                     <Field label="Each instalment (%)">
                       <input
                         required
-                        min="1"
+                        min="0"
                         max="100"
                         type="number"
+                        step="any"
+                        readOnly
                         value={installmentPercentage}
-                        onChange={(e) =>
-                          setInstallmentPercentage(e.target.value)
-                        }
                       />
                     </Field>
                     <Field label="Number of instalments">
