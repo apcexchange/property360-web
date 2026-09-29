@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, ImagePlus } from "lucide-react";
 import { AxiosError } from "axios";
@@ -30,9 +30,7 @@ export default function NewMarketplacePropertyPage() {
   const [listingPurpose, setListingPurpose] = useState<"rent" | "sale" | "shortlet">("rent");
   const [planEnabled, setPlanEnabled] = useState(false);
   const [depositPercentage, setDepositPercentage] = useState("20");
-  const [installmentPercentage, setInstallmentPercentage] = useState("10");
-  const [installmentCount, setInstallmentCount] = useState("8");
-  const [installmentFrequency, setInstallmentFrequency] = useState<"monthly" | "quarterly">("monthly");
+  const [durationMonths, setDurationMonths] = useState("8");
   const [allocationPercentage, setAllocationPercentage] = useState("100");
   const [unitNumber, setUnitNumber] = useState("1");
   const [rentAmount, setRentAmount] = useState("");
@@ -77,22 +75,14 @@ export default function NewMarketplacePropertyPage() {
     Math.max(Number(depositPercentage) || 0, 0),
     100,
   );
-  const safeInstallmentCount = Math.max(Number(installmentCount) || 0, 0);
+  const safeInstallmentCount = Math.max(Number(durationMonths) || 0, 0);
   const computedInstallmentPercentage =
     safeInstallmentCount > 0
       ? (100 - safeDepositPercentage) / safeInstallmentCount
       : 0;
-
-  useEffect(() => {
-    if (!planEnabled) return;
-    setInstallmentPercentage(
-      Number.isFinite(computedInstallmentPercentage)
-        ? computedInstallmentPercentage
-            .toFixed(2)
-            .replace(/\.0+$|(?<=\.\d)0+$/g, "")
-        : "0",
-    );
-  }, [computedInstallmentPercentage, planEnabled]);
+  const displayedInstallmentPercentage = computedInstallmentPercentage
+    .toFixed(2)
+    .replace(/\.0+$|(?<=\.\d)0+$/g, "");
 
   const planTotalPercentage =
     safeDepositPercentage +
@@ -102,6 +92,7 @@ export default function NewMarketplacePropertyPage() {
     (safeDepositPercentage >= 0 &&
       safeDepositPercentage <= 100 &&
       safeInstallmentCount >= 1 &&
+      safeInstallmentCount <= 60 &&
       Math.abs(planTotalPercentage - 100) < 0.0001 &&
       Number(allocationPercentage) > 0 &&
       Number(allocationPercentage) <= 100);
@@ -155,9 +146,9 @@ export default function NewMarketplacePropertyPage() {
             saleInstallmentPlan: {
               enabled: true,
               depositPercentage: Number(depositPercentage),
-              installmentPercentage: Number(installmentPercentage),
-              installmentCount: Number(installmentCount),
-              frequency: installmentFrequency,
+              installmentPercentage: computedInstallmentPercentage,
+              installmentCount: Number(durationMonths),
+              frequency: "monthly",
               allocationPercentage: Number(allocationPercentage),
             },
           } : {}),
@@ -545,31 +536,18 @@ export default function NewMarketplacePropertyPage() {
                         type="number"
                         step="any"
                         readOnly
-                        value={installmentPercentage}
+                        value={displayedInstallmentPercentage}
                       />
                     </Field>
-                    <Field label="Number of instalments">
+                    <Field label="Duration (months)">
                       <input
                         required
                         min="1"
                         max="60"
                         type="number"
-                        value={installmentCount}
-                        onChange={(e) => setInstallmentCount(e.target.value)}
+                        value={durationMonths}
+                        onChange={(e) => setDurationMonths(e.target.value)}
                       />
-                    </Field>
-                    <Field label="Payment frequency">
-                      <select
-                        value={installmentFrequency}
-                        onChange={(e) =>
-                          setInstallmentFrequency(
-                            e.target.value as typeof installmentFrequency,
-                          )
-                        }
-                      >
-                        <option value="monthly">Monthly</option>
-                        <option value="quarterly">Quarterly</option>
-                      </select>
                     </Field>
                     <Field label="Allocate after paid (%)">
                       <input
@@ -597,10 +575,10 @@ export default function NewMarketplacePropertyPage() {
                         {formatNgn(
                           (propertyPrice * Number(depositPercentage)) / 100,
                         )}
-                        ), then {installmentCount} {installmentFrequency}{" "}
-                        instalments of {installmentPercentage}% (
+                        ), then {durationMonths} monthly instalments of{" "}
+                        {displayedInstallmentPercentage}% (
                         {formatNgn(
-                          (propertyPrice * Number(installmentPercentage)) / 100,
+                          (propertyPrice * computedInstallmentPercentage) / 100,
                         )}
                         ).
                       </p>
