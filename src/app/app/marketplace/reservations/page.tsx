@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, CalendarClock, ChevronRight } from "lucide-react";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
   PageContainer,
@@ -84,6 +84,12 @@ export default function ReservationsPage() {
                     {" · "}
                     {formatDate(r.createdAt)}
                   </p>
+                  {r.preferredViewingAt && (
+                    <p className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] font-medium text-foundation-700">
+                      <CalendarClock className="h-3.5 w-3.5 text-emerald-700" />
+                      Viewing requested: {formatViewingTime(r.preferredViewingAt)}
+                    </p>
+                  )}
                   {r.message && (
                     <p className="mt-1.5 line-clamp-2 text-[12px] text-foundation-700/80">
                       &ldquo;{r.message}&rdquo;
@@ -98,4 +104,14 @@ export default function ReservationsPage() {
       </PageContainer>
     </>
   );
+}
+
+function formatViewingTime(value: string) {
+  return new Date(value).toLocaleString("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }

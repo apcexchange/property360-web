@@ -766,10 +766,12 @@ export const tenantApi = {
   // ----- Marketplace reservations -----
   async createReservation(
     unitId: string,
-    message?: string
+    message?: string,
+    preferredViewingAt?: string
   ): Promise<{ id: string; _id?: string; status: string }> {
     const res = await api.post(`/reservations/request/${unitId}`, {
       message,
+      preferredViewingAt,
     });
     return unwrap(res.data) as { id: string; _id?: string; status: string };
   },
