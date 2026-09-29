@@ -34,6 +34,7 @@ export function ReserveListingCTA({ unitId, reserved, listingHref, actionLabel =
   const [user, setUser] = useState(() => session.getUser());
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [preferredViewingAt, setPreferredViewingAt] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -112,7 +113,11 @@ export function ReserveListingCTA({ unitId, reserved, listingHref, actionLabel =
         setSubmitting(true);
         setError(null);
         try {
-          await tenantApi.createReservation(unitId, message.trim() || undefined);
+          await tenantApi.createReservation(
+            unitId,
+            message.trim() || undefined,
+            preferredViewingAt ? new Date(preferredViewingAt).toISOString() : undefined
+          );
           setSuccess(true);
           router.replace(listingHref);
         } catch (err) {
@@ -129,6 +134,18 @@ export function ReserveListingCTA({ unitId, reserved, listingHref, actionLabel =
       }}
       className="space-y-3"
     >
+      <label className="block">
+        <span className="eyebrow block text-[10px]">Preferred viewing time <span className="normal-case tracking-normal text-ink-muted">(optional)</span></span>
+        <input
+          type="datetime-local"
+          value={preferredViewingAt}
+          min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)}
+          onChange={(e) => setPreferredViewingAt(e.target.value)}
+          className="mt-1 w-full rounded-2xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700 outline-none transition focus:border-foundation-700/40"
+        />
+        <span className="mt-1 block text-[11.5px] leading-relaxed text-ink-muted">The owner will confirm or suggest another time before you travel.</span>
+      </label>
+
       <label className="block">
         <span className="eyebrow block text-[10px]">Message (optional)</span>
         <textarea

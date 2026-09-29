@@ -717,6 +717,11 @@ export interface ReservationRequest {
   /** Backend populates this as `tenant`, not `prospect`. */
   tenant: Tenant;
   message?: string;
+  preferredViewingAt?: string;
+  proposedViewingAt?: string;
+  viewingNote?: string;
+  confirmedViewingAt?: string;
+  viewingOutcome?: "completed" | "no_show" | "reschedule_needed";
   status: ReservationStatus;
   reservationFee?: number;
   paidAt?: string;
@@ -1888,6 +1893,21 @@ export const landlordApi = {
     reason?: string
   ): Promise<ReservationRequest> {
     const res = await api.post(`/reservations/${id}/decline`, { reason });
+    return unwrap(res.data) as ReservationRequest;
+  },
+  async proposeReservationViewing(
+    id: string,
+    proposedViewingAt: string,
+    note?: string
+  ): Promise<ReservationRequest> {
+    const res = await api.post(`/reservations/${id}/propose-viewing`, { proposedViewingAt, note });
+    return unwrap(res.data) as ReservationRequest;
+  },
+  async recordReservationViewingOutcome(
+    id: string,
+    outcome: "completed" | "no_show" | "reschedule_needed"
+  ): Promise<ReservationRequest> {
+    const res = await api.post(`/reservations/${id}/viewing-outcome`, { outcome });
     return unwrap(res.data) as ReservationRequest;
   },
 

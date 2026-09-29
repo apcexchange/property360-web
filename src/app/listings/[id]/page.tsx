@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { BedDouble, Bath, Square, MapPin, Calendar, Check, BadgeCheck, CreditCard, Flag, ShieldCheck, UserRound } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
@@ -11,15 +10,18 @@ import { HotelBookingForm } from "@/components/marketing/HotelBookingForm";
 import { ReportListingButton } from "@/components/marketing/ReportListingButton";
 import { ContactOwnerButton } from "@/components/marketing/ContactOwnerButton";
 import { StartPurchasePlanCTA } from "@/components/marketing/StartPurchasePlanCTA";
+import { ListingCard } from "@/components/marketing/ListingCard";
+import { ListingGallery } from "@/components/marketing/ListingGallery";
+import { ListingEnquiryComposer } from "@/components/marketing/ListingEnquiryComposer";
 import {
   getListing,
+  getListings,
   formatNaira,
   formatNairaFull,
   listingTitle,
   locationLabel,
   isLandlordVerified,
 } from "@/lib/listings-api";
-import { ensureCoverImages } from "@/lib/propertyImage";
 import { slugifyLocation, resolveLocationSlug } from "@/lib/nigeria-locations";
 
 export const revalidate = 60;
@@ -68,6 +70,12 @@ export default async function ListingDetailPage({
   if (!listing) notFound();
 
   const images = listing.property?.images ?? [];
+  const similar = await getListings({
+    state: listing.property?.address?.state,
+    purpose: listing.listingPurpose,
+    bedrooms: listing.bedrooms,
+    limit: 5,
+  }).then((result) => result.listings.filter((item) => item.id !== listing.id).slice(0, 3)).catch(() => []);
   const amenities = listing.property?.amenities ?? [];
   const fees = listing.defaultFees ?? {};
   const details = listing.listingDetails ?? {};
@@ -144,8 +152,6 @@ export default async function ListingDetailPage({
           <h1 className="font-display text-[clamp(1.75rem,4vw,2.5rem)] font-extrabold leading-[1.1] tracking-[-0.02em] text-foundation-700">
             {listingTitle(listing)}
           </h1>
-          {/* Desktop: enquiry above the fold. Mobile uses the bottom bar. */}
-          <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" className="hidden w-[260px] shrink-0 lg:block" />
         </div>
         <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-ink-muted">
           <MapPin className="h-3.5 w-3.5" />
@@ -171,7 +177,32 @@ export default async function ListingDetailPage({
           </p>
         )}
 
-        <Gallery images={images} alt={listingTitle(listing)} />
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6">
+          <ListingGallery images={images} alt={listingTitle(listing)} unitId={listing.id} />
+          <aside className="mt-6 hidden rounded-[1.5rem] border border-foundation-700/10 bg-surface p-5 shadow-card lg:block lg:mt-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
+              {reserved ? "Currently reserved" : "Available now"}
+            </p>
+            <p className="mt-2 font-display text-[28px] font-extrabold leading-none tracking-[-0.02em] text-foundation-700">
+              {formatNaira(listing.rentAmount)}
+              {priceSuffix && <span className="ml-1 text-[13px] font-medium text-ink-muted">{priceSuffix}</span>}
+            </p>
+            {listing.isNegotiable && <p className="mt-1 text-[12px] text-emerald-700">Price is negotiable</p>}
+            <div className="mt-5">
+              <ListingEnquiryComposer
+                unitId={listing.id}
+                listingHref={`/listings/${listing.id}`}
+                publisherName={publisherName}
+                publisherType={publisherType}
+                verified={verified}
+                purpose={purpose === "sale" ? "sale" : purpose === "shortlet" ? "shortlet" : "rent"}
+              />
+            </div>
+            <p className="mt-3 text-[11.5px] leading-relaxed text-ink-muted">
+              Messages stay in Property360, so you have one clear record of the enquiry.
+            </p>
+          </aside>
+        </div>
 
         <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px]">
           <div>
@@ -309,17 +340,40 @@ export default async function ListingDetailPage({
                   </>
                 ) : purpose === "sale" ? (
                   <>
-                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" />
+                    <div className="lg:hidden">
+                      <ListingEnquiryComposer
+                        unitId={listing.id}
+                        listingHref={`/listings/${listing.id}`}
+                        publisherName={publisherName}
+                        publisherType={publisherType}
+                        verified={verified}
+                        purpose="sale"
+                      />
+                    </div>
                     {salePlan && <StartPurchasePlanCTA unitId={listing.id} listingHref={`/listings/${listing.id}`} />}
                     <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p>
                   </>
                 ) : (
                   <>
-                    <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" />
+                    <div className="lg:hidden">
+                      <ListingEnquiryComposer
+                        unitId={listing.id}
+                        listingHref={`/listings/${listing.id}`}
+                        publisherName={publisherName}
+                        publisherType={publisherType}
+                        verified={verified}
+                        purpose={purpose === "shortlet" ? "shortlet" : "rent"}
+                      />
+                    </div>
                     <p className="text-center text-[12px] leading-relaxed text-ink-muted">
                       Ask about inspection, price or availability. Replies arrive in your Property360 messages.
                     </p>
-                    <ReserveListingCTA unitId={listing.id} reserved={reserved} listingHref={`/listings/${listing.id}`} />
+                    <ReserveListingCTA
+                      unitId={listing.id}
+                      reserved={reserved}
+                      listingHref={`/listings/${listing.id}`}
+                      actionLabel="Request a viewing"
+                    />
                   </>
                 )}
                 <ReportListingButton unitId={listing.id} />
@@ -354,6 +408,19 @@ export default async function ListingDetailPage({
             </div>
           </aside>
         </div>
+
+        {similar.length > 0 && (
+          <section className="mt-16 border-t border-foundation-700/10 pt-10">
+            <p className="eyebrow">More to consider</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+              <h2 className="font-display text-[28px] font-extrabold tracking-[-0.02em] text-foundation-700">Similar properties nearby</h2>
+              <Link href={`/listings?purpose=${purpose}`} className="text-[13px] font-semibold text-foundation-700 underline underline-offset-4">View all listings</Link>
+            </div>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {similar.map((item) => <ListingCard key={item.id} listing={item} />)}
+            </div>
+          </section>
+        )}
       </article>
 
       {/* Mobile: the sidebar sits below the fold, so keep the enquiry in reach. */}
@@ -368,45 +435,6 @@ export default async function ListingDetailPage({
       </div>
 
       <Footer />
-    </div>
-  );
-}
-
-function Gallery({ images, alt }: { images: string[]; alt: string }) {
-  // Fall back to the bundled brand placeholder so the gallery is never
-  // an empty grey box. Public-facing listing detail; the marketplace
-  // is the worst place to look incomplete.
-  const [primary, ...rest] = ensureCoverImages(images);
-  return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-[1.6fr_1fr]">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-foundation-700/5">
-        <Image
-          src={primary}
-          alt={alt}
-          fill
-          sizes="(min-width: 640px) 60vw, 100vw"
-          className="object-cover"
-          priority
-        />
-      </div>
-      {rest.length > 0 && (
-        <div className="grid grid-rows-2 gap-3">
-          {rest.slice(0, 2).map((src, i) => (
-            <div
-              key={src + i}
-              className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-foundation-700/5"
-            >
-              <Image
-                src={src}
-                alt={`${alt}, photo ${i + 2}`}
-                fill
-                sizes="(min-width: 640px) 30vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
