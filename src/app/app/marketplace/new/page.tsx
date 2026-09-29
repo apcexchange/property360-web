@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ImagePlus } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import { Card, ErrorBox, PageContainer } from "@/components/app/ui";
@@ -55,6 +55,7 @@ export default function NewMarketplacePropertyPage() {
   const [cancellationPolicy, setCancellationPolicy] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [images, setImages] = useState<PropertyImage[]>([]);
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const isLandListing = propertyType === "land";
@@ -625,10 +626,12 @@ export default function NewMarketplacePropertyPage() {
               Photos
             </p>
             <input
+              ref={photoInputRef}
+              id="marketplace-photos"
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic"
               multiple
-              disabled={uploadingPhotos}
+              disabled={uploadingPhotos || images.length >= 10}
               onChange={async (event) => {
                 const files = Array.from(event.target.files ?? []).slice(
                   0,
@@ -657,8 +660,21 @@ export default function NewMarketplacePropertyPage() {
                   event.target.value = "";
                 }
               }}
-              className="block w-full text-[13px] text-ink-muted"
+              className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={uploadingPhotos || images.length >= 10}
+              className="inline-flex items-center gap-2 rounded-xl border border-foundation-700/15 bg-paper px-4 py-2.5 text-[13px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ImagePlus className="h-4 w-4" />
+              {uploadingPhotos
+                ? "Uploading photos…"
+                : images.length >= 10
+                  ? "10 photos added"
+                  : "Add photos"}
+            </button>
             {images.length > 0 && (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {images.map((image) => (
@@ -691,12 +707,7 @@ export default function NewMarketplacePropertyPage() {
             )}
             <p className="text-[12px] text-ink-muted">
               A photo is required before an admin can approve your listing. Add
-              up to 10 photos, 5 MB each.{" "}
-              {uploadingPhotos
-                ? "Uploading…"
-                : images.length
-                  ? `${images.length} uploaded`
-                  : ""}
+              up to 10 photos, 5 MB each. {images.length} of 10 added.
             </p>
           </Card>
           <Card className="p-5">
