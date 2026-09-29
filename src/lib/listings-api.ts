@@ -70,7 +70,24 @@ export interface Listing {
   preferredTenantType?: "single" | "family" | "students" | "professionals" | "any";
   availableFrom?: string;
   isNegotiable?: boolean;
-  listingDetails?: { landSize?: number; landUnit?: "sqm" | "plot" | "acre"; titleDocument?: string; minimumStayNights?: number; maxGuests?: number; serviceCharge?: number; parkingSpaces?: number; powerBackup?: boolean };
+  listingDetails?: {
+    landSize?: number;
+    landUnit?: "sqm" | "plot" | "acre";
+    titleDocument?: string;
+    minimumStayNights?: number;
+    maxGuests?: number;
+    serviceCharge?: number;
+    parkingSpaces?: number;
+    powerBackup?: boolean;
+    saleInstallmentPlan?: {
+      enabled: boolean;
+      depositPercentage: number;
+      installmentPercentage: number;
+      installmentCount: number;
+      frequency: "monthly" | "quarterly";
+      allocationPercentage: number;
+    };
+  };
   property: ListingProperty;
 }
 

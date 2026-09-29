@@ -10,6 +10,7 @@ import { ReserveListingCTA } from "@/components/marketing/ReserveListingCTA";
 import { HotelBookingForm } from "@/components/marketing/HotelBookingForm";
 import { ReportListingButton } from "@/components/marketing/ReportListingButton";
 import { ContactOwnerButton } from "@/components/marketing/ContactOwnerButton";
+import { StartPurchasePlanCTA } from "@/components/marketing/StartPurchasePlanCTA";
 import {
   getListing,
   formatNaira,
@@ -70,6 +71,9 @@ export default async function ListingDetailPage({
   const amenities = listing.property?.amenities ?? [];
   const fees = listing.defaultFees ?? {};
   const details = listing.listingDetails ?? {};
+  const salePlan = details.saleInstallmentPlan?.enabled ? details.saleInstallmentPlan : null;
+  const depositAmount = salePlan ? (listing.rentAmount * salePlan.depositPercentage) / 100 : 0;
+  const installmentAmount = salePlan ? (listing.rentAmount * salePlan.installmentPercentage) / 100 : 0;
   const reserved = listing.listingStatus === "reserved";
   const purpose = listing.listingPurpose ?? "rent";
   const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
@@ -286,6 +290,16 @@ export default async function ListingDetailPage({
               {listing.isNegotiable && (
                 <p className="mt-1 text-[12px] text-foundation-700">Negotiable</p>
               )}
+              {purpose === "sale" && salePlan && (
+                <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-800">Instalment plan available</p>
+                  <p className="mt-2 text-[16px] font-bold text-foundation-700">{salePlan.depositPercentage}% deposit · {formatNairaFull(depositAmount)}</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
+                    Then {salePlan.installmentCount} {salePlan.frequency} payments of {salePlan.installmentPercentage}% ({formatNairaFull(installmentAmount)}).
+                    Allocation starts after {salePlan.allocationPercentage}% is confirmed.
+                  </p>
+                </div>
+              )}
 
               <div className="mt-5 space-y-3">
                 {listing.property?.propertyType === "hotel" ? (
@@ -296,6 +310,7 @@ export default async function ListingDetailPage({
                 ) : purpose === "sale" ? (
                   <>
                     <ContactOwnerButton unitId={listing.id} label={contactLabel} variant="accent" />
+                    {salePlan && <StartPurchasePlanCTA unitId={listing.id} listingHref={`/listings/${listing.id}`} />}
                     <p className="rounded-xl bg-foundation-700/5 p-3 text-[13px] leading-relaxed text-ink-muted">Request details through Property360 before arranging an inspection.</p>
                   </>
                 ) : (
