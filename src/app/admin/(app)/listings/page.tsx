@@ -13,7 +13,8 @@ import { formatDate, formatNgn } from "@/lib/format";
 export default function AdminListingsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [listingStatus, setListingStatus] = useState("");
+  const [moderationStatus, setModerationStatus] = useState("pending");
   const limit = 25;
   const qc = useQueryClient();
   const moderate = useMutation({
@@ -23,13 +24,14 @@ export default function AdminListingsPage() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["admin", "listings", { page, search, status }],
+    queryKey: ["admin", "listings", { page, search, listingStatus, moderationStatus }],
     queryFn: () =>
       adminApi.listListings({
         page,
         limit,
         search: search || undefined,
-        status: status || undefined,
+        status: listingStatus || undefined,
+        moderationStatus: moderationStatus || undefined,
       }),
     placeholderData: keepPreviousData,
   });
@@ -50,8 +52,23 @@ export default function AdminListingsPage() {
                   placeholder="Search title, description, unit…"
                   className="w-full sm:w-72"
                 />
-                <Select value={status} onChange={(v) => { setStatus(v); setPage(1); }}>
-                  <option value="">All statuses</option>
+                <Select
+                  value={moderationStatus}
+                  onChange={(v) => { setModerationStatus(v); setPage(1); }}
+                  aria-label="Review status"
+                >
+                  <option value="pending">Pending approval</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="paused">Paused</option>
+                  <option value="">All review statuses</option>
+                </Select>
+                <Select
+                  value={listingStatus}
+                  onChange={(v) => { setListingStatus(v); setPage(1); }}
+                  aria-label="Listing status"
+                >
+                  <option value="">All listing statuses</option>
                   <option value="active">Active</option>
                   <option value="reserved">Reserved</option>
                   <option value="inactive">Inactive</option>
@@ -63,8 +80,12 @@ export default function AdminListingsPage() {
           <DataTable
             loading={isLoading}
             rows={data?.items ?? []}
-            empty="No listings found"
-            emptyDescription="No vacant units have been listed on the marketplace yet."
+            empty={moderationStatus === "pending" ? "No pending approvals" : "No listings found"}
+            emptyDescription={
+              moderationStatus === "pending"
+                ? "New marketplace listings waiting for review will appear here."
+                : "Try changing the listing or review status filters."
+            }
             columns={[
               {
                 key: "title",
@@ -128,6 +149,7 @@ export default function AdminListingsPage() {
               {
                 key: "actions",
                 header: "Review",
+                className: "sticky right-0 z-10 min-w-[210px] bg-surface",
                 render: (r) => (
                   <div className="flex flex-wrap gap-1.5">
                     <button onClick={() => moderate.mutate({ id: r._id, status: "approved" })} disabled={moderate.isPending} className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-50">Approve</button>

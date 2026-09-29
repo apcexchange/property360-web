@@ -678,6 +678,7 @@ const adminApi = {
     page?: number;
     limit?: number;
     status?: string;
+    moderationStatus?: string;
     search?: string;
   }): Promise<Paginated<AdminListingRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminListingRow>>>("/admin/listings", { params });
