@@ -115,7 +115,7 @@ export default function NewMarketplacePropertyPage() {
         hasOwnerAuthority: true,
         units: [
           {
-            unitNumber: unitNumber.trim(),
+            unitNumber: unitNumber.trim() || "1",
             rentAmount: Number(rentAmount),
             rentPeriod: isLandListing ? "annually" : rentPeriod,
             bedrooms: isLandListing ? 0 : Number(bedrooms),
@@ -253,7 +253,6 @@ export default function NewMarketplacePropertyPage() {
             </Field>
             <Field label="Unit / flat number">
               <input
-                required
                 value={unitNumber}
                 onChange={(e) => setUnitNumber(e.target.value)}
               />
