@@ -58,6 +58,7 @@ export interface Listing {
   bathrooms?: number;
   size?: number;
   rentAmount: number;
+  originalPrice?: number;
   listingTitle?: string;
   listingDescription?: string;
   listingStatus?: "active" | "inactive" | "reserved";
@@ -67,7 +68,12 @@ export interface Listing {
   inspectionFee?: number;
   inspectionFeeEnabled?: boolean;
   virtualTourUrl?: string;
-  preferredTenantType?: "single" | "family" | "students" | "professionals" | "any";
+  preferredTenantType?:
+    | "single"
+    | "family"
+    | "students"
+    | "professionals"
+    | "any";
   availableFrom?: string;
   isNegotiable?: boolean;
   listingDetails?: {

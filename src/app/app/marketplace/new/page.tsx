@@ -36,6 +36,7 @@ export default function NewMarketplacePropertyPage() {
   const [allocationPercentage, setAllocationPercentage] = useState("100");
   const [unitNumber, setUnitNumber] = useState("1");
   const [rentAmount, setRentAmount] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
   const [rentPeriod, setRentPeriod] = useState<RentPeriod>("annually");
   const [bedrooms, setBedrooms] = useState("1");
   const [bathrooms, setBathrooms] = useState("1");
@@ -58,6 +59,19 @@ export default function NewMarketplacePropertyPage() {
   const [photoError, setPhotoError] = useState("");
   const isLandListing = propertyType === "land";
   const propertyPrice = Number(rentAmount) || 0;
+  const priceBeforeDiscount = originalPrice.trim()
+    ? Number(originalPrice)
+    : undefined;
+  const priceDiscountIsValid =
+    priceBeforeDiscount === undefined ||
+    (Number.isFinite(priceBeforeDiscount) &&
+      priceBeforeDiscount > propertyPrice);
+  const priceLabel =
+    listingPurpose === "sale"
+      ? "Asking price (₦)"
+      : listingPurpose === "shortlet"
+        ? "Nightly price (₦)"
+        : "Rent (₦)";
   const safeDepositPercentage = Math.min(
     Math.max(Number(depositPercentage) || 0, 0),
     100,
@@ -117,6 +131,7 @@ export default function NewMarketplacePropertyPage() {
           {
             unitNumber: unitNumber.trim() || "1",
             rentAmount: Number(rentAmount),
+            originalPrice: priceBeforeDiscount,
             rentPeriod: isLandListing ? "annually" : rentPeriod,
             bedrooms: isLandListing ? 0 : Number(bedrooms),
             bathrooms: isLandListing ? 0 : Number(bathrooms),
@@ -174,7 +189,7 @@ export default function NewMarketplacePropertyPage() {
           className="mx-auto max-w-2xl space-y-6"
           onSubmit={(event) => {
             event.preventDefault();
-            if (authorised) publish.mutate();
+            if (authorised && priceDiscountIsValid) publish.mutate();
           }}
         >
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
@@ -398,13 +413,20 @@ export default function NewMarketplacePropertyPage() {
             </Card>
           )}
           <Card className="grid gap-4 p-5 sm:grid-cols-2">
+            <Field label="Price before discount (optional, ₦)">
+              <input
+                min="1"
+                type="number"
+                value={originalPrice}
+                onChange={(e) => setOriginalPrice(e.target.value)}
+                placeholder="Enter only when offering a discount"
+              />
+            </Field>
             <Field
               label={
-                listingPurpose === "sale"
-                  ? "Asking price (₦)"
-                  : listingPurpose === "shortlet"
-                    ? "Nightly price (₦)"
-                    : "Rent (₦)"
+                originalPrice.trim()
+                  ? `Discounted ${priceLabel.toLowerCase()}`
+                  : priceLabel
               }
             >
               <input
@@ -415,6 +437,14 @@ export default function NewMarketplacePropertyPage() {
                 onChange={(e) => setRentAmount(e.target.value)}
               />
             </Field>
+            {originalPrice.trim() && !priceDiscountIsValid && (
+              <p
+                className="sm:col-span-2 text-[12px] text-red-700"
+                role="alert"
+              >
+                Price before discount must be greater than the discounted price.
+              </p>
+            )}
             {!isLandListing && (
               <Field label="Rent period">
                 <select
@@ -680,9 +710,11 @@ export default function NewMarketplacePropertyPage() {
             <p className="mr-auto text-[12px] text-ink-muted">
               {images.length === 0
                 ? "Add at least one photo to publish."
-                : !salePlanIsValid
-                  ? "Complete the percentage plan before publishing."
-                  : "Ready for review."}
+                : !priceDiscountIsValid
+                  ? "Price before discount must exceed the discounted price."
+                  : !salePlanIsValid
+                    ? "Complete the percentage plan before publishing."
+                    : "Ready for review."}
             </p>
             <Link
               href="/app/marketplace"
@@ -696,6 +728,7 @@ export default function NewMarketplacePropertyPage() {
                 publish.isPending ||
                 !authorised ||
                 images.length === 0 ||
+                !priceDiscountIsValid ||
                 !salePlanIsValid
               }
               className="rounded-full bg-foundation-700 px-6 py-2.5 text-[13px] font-semibold text-paper disabled:opacity-50"
