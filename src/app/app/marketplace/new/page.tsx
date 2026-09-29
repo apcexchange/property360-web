@@ -232,7 +232,6 @@ export default function NewMarketplacePropertyPage() {
             </Field>
             <Field label="Street address">
               <input
-                required
                 value={street}
                 onChange={(e) => setStreet(e.target.value)}
               />
