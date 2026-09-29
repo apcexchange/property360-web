@@ -1862,7 +1862,7 @@ export const landlordApi = {
   },
   async listUnit(
     unitId: string,
-    body?: { listingTitle?: string; listingDescription?: string; description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet"; listingDetails?: { landSize?: number; landUnit?: "sqm" | "plot" | "acre"; titleDocument?: string; minimumStayNights?: number; maxGuests?: number; serviceCharge?: number; parkingSpaces?: number; powerBackup?: boolean } }
+    body?: { listingTitle?: string; listingDescription?: string; description?: string; visibility?: "public" | "unlisted"; listingPurpose?: "rent" | "sale" | "shortlet"; listingDetails?: { landSize?: number; landUnit?: "sqm" | "plot" | "acre"; titleDocument?: string; minimumStayNights?: number; maxGuests?: number; serviceCharge?: number; parkingSpaces?: number; powerBackup?: boolean; saleInstallmentPlan?: { enabled: boolean; depositPercentage: number; installmentPercentage: number; installmentCount: number; frequency: "monthly" | "quarterly"; allocationPercentage: number } } }
   ): Promise<Listing> {
     const res = await api.post(`/listings/${unitId}/list`, body ?? {});
     return unwrap(res.data) as Listing;

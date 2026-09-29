@@ -9,6 +9,7 @@ import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import { Card, ErrorBox, PageContainer } from "@/components/app/ui";
 import { landlordApi, PropertyImage, PropertyType, RentPeriod } from "@/lib/landlord-api";
+import { formatNgn } from "@/lib/format";
 
 const PROPERTY_TYPES: Array<{ value: PropertyType; label: string }> = [
   { value: "residential", label: "Residential" },
@@ -27,6 +28,12 @@ export default function NewMarketplacePropertyPage() {
   const [state, setState] = useState("");
   const [propertyType, setPropertyType] = useState<PropertyType>("residential");
   const [listingPurpose, setListingPurpose] = useState<"rent" | "sale" | "shortlet">("rent");
+  const [planEnabled, setPlanEnabled] = useState(false);
+  const [depositPercentage, setDepositPercentage] = useState("20");
+  const [installmentPercentage, setInstallmentPercentage] = useState("10");
+  const [installmentCount, setInstallmentCount] = useState("8");
+  const [installmentFrequency, setInstallmentFrequency] = useState<"monthly" | "quarterly">("monthly");
+  const [allocationPercentage, setAllocationPercentage] = useState("100");
   const [unitNumber, setUnitNumber] = useState("1");
   const [rentAmount, setRentAmount] = useState("");
   const [rentPeriod, setRentPeriod] = useState<RentPeriod>("annually");
@@ -49,6 +56,16 @@ export default function NewMarketplacePropertyPage() {
   const [images, setImages] = useState<PropertyImage[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const propertyPrice = Number(rentAmount) || 0;
+  const planTotalPercentage = Number(depositPercentage) + Number(installmentPercentage) * Number(installmentCount);
+  const salePlanIsValid = !planEnabled || (
+    Number(depositPercentage) >= 0 &&
+    Number(installmentPercentage) > 0 &&
+    Number(installmentCount) >= 1 &&
+    Math.abs(planTotalPercentage - 100) < 0.0001 &&
+    Number(allocationPercentage) > 0 &&
+    Number(allocationPercentage) <= 100
+  );
 
   const publish = useMutation({
     mutationFn: async () => {
@@ -60,7 +77,30 @@ export default function NewMarketplacePropertyPage() {
         units: [{ unitNumber: unitNumber.trim(), rentAmount: Number(rentAmount), rentPeriod,
           bedrooms: Number(bedrooms), bathrooms: Number(bathrooms) }],
       });
-      await landlordApi.listUnit(created.unitId, { visibility: "public", listingPurpose: propertyType === "hotel" ? "shortlet" : listingPurpose, listingDetails: propertyType === "land" ? { landSize: Number(landSize) || undefined, landUnit, titleDocument: titleDocument.trim() || undefined } : (propertyType === "hotel" || listingPurpose === "shortlet") ? { minimumStayNights: Number(minimumStayNights) || undefined, maxGuests: propertyType === "hotel" ? Number(maxGuests) || 2 : undefined, serviceCharge: Number(serviceCharge) || undefined } : propertyType === "shop" || propertyType === "commercial" ? { parkingSpaces: Number(parkingSpaces) || undefined, powerBackup, serviceCharge: Number(serviceCharge) || undefined } : undefined });
+      const baseListingDetails = propertyType === "land"
+        ? { landSize: Number(landSize) || undefined, landUnit, titleDocument: titleDocument.trim() || undefined }
+        : (propertyType === "hotel" || listingPurpose === "shortlet")
+          ? { minimumStayNights: Number(minimumStayNights) || undefined, maxGuests: propertyType === "hotel" ? Number(maxGuests) || 2 : undefined, serviceCharge: Number(serviceCharge) || undefined }
+          : propertyType === "shop" || propertyType === "commercial"
+            ? { parkingSpaces: Number(parkingSpaces) || undefined, powerBackup, serviceCharge: Number(serviceCharge) || undefined }
+            : {};
+      await landlordApi.listUnit(created.unitId, {
+        visibility: "public",
+        listingPurpose: propertyType === "hotel" ? "shortlet" : listingPurpose,
+        listingDetails: {
+          ...baseListingDetails,
+          ...(listingPurpose === "sale" && planEnabled ? {
+            saleInstallmentPlan: {
+              enabled: true,
+              depositPercentage: Number(depositPercentage),
+              installmentPercentage: Number(installmentPercentage),
+              installmentCount: Number(installmentCount),
+              frequency: installmentFrequency,
+              allocationPercentage: Number(allocationPercentage),
+            },
+          } : {}),
+        },
+      });
       return created;
     },
     onSuccess: (created) => router.replace(propertyType === "hotel" ? `/app/hotels/${created.property._id}` : "/app/marketplace"),
@@ -99,10 +139,33 @@ export default function NewMarketplacePropertyPage() {
           <Field label="Bathrooms"><input min="0" type="number" value={bathrooms} onChange={(e) => setBathrooms(e.target.value)} /></Field>
           <div className="sm:col-span-2"><Field label="Description"><textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What should prospective tenants know?" /></Field></div>
         </Card>
+        {listingPurpose === "sale" && propertyType !== "hotel" && (
+          <Card className="space-y-4 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[13px] font-semibold text-foundation-700">Offer a percentage-based instalment plan</p>
+                <p className="mt-1 text-[12px] text-ink-muted">Buyers see the deposit, every instalment, balance, and allocation threshold before they proceed.</p>
+              </div>
+              <label className="flex shrink-0 items-center gap-2 text-[13px] font-semibold text-foundation-700"><input type="checkbox" checked={planEnabled} onChange={(e) => setPlanEnabled(e.target.checked)} /> Enable</label>
+            </div>
+            {planEnabled && <><div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Deposit (%)"><input required min="0" max="100" type="number" value={depositPercentage} onChange={(e) => setDepositPercentage(e.target.value)} /></Field>
+              <Field label="Each instalment (%)"><input required min="1" max="100" type="number" value={installmentPercentage} onChange={(e) => setInstallmentPercentage(e.target.value)} /></Field>
+              <Field label="Number of instalments"><input required min="1" max="60" type="number" value={installmentCount} onChange={(e) => setInstallmentCount(e.target.value)} /></Field>
+              <Field label="Payment frequency"><select value={installmentFrequency} onChange={(e) => setInstallmentFrequency(e.target.value as typeof installmentFrequency)}><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option></select></Field>
+              <Field label="Allocate after paid (%)"><input required min="1" max="100" type="number" value={allocationPercentage} onChange={(e) => setAllocationPercentage(e.target.value)} /></Field>
+            </div>
+            <div className={salePlanIsValid ? "rounded-xl bg-emerald-50 p-4 text-[13px] text-emerald-900" : "rounded-xl bg-red-50 p-4 text-[13px] text-red-800"}>
+              {salePlanIsValid
+                ? <p>Plan totals 100%: deposit {depositPercentage}% ({formatNgn(propertyPrice * Number(depositPercentage) / 100)}), then {installmentCount} {installmentFrequency} instalments of {installmentPercentage}% ({formatNgn(propertyPrice * Number(installmentPercentage) / 100)}).</p>
+                : <p>Deposit plus all instalments must equal exactly 100%. Current total: {Number.isFinite(planTotalPercentage) ? <>{planTotalPercentage}%</> : "—"}.</p>}
+            </div></>}
+          </Card>
+        )}
         <Card className="space-y-3 p-5"><p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-ink-muted">Photos</p><input type="file" accept="image/jpeg,image/png,image/webp,image/heic" multiple disabled={uploadingPhotos} onChange={async (event) => { const files = Array.from(event.target.files ?? []).slice(0, 10 - images.length); if (!files.length) return; setUploadingPhotos(true); setPhotoError(""); try { const uploaded = await Promise.all(files.map((file) => landlordApi.uploadPropertyImage(file))); setImages((current) => [...current, ...uploaded.map((image, index) => ({ ...image, isPrimary: current.length + index === 0 }))]); } catch { setPhotoError("Couldn’t upload one or more photos. Check the file type and 5 MB limit, then try again."); } finally { setUploadingPhotos(false); event.target.value = ""; } }} className="block w-full text-[13px] text-ink-muted" />{images.length > 0 && <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">{images.map((image) => <div key={image.url} className="relative aspect-square overflow-hidden rounded-lg border border-foundation-700/10"><img src={image.url} alt="Property upload" className="h-full w-full object-cover" /><button type="button" onClick={() => setImages((current) => current.filter((item) => item.url !== image.url))} className="absolute right-1 top-1 rounded bg-paper px-1.5 py-0.5 text-[10px] font-semibold text-red-700">Remove</button></div>)}</div>}{photoError && <p className="text-[12px] text-red-700">{photoError}</p>}<p className="text-[12px] text-ink-muted">A photo is required before an admin can approve your listing. Add up to 10 photos, 5 MB each. {uploadingPhotos ? "Uploading…" : images.length ? `${images.length} uploaded` : ""}</p></Card>
         <Card className="p-5"><label className="flex gap-3 text-[13px] leading-5 text-ink-muted"><input required type="checkbox" checked={authorised} onChange={(e) => setAuthorised(e.target.checked)} className="mt-1" /><span>I confirm I am the owner or have the owner&apos;s authority to advertise this property. False or duplicate listings may be removed.</span></label></Card>
         {error && <ErrorBox message={error} />}
-        <div className="flex flex-wrap items-center justify-end gap-3"><p className="mr-auto text-[12px] text-ink-muted">{images.length === 0 ? "Add at least one photo to publish." : "Ready for review."}</p><Link href="/app/marketplace" className="rounded-full border border-foundation-700/15 px-5 py-2.5 text-[13px] font-semibold text-foundation-700">Cancel</Link><button type="submit" disabled={publish.isPending || !authorised || images.length === 0} className="rounded-full bg-foundation-700 px-6 py-2.5 text-[13px] font-semibold text-paper disabled:opacity-50">{publish.isPending ? "Publishing…" : "Publish free listing"}</button></div>
+        <div className="flex flex-wrap items-center justify-end gap-3"><p className="mr-auto text-[12px] text-ink-muted">{images.length === 0 ? "Add at least one photo to publish." : !salePlanIsValid ? "Complete the percentage plan before publishing." : "Ready for review."}</p><Link href="/app/marketplace" className="rounded-full border border-foundation-700/15 px-5 py-2.5 text-[13px] font-semibold text-foundation-700">Cancel</Link><button type="submit" disabled={publish.isPending || !authorised || images.length === 0 || !salePlanIsValid} className="rounded-full bg-foundation-700 px-6 py-2.5 text-[13px] font-semibold text-paper disabled:opacity-50">{publish.isPending ? "Publishing…" : "Publish free listing"}</button></div>
       </form>
     </PageContainer>
   </>;
