@@ -6,11 +6,13 @@ import { PageHeader } from "@/components/admin/ui/PageHeader";
 import { Pagination } from "@/components/admin/ui/Pagination";
 import { SearchInput, Select } from "@/components/admin/ui/Filters";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import adminApi from "@/lib/admin";
 import { formatDate, formatNgn } from "@/lib/format";
 
 export default function AdminListingsPage() {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [listingStatus, setListingStatus] = useState("");
@@ -91,6 +93,7 @@ export default function AdminListingsPage() {
                 ? "Vacant units awaiting review will appear here."
                 : "No vacant units match these filters."
             }
+            onRowClick={(listing) => router.push(`/admin/listings/${listing._id}`)}
             columns={[
               {
                 key: "title",

@@ -153,8 +153,41 @@ export interface AdminListingRow {
   property?: {
     _id: string;
     name?: string;
-    address?: { city?: string; state?: string };
+    address?: { street?: string; city?: string; state?: string };
     landlord?: { _id: string; firstName?: string; lastName?: string; email?: string };
+  };
+}
+
+export interface AdminListingDetail extends AdminListingRow {
+  listingDescription?: string;
+  originalPrice?: number;
+  size?: number;
+  availableFrom?: string;
+  listingLastConfirmedAt?: string;
+  listingExpiresAt?: string;
+  listingDetails?: {
+    landSize?: number;
+    landUnit?: string;
+    titleDocument?: string;
+    minimumStayNights?: number;
+    maxGuests?: number;
+    serviceCharge?: number;
+    parkingSpaces?: number;
+    powerBackup?: boolean;
+    estateName?: string;
+    hasBq?: boolean;
+    availableUntil?: string;
+  };
+  property?: AdminListingRow["property"] & {
+    description?: string;
+    propertyType?: string;
+    images?: string[];
+    imageCaptions?: Array<{ url: string; caption: string }>;
+    videos?: string[];
+    amenities?: string[];
+    owner?: { firstName?: string; lastName?: string; email?: string; phone?: string; role?: string; kyc?: { status?: string } };
+    agent?: { firstName?: string; lastName?: string; email?: string; phone?: string; role?: string; kyc?: { status?: string } };
+    ownerAuthorisationConfirmedAt?: string;
   };
 }
 export interface AdminListingReportRow { _id: string; reason: string; detail?: string; createdAt: string; unit?: { listingTitle?: string; unitNumber?: string }; reporter?: { firstName?: string; lastName?: string; email?: string }; }
@@ -685,6 +718,10 @@ const adminApi = {
     search?: string;
   }): Promise<Paginated<AdminListingRow>> {
     const res = await api.get<ApiEnvelope<Paginated<AdminListingRow>>>("/admin/listings", { params });
+    return unwrap(res.data);
+  },
+  async getListingDetail(unitId: string): Promise<AdminListingDetail> {
+    const res = await api.get<ApiEnvelope<AdminListingDetail>>(`/admin/listings/${unitId}`);
     return unwrap(res.data);
   },
   async listListingReports(params: { page?: number; limit?: number }): Promise<Paginated<AdminListingReportRow>> { const res = await api.get<ApiEnvelope<Paginated<AdminListingReportRow>>>("/admin/listing-reports", { params }); return unwrap(res.data); },
