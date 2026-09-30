@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AxiosError } from "axios";
@@ -31,17 +31,15 @@ export function ReserveListingCTA({ unitId, reserved, listingHref, actionLabel =
   const params = useSearchParams();
   const wantsReserve = params?.get("action") === "reserve";
 
-  const [user, setUser] = useState(() => session.getUser());
+  // Session lives in localStorage: render signed-out on the server and
+  // hydrate, then switch, so server and client markup match.
+  const user = useSyncExternalStore(session.subscribe, session.getUser, () => null);
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [preferredViewingAt, setPreferredViewingAt] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    setUser(session.getUser());
-  }, []);
 
   useEffect(() => {
     if (wantsReserve && user?.role === "tenant" && !reserved) setOpen(true);

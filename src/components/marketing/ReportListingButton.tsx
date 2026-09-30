@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Flag, Loader2 } from "lucide-react";
 import { landlordApi } from "@/lib/landlord-api";
 import { session } from "@/lib/session";
@@ -20,8 +20,10 @@ export function ReportListingButton({ unitId }: { unitId: string }) {
   const [reason, setReason] = useState<Reason>("fake");
   const [detail, setDetail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  // Read on the client only so server and client markup match on hydration.
+  const signedIn = useSyncExternalStore(session.subscribe, () => !!session.getToken(), () => false);
 
-  if (!session.getToken()) return null;
+  if (!signedIn) return null;
   if (state === "sent") {
     return <p className="text-[12.5px] leading-relaxed text-ink-muted">Thank you. Our team will review this listing.</p>;
   }

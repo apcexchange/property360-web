@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { AxiosError } from "axios";
 import { Loader2, MessageCircle } from "lucide-react";
 import { tenantApi } from "@/lib/tenant-api";
 import { session } from "@/lib/session";
-
-const noopSubscribe = () => () => {};
+import { QueryProvider } from "@/lib/queryClient";
+import { ListingChatPanel } from "@/components/chat/ListingChatPanel";
+import { chatScopeForRole } from "@/components/chat/chat-utils";
 
 interface Props {
   unitId: string;
@@ -21,21 +22,24 @@ interface Props {
 }
 
 /**
- * Public listing detail: opens (or resumes) an in-app conversation with the
- * listing's publisher. Any signed-in landlord, property manager or tenant can
- * enquire; each lands in their own inbox (tenants under /me, everyone else
- * under /app). Signed-out visitors are sent to login and brought back here.
+ * Public listing detail: opens (or resumes) the conversation about this
+ * listing with its publisher, in a chat panel over the page. Any signed-in
+ * landlord, property manager or tenant can enquire; the thread also shows in
+ * their inbox (tenants under /me, everyone else under /app). Signed-out
+ * visitors are sent to login and brought back here.
  */
 export function ContactOwnerButton({ unitId, label = "Message the owner", variant = "solid", className = "" }: Props) {
   const router = useRouter();
   // Session lives in localStorage, so read it on the client only.
   const role = useSyncExternalStore(
-    noopSubscribe,
+    session.subscribe,
     () => (session.getToken() ? session.getUser()?.role ?? null : null),
     () => null
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const closePanel = useCallback(() => setConversationId(null), []);
 
   // Admin and partner accounts have no chat inbox to land in.
   if (role === "admin" || role === "partner") return null;
@@ -49,10 +53,11 @@ export function ContactOwnerButton({ unitId, label = "Message the owner", varian
     setError(null);
     try {
       const c = await tenantApi.startListingConversation(unitId);
-      router.push(role === "tenant" ? `/me/chat?c=${c.id}` : `/app/chat/${c.id}`);
+      setConversationId(c.id);
     } catch (err) {
       const axErr = err as AxiosError<{ message?: string }>;
       setError(axErr.response?.data?.message ?? "Could not open the conversation.");
+    } finally {
       setLoading(false);
     }
   };
@@ -78,6 +83,17 @@ export function ContactOwnerButton({ unitId, label = "Message the owner", varian
         <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2.5 text-[12.5px] text-red-700">
           {error}
         </p>
+      )}
+      {conversationId && (
+        // The public site has no app-wide query client; a fresh one per open
+        // also guarantees the just-created thread is fetched.
+        <QueryProvider>
+          <ListingChatPanel
+            conversationId={conversationId}
+            scope={chatScopeForRole(role)}
+            onClose={closePanel}
+          />
+        </QueryProvider>
       )}
     </div>
   );
