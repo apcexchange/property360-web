@@ -10,6 +10,9 @@ import {
   X,
   Play,
   Maximize2,
+  ChevronLeft,
+  ChevronRight,
+  Star,
 } from "lucide-react";
 import { Card } from "./ui";
 import { landlordApi, Property } from "@/lib/landlord-api";
@@ -59,7 +62,7 @@ export function PropertyMediaCard({
 
   // Patch the cached property so new media renders the instant an upload
   // resolves, before the PUT + refetch completes.
-  function patchCache(next: { images?: string[]; videos?: string[] }) {
+  function patchCache(next: { images?: string[]; videos?: string[]; imageCaptions?: Array<{ url: string; caption: string }> }) {
     queryClient.setQueryData(
       ["properties", propertyId],
       (old: { property?: Property; units?: unknown[] } | undefined) =>
@@ -69,7 +72,7 @@ export function PropertyMediaCard({
     );
   }
 
-  async function persist(next: { images?: string[]; videos?: string[] }) {
+  async function persist(next: { images?: string[]; videos?: string[]; imageCaptions?: Array<{ url: string; caption: string }> }) {
     patchCache(next);
     setSaving(true);
     try {
@@ -150,7 +153,32 @@ export function PropertyMediaCard({
   }
 
   async function removeImage(url: string) {
-    await persist({ images: images.filter((u) => u !== url) });
+    await persist({
+      images: images.filter((u) => u !== url),
+      imageCaptions: (property.imageCaptions ?? []).filter((item) => item.url !== url),
+    });
+  }
+
+  async function moveImage(url: string, direction: -1 | 1) {
+    const from = images.indexOf(url);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= images.length) return;
+    const next = [...images];
+    [next[from], next[to]] = [next[to], next[from]];
+    await persist({ images: next });
+  }
+
+  async function setCover(url: string) {
+    if (images[0] === url) return;
+    await persist({ images: [url, ...images.filter((image) => image !== url)] });
+  }
+
+  async function saveCaption(url: string, caption: string) {
+    const trimmed = caption.trim();
+    const previous = (property.imageCaptions ?? []).filter((item) => item.url !== url);
+    await persist({
+      imageCaptions: trimmed ? [...previous, { url, caption: trimmed }] : previous,
+    });
   }
 
   async function removeVideo(url: string) {
@@ -216,9 +244,16 @@ export function PropertyMediaCard({
                     key={url}
                     url={url}
                     isCover={i === 0}
+                    caption={property.imageCaptions?.find((item) => item.url === url)?.caption ?? ""}
                     busy={saving}
                     onOpen={() => setLightbox({ type: "image", url })}
                     onRemove={() => removeImage(url)}
+                    onMoveLeft={() => moveImage(url, -1)}
+                    onMoveRight={() => moveImage(url, 1)}
+                    onSetCover={() => setCover(url)}
+                    onSaveCaption={(caption) => saveCaption(url, caption)}
+                    canMoveLeft={i > 0}
+                    canMoveRight={i < images.length - 1}
                   />
                 ))}
               </div>
@@ -293,18 +328,34 @@ function UploadButton({
 function ImageTile({
   url,
   isCover,
+  caption,
   busy,
   onOpen,
   onRemove,
+  onMoveLeft,
+  onMoveRight,
+  onSetCover,
+  onSaveCaption,
+  canMoveLeft,
+  canMoveRight,
 }: {
   url: string;
   isCover: boolean;
+  caption: string;
   busy: boolean;
   onOpen: () => void;
   onRemove: () => void;
+  onMoveLeft: () => void;
+  onMoveRight: () => void;
+  onSetCover: () => void;
+  onSaveCaption: (caption: string) => void;
+  canMoveLeft: boolean;
+  canMoveRight: boolean;
 }) {
+  const [draftCaption, setDraftCaption] = useState(caption);
   return (
-    <div className="group relative aspect-square overflow-hidden rounded-xl bg-foundation-700/5">
+    <div className="group relative overflow-hidden rounded-xl bg-foundation-700/5">
+      <div className="relative aspect-square">
       <button
         type="button"
         onClick={onOpen}
@@ -324,7 +375,24 @@ function ImageTile({
           Cover
         </span>
       )}
-      <TileRemoveButton busy={busy} onRemove={onRemove} label="Remove photo" />
+        <TileRemoveButton busy={busy} onRemove={onRemove} label="Remove photo" />
+      </div>
+      <div className="flex items-center gap-1 border-t border-foundation-700/10 bg-paper p-1.5">
+        <button type="button" disabled={busy || !canMoveLeft} onClick={onMoveLeft} aria-label="Move photo earlier" className="grid h-7 w-7 place-items-center rounded-md text-ink-muted hover:bg-foundation-700/5 disabled:opacity-30"><ChevronLeft className="h-3.5 w-3.5" /></button>
+        <button type="button" disabled={busy || !canMoveRight} onClick={onMoveRight} aria-label="Move photo later" className="grid h-7 w-7 place-items-center rounded-md text-ink-muted hover:bg-foundation-700/5 disabled:opacity-30"><ChevronRight className="h-3.5 w-3.5" /></button>
+        {!isCover && <button type="button" disabled={busy} onClick={onSetCover} className="ml-auto inline-flex h-7 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold text-foundation-700 hover:bg-cryola-300/25"><Star className="h-3 w-3" /> Cover</button>}
+      </div>
+      <input
+        aria-label="Photo caption"
+        value={draftCaption}
+        maxLength={180}
+        onChange={(event) => setDraftCaption(event.target.value)}
+        onBlur={() => { if (draftCaption !== caption) onSaveCaption(draftCaption); }}
+        onKeyDown={(event) => { if (event.key === "Enter") { event.currentTarget.blur(); } }}
+        disabled={busy}
+        placeholder="Add a caption"
+        className="w-full border-t border-foundation-700/10 bg-paper px-2.5 py-2 text-[11px] text-foundation-700 placeholder:text-ink-faint focus:outline-none"
+      />
     </div>
   );
 }

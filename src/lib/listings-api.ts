@@ -28,7 +28,9 @@ export interface ListingProperty {
   propertyType?: string;
   purpose?: "rent" | "sale" | "shortlet";
   images?: string[];
+  imageCaptions?: Array<{ url: string; caption: string }>;
   amenities?: string[];
+  ownerAuthorisationConfirmedAt?: string;
   owner?: {
     firstName?: string;
     lastName?: string;
@@ -86,6 +88,9 @@ export interface Listing {
     serviceCharge?: number;
     parkingSpaces?: number;
     powerBackup?: boolean;
+    estateName?: string;
+    hasBq?: boolean;
+    availableUntil?: string;
     saleInstallmentPlan?: {
       enabled: boolean;
       depositPercentage: number;

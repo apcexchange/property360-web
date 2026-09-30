@@ -10,6 +10,7 @@ interface ListingGalleryProps {
   images: string[];
   alt: string;
   unitId: string;
+  captions?: Array<{ url: string; caption: string }>;
 }
 
 /**
@@ -17,13 +18,14 @@ interface ListingGalleryProps {
  * photograph, while the thumbnail rail makes the rest of the listing easy to
  * explore on both touch screens and desktop.
  */
-export function ListingGallery({ images, alt, unitId }: ListingGalleryProps) {
+export function ListingGallery({ images, alt, unitId, captions = [] }: ListingGalleryProps) {
   const galleryImages = ensureCoverImages(images);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const activeImage = galleryImages[activeIndex] ?? galleryImages[0];
+  const activeCaption = captions.find((item) => item.url === activeImage)?.caption;
   const imageCount = galleryImages.length;
 
   const showPrevious = () =>
@@ -89,7 +91,7 @@ export function ListingGallery({ images, alt, unitId }: ListingGalleryProps) {
         <Image
           key={activeImage}
           src={activeImage}
-          alt={`${alt}, photo ${activeIndex + 1} of ${imageCount}`}
+          alt={activeCaption ? `${alt}, ${activeCaption}` : `${alt}, photo ${activeIndex + 1} of ${imageCount}`}
           fill
           priority={activeIndex === 0}
           sizes="(min-width: 1024px) 1100px, 100vw"
@@ -118,10 +120,13 @@ export function ListingGallery({ images, alt, unitId }: ListingGalleryProps) {
         </div>
 
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-foundation-900/65 via-foundation-900/15 to-transparent px-4 pb-4 pt-16 sm:px-5 sm:pb-5">
+          <div className="min-w-0">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-foundation-900/80 px-3 py-1.5 text-[12px] font-semibold text-paper backdrop-blur-sm">
             <Images className="h-3.5 w-3.5" />
             {activeIndex + 1} of {imageCount}
           </span>
+          {activeCaption && <p className="mt-2 max-w-md truncate text-[12px] text-paper/95 drop-shadow">{activeCaption}</p>}
+          </div>
           {imageCount > 1 && (
             <div className="flex gap-2">
               <button

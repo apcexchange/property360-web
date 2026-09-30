@@ -142,6 +142,7 @@ export interface AdminListingRow {
   isOccupied?: boolean;
   isListed?: boolean;
   listingTitle?: string;
+  listingPurpose?: "rent" | "sale" | "shortlet";
   listingStatus: "active" | "inactive" | "reserved";
   moderationStatus?: "pending" | "approved" | "rejected" | "paused";
   listedAt?: string;
@@ -690,10 +691,11 @@ const adminApi = {
   async resolveListingReport(id: string, action: "dismissed" | "paused" | "rejected"): Promise<void> { await api.post(`/admin/listing-reports/${id}/resolve`, { action }); },
   async setListingModeration(
     unitId: string,
-    status: "approved" | "rejected" | "paused",
-    reason?: string
+    status?: "approved" | "rejected" | "paused",
+    reason?: string,
+    listingPurpose?: "rent" | "sale" | "shortlet",
   ): Promise<AdminListingRow> {
-    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason });
+    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason, listingPurpose });
     return unwrap(res.data);
   },
 

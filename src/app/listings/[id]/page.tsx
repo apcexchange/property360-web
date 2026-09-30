@@ -212,12 +212,19 @@ export default async function ListingDetailPage({
             Availability confirmed {availabilityConfirmedAt}
           </p>
         )}
+        {listing.property?.ownerAuthorisationConfirmedAt && (
+          <p className="mt-2 flex items-center gap-1.5 text-[12px] text-ink-muted">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
+            Publisher authorisation confirmed
+          </p>
+        )}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6">
           <ListingGallery
             images={images}
             alt={listingTitle(listing)}
             unitId={listing.id}
+            captions={listing.property?.imageCaptions}
           />
           <aside className="mt-6 hidden rounded-[1.5rem] border border-foundation-700/10 bg-surface p-5 shadow-card lg:block lg:mt-6">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-muted">
@@ -319,6 +326,19 @@ export default async function ListingDetailPage({
                 <p className="whitespace-pre-line text-[15px] leading-[1.65] text-ink-body">
                   {listingDescription}
                 </p>
+              </Section>
+            )}
+
+            {(details.estateName || details.hasBq || details.maxGuests != null || details.availableUntil) && (
+              <Section title="Property details">
+                <table className="w-full table-fixed text-[14px]">
+                  <tbody>
+                    {details.estateName && <Row label="Estate / neighbourhood" value={details.estateName} />}
+                    {details.hasBq && <Row label="Boys' quarters (BQ)" value="Included" />}
+                    {details.maxGuests != null && <Row label="Guest capacity" value={`Up to ${details.maxGuests} guest${details.maxGuests === 1 ? "" : "s"}`} />}
+                    {details.availableUntil && <Row label="Available until" value={new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" }).format(new Date(details.availableUntil))} />}
+                  </tbody>
+                </table>
               </Section>
             )}
 

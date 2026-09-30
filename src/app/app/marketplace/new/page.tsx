@@ -13,6 +13,8 @@ import { formatNgn } from "@/lib/format";
 
 const PROPERTY_TYPES: Array<{ value: PropertyType; label: string }> = [
   { value: "residential", label: "Residential" },
+  { value: "house", label: "House" },
+  { value: "bungalow", label: "Bungalow" },
   { value: "hostel", label: "Hostel" },
   { value: "shop", label: "Shop" },
   { value: "commercial", label: "Commercial" },
@@ -48,6 +50,10 @@ export default function NewMarketplacePropertyPage() {
   const [serviceCharge, setServiceCharge] = useState("");
   const [parkingSpaces, setParkingSpaces] = useState("");
   const [powerBackup, setPowerBackup] = useState(false);
+  const [estateName, setEstateName] = useState("");
+  const [hasBq, setHasBq] = useState(false);
+  const [availableFrom, setAvailableFrom] = useState("");
+  const [availableUntil, setAvailableUntil] = useState("");
   const [checkInTime, setCheckInTime] = useState("14:00");
   const [checkOutTime, setCheckOutTime] = useState("12:00");
   const [cancellationPolicy, setCancellationPolicy] = useState("");
@@ -133,14 +139,17 @@ export default function NewMarketplacePropertyPage() {
       const baseListingDetails = propertyType === "land"
         ? { landSize: Number(landSize) || undefined, landUnit, titleDocument: titleDocument.trim() || undefined }
         : (propertyType === "hotel" || listingPurpose === "shortlet")
-          ? { minimumStayNights: Number(minimumStayNights) || undefined, maxGuests: propertyType === "hotel" ? Number(maxGuests) || 2 : undefined, serviceCharge: Number(serviceCharge) || undefined }
+          ? { minimumStayNights: Number(minimumStayNights) || undefined, maxGuests: Number(maxGuests) || undefined, serviceCharge: Number(serviceCharge) || undefined, availableUntil: availableUntil || undefined }
           : propertyType === "shop" || propertyType === "commercial"
             ? { parkingSpaces: Number(parkingSpaces) || undefined, powerBackup, serviceCharge: Number(serviceCharge) || undefined }
-            : {};
+            : (propertyType === "house" || propertyType === "bungalow" || propertyType === "residential")
+              ? { estateName: estateName.trim() || undefined, hasBq }
+              : {};
       await landlordApi.listUnit(created.unitId, {
         visibility: "public",
         listingDescription: description.trim() || undefined,
         listingPurpose: propertyType === "hotel" ? "shortlet" : listingPurpose,
+        availableFrom: availableFrom || undefined,
         listingDetails: {
           ...baseListingDetails,
           ...(listingPurpose === "sale" && planEnabled ? {
@@ -299,6 +308,17 @@ export default function NewMarketplacePropertyPage() {
               </div>
             </Card>
           )}
+          {(propertyType === "house" || propertyType === "bungalow" || propertyType === "residential") && (
+            <Card className="grid gap-4 p-5 sm:grid-cols-2">
+              <Field label="Estate / neighbourhood (optional)">
+                <input value={estateName} onChange={(e) => setEstateName(e.target.value)} placeholder="e.g. Lekki County Estate" />
+              </Field>
+              <label className="flex items-center gap-2 self-end pb-2 text-[13px] text-ink-muted">
+                <input type="checkbox" checked={hasBq} onChange={(e) => setHasBq(e.target.checked)} />
+                Includes a boys' quarters (BQ)
+              </label>
+            </Card>
+          )}
           {(listingPurpose === "shortlet" || propertyType === "hotel") && (
             <Card className="grid gap-4 p-5 sm:grid-cols-2">
               <Field label="Minimum stay (nights)">
@@ -309,18 +329,9 @@ export default function NewMarketplacePropertyPage() {
                   onChange={(e) => setMinimumStayNights(e.target.value)}
                 />
               </Field>
-              {propertyType === "hotel" && (
-                <Field label="Maximum guests for this room">
-                  <input
-                    required
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={maxGuests}
-                    onChange={(e) => setMaxGuests(e.target.value)}
-                  />
-                </Field>
-              )}
+              <Field label="Maximum guests">
+                <input type="number" min="1" max="20" value={maxGuests} onChange={(e) => setMaxGuests(e.target.value)} />
+              </Field>
               <Field label="Service charge (₦)">
                 <input
                   type="number"
@@ -328,6 +339,12 @@ export default function NewMarketplacePropertyPage() {
                   value={serviceCharge}
                   onChange={(e) => setServiceCharge(e.target.value)}
                 />
+              </Field>
+              <Field label="Available from (optional)">
+                <input type="date" value={availableFrom} onChange={(e) => setAvailableFrom(e.target.value)} />
+              </Field>
+              <Field label="Available until (optional)">
+                <input type="date" min={availableFrom || undefined} value={availableUntil} onChange={(e) => setAvailableUntil(e.target.value)} />
               </Field>
             </Card>
           )}

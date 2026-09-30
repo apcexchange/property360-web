@@ -42,6 +42,7 @@ export interface Property {
   hotelProfile?: { checkInTime?: string; checkOutTime?: string; cancellationPolicy?: string; contactPhone?: string };
   // Stored on the backend as flat arrays of Cloudinary secure_url strings.
   images?: string[];
+  imageCaptions?: Array<{ url: string; caption: string }>;
   videos?: string[];
   isActive: boolean;
   createdAt: string;
@@ -1164,6 +1165,7 @@ export const landlordApi = {
       description?: string;
       images?: string[];
       videos?: string[];
+      imageCaptions?: Array<{ url: string; caption: string }>;
       amenities?: string[];
       currentValue?: number;
       hotelProfile?: Property["hotelProfile"];
@@ -1894,6 +1896,7 @@ export const landlordApi = {
       description?: string;
       visibility?: "public" | "unlisted";
       listingPurpose?: "rent" | "sale" | "shortlet";
+      availableFrom?: string;
       listingDetails?: {
         landSize?: number;
         landUnit?: "sqm" | "plot" | "acre";
@@ -1903,6 +1906,9 @@ export const landlordApi = {
         serviceCharge?: number;
         parkingSpaces?: number;
         powerBackup?: boolean;
+        estateName?: string;
+        hasBq?: boolean;
+        availableUntil?: string;
         saleInstallmentPlan?: {
           enabled: boolean;
           depositPercentage: number;
