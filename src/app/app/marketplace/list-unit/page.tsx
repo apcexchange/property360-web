@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Globe2, ShieldCheck } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -18,18 +18,19 @@ import { landlordApi } from "@/lib/landlord-api";
 
 export default function ListUnitPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const properties = useQuery({
     queryKey: ["properties"],
     queryFn: () => landlordApi.listProperties(),
   });
 
-  const [propertyId, setPropertyId] = useState("");
-  const [unitId, setUnitId] = useState("");
+  const [propertyId, setPropertyId] = useState(() => searchParams.get("propertyId") ?? "");
+  const [unitId, setUnitId] = useState(() => searchParams.get("unitId") ?? "");
   const [description, setDescription] = useState("");
 
   const vacant = useQuery({
-    queryKey: ["vacant-units", propertyId],
-    queryFn: () => landlordApi.getVacantUnits(propertyId),
+    queryKey: ["listable-units", propertyId],
+    queryFn: () => landlordApi.getListableUnits(propertyId),
     enabled: !!propertyId,
   });
 
@@ -52,7 +53,7 @@ export default function ListUnitPage() {
     <>
       <AppTopbar
         title="List a unit"
-        subtitle="Make a vacant unit visible on property360.africa"
+        subtitle="Make a vacant unit visible on the Property360 marketplace"
         actions={
           <Link
             href="/app/marketplace"
@@ -71,6 +72,19 @@ export default function ListUnitPage() {
           }}
         >
           <Card className="space-y-5 p-5">
+            <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                <Globe2 className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-[13px] font-semibold text-foundation-700">
+                  Publish a vacant unit, including one you manage for a landlord
+                </p>
+                <p className="mt-1 text-[12.5px] leading-5 text-ink-muted">
+                  Only the selected vacant unit becomes public. Existing tenants, leases, and rent records remain private.
+                </p>
+              </div>
+            </div>
             {properties.isLoading ? (
               <Skeleton className="h-10 w-full rounded-xl" />
             ) : (
@@ -125,6 +139,11 @@ export default function ListUnitPage() {
               className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
             />
           </Card>
+
+          <p className="flex items-center gap-2 text-[12px] text-ink-muted">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-700" />
+            New listings are reviewed before they appear in public search.
+          </p>
 
           {formError && <ErrorBox message={formError} />}
 

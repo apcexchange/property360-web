@@ -86,6 +86,7 @@ const TONE_BY_STATUS: Record<string, Tone> = {
   active: "success",
   paid: "success",
   success: "success",
+  public: "success",
   // warning-leaning
   pending: "warning",
   not_started: "warning",

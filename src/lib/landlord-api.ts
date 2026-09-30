@@ -91,6 +91,9 @@ export interface Unit {
   defaultFees?: UnitFees;
   isOccupied: boolean;
   tenant?: string;
+  isListed?: boolean;
+  listingStatus?: "active" | "inactive" | "reserved";
+  moderationStatus?: "pending" | "approved" | "rejected" | "paused";
   createdAt: string;
 }
 
@@ -1239,6 +1242,10 @@ export const landlordApi = {
   },
   async getVacantUnits(propertyId: string): Promise<Unit[]> {
     const res = await api.get(`/tenants/property/${propertyId}/vacant-units`);
+    return asList<Unit>(unwrap(res.data));
+  },
+  async getListableUnits(propertyId: string): Promise<Unit[]> {
+    const res = await api.get(`/tenants/property/${propertyId}/listable-units`);
     return asList<Unit>(unwrap(res.data));
   },
   async assignTenant(

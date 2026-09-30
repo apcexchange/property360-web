@@ -43,7 +43,7 @@ export default function AdminListingsPage() {
         <div className="mx-auto max-w-6xl">
           <PageHeader
             title="Marketplace listings"
-            description="Review and control public marketplace listings."
+            description="Publish and review every vacant unit, including properties managed for landlords."
             filters={
               <>
                 <SearchInput
@@ -83,8 +83,8 @@ export default function AdminListingsPage() {
             empty={moderationStatus === "pending" ? "No pending approvals" : "No listings found"}
             emptyDescription={
               moderationStatus === "pending"
-                ? "New marketplace listings waiting for review will appear here."
-                : "Try changing the listing or review status filters."
+                ? "Vacant units awaiting review will appear here."
+                : "No vacant units match these filters."
             }
             columns={[
               {
@@ -144,19 +144,34 @@ export default function AdminListingsPage() {
               {
                 key: "status",
                 header: "Status",
-                render: (r) => <StatusBadge value={r.moderationStatus ?? "approved"} />,
+                render: (r) => (
+                  <StatusBadge
+                    value={
+                      r.isListed && r.listingStatus === "active" && r.moderationStatus === "approved"
+                        ? "public"
+                        : r.moderationStatus ?? "not published"
+                    }
+                  />
+                ),
               },
               {
                 key: "actions",
                 header: "Review",
                 className: "sticky right-0 z-10 min-w-[210px] bg-surface",
-                render: (r) => (
-                  <div className="flex flex-wrap gap-1.5">
-                    <button onClick={() => moderate.mutate({ id: r._id, status: "approved" })} disabled={moderate.isPending} className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-50">Approve</button>
-                    <button onClick={() => moderate.mutate({ id: r._id, status: "paused" })} disabled={moderate.isPending} className="rounded-full border border-amber-300 px-2.5 py-1 text-[11px] font-semibold text-amber-800 disabled:opacity-50">Pause</button>
-                    <button onClick={() => moderate.mutate({ id: r._id, status: "rejected" })} disabled={moderate.isPending} className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-700 disabled:opacity-50">Reject</button>
-                  </div>
-                ),
+                render: (r) => {
+                  const isPublic = r.isListed && r.listingStatus === "active" && r.moderationStatus === "approved";
+                  return (
+                    <div className="flex flex-wrap gap-1.5">
+                      {!isPublic && (
+                        <button onClick={() => moderate.mutate({ id: r._id, status: "approved" })} disabled={moderate.isPending} className="rounded-full bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white disabled:opacity-50">Publish</button>
+                      )}
+                      {isPublic && (
+                        <button onClick={() => moderate.mutate({ id: r._id, status: "paused" })} disabled={moderate.isPending} className="rounded-full border border-amber-300 px-2.5 py-1 text-[11px] font-semibold text-amber-800 disabled:opacity-50">Pause</button>
+                      )}
+                      <button onClick={() => moderate.mutate({ id: r._id, status: "rejected" })} disabled={moderate.isPending} className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-semibold text-red-700 disabled:opacity-50">Reject</button>
+                    </div>
+                  );
+                },
               },
             ]}
           />
