@@ -14,7 +14,7 @@ export default function AdminListingsPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [listingStatus, setListingStatus] = useState("");
-  const [moderationStatus, setModerationStatus] = useState("pending");
+  const [moderationStatus, setModerationStatus] = useState("");
   const limit = 25;
   const qc = useQueryClient();
   const moderate = useMutation({
@@ -57,11 +57,11 @@ export default function AdminListingsPage() {
                   onChange={(v) => { setModerationStatus(v); setPage(1); }}
                   aria-label="Review status"
                 >
+                  <option value="">All review statuses</option>
                   <option value="pending">Pending approval</option>
                   <option value="approved">Approved</option>
                   <option value="rejected">Rejected</option>
                   <option value="paused">Paused</option>
-                  <option value="">All review statuses</option>
                 </Select>
                 <Select
                   value={listingStatus}
