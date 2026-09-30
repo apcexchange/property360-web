@@ -64,6 +64,7 @@ export interface Listing {
   listingStatus?: "active" | "inactive" | "reserved";
   listingPurpose?: "rent" | "sale" | "shortlet";
   listedAt?: string;
+  listingLastConfirmedAt?: string;
   defaultFees?: ListingFees;
   inspectionFee?: number;
   inspectionFeeEnabled?: boolean;
@@ -198,10 +199,25 @@ export function locationLabel(address?: ListingAddress): string {
 }
 
 export function listingTitle(listing: Listing): string {
-  if (listing.listingTitle) return listing.listingTitle;
-  const beds = listing.bedrooms ? `${listing.bedrooms}-bedroom` : "Unit";
-  const type = listing.property?.propertyType || "home";
-  return `${beds} ${type}`;
+  if (listing.listingTitle?.trim()) return listing.listingTitle.trim();
+
+  const type = listing.property?.propertyType;
+  if (type === "land") return "Landed property";
+
+  const typeLabel: Record<string, string> = {
+    house: "House",
+    bungalow: "House",
+    apartment: "Apartment",
+    residential: "Apartment",
+    hostel: "Hostel room",
+    shop: "Shop",
+    commercial: "Commercial space",
+    hotel: "Hotel room",
+  };
+  const label = typeLabel[type ?? ""] ?? "Property";
+  return listing.bedrooms && listing.bedrooms > 0
+    ? `${listing.bedrooms}-bedroom ${label.toLowerCase()}`
+    : label;
 }
 
 export function listingImage(listing: Listing): string | null {

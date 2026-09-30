@@ -139,6 +139,7 @@ export default function NewMarketplacePropertyPage() {
             : {};
       await landlordApi.listUnit(created.unitId, {
         visibility: "public",
+        listingDescription: description.trim() || undefined,
         listingPurpose: propertyType === "hotel" ? "shortlet" : listingPurpose,
         listingDetails: {
           ...baseListingDetails,

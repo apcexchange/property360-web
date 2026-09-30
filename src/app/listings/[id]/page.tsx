@@ -41,10 +41,12 @@ export async function generateMetadata({
   const purpose = listing.listingPurpose ?? "rent";
   const priceLabel = purpose === "sale" ? "for sale at" : purpose === "shortlet" ? "shortlet from" : "for rent at";
   const cadence = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
-  const description =
-    listing.listingDescription ||
+  const rawDescription =
+    listing.listingDescription?.trim() ||
+    listing.property?.description?.trim() ||
     `${listing.bedrooms ?? "—"}-bedroom ${listing.property?.propertyType ?? "property"} ${priceLabel} ${formatNaira(listing.rentAmount)}${cadence} in ${locationLabel(listing.property?.address)}.`;
-  const image = listing.property?.images?.[0];
+  const description = rawDescription.replace(/\s+/g, " ").slice(0, 160);
+  const socialImage = `/listings/${id}/opengraph-image`;
 
   return {
     title,
@@ -55,7 +57,20 @@ export async function generateMetadata({
       description,
       url: `https://property360.africa/listings/${id}`,
       type: "website",
-      images: image ? [image] : undefined,
+      images: [
+        {
+          url: socialImage,
+          width: 1200,
+          height: 630,
+          alt: `${listingTitle(listing)} on Property360`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [socialImage],
     },
   };
 }
@@ -77,6 +92,8 @@ export default async function ListingDetailPage({
     limit: 5,
   }).then((result) => result.listings.filter((item) => item.id !== listing.id).slice(0, 3)).catch(() => []);
   const amenities = listing.property?.amenities ?? [];
+  const listingDescription =
+    listing.listingDescription?.trim() || listing.property?.description?.trim() || "";
   const fees = listing.defaultFees ?? {};
   const details = listing.listingDetails ?? {};
   const salePlan = details.saleInstallmentPlan?.enabled ? details.saleInstallmentPlan : null;
@@ -86,6 +103,12 @@ export default async function ListingDetailPage({
     listing.originalPrice != null && listing.originalPrice > listing.rentAmount;
   const reserved = listing.listingStatus === "reserved";
   const purpose = listing.listingPurpose ?? "rent";
+  const isLand = listing.property?.propertyType === "land";
+  const listingKind = isLand
+    ? "land"
+    : listing.property?.propertyType === "house" || listing.property?.propertyType === "bungalow"
+      ? "house"
+      : "property";
   const priceSuffix = purpose === "sale" ? "" : purpose === "shortlet" ? "/night" : "/year";
   const priceLabel = purpose === "sale" ? "Asking price" : purpose === "shortlet" ? "Nightly rate" : "Annual rent";
   const verified = isLandlordVerified(listing);
@@ -94,6 +117,11 @@ export default async function ListingDetailPage({
     ? `${owner.firstName}${owner.lastName ? ` ${owner.lastName.slice(0, 1)}.` : ""}`
     : "Property360 publisher";
   const publisherType = owner?.role === "agent" ? "Independent agent" : "Property owner";
+  const availabilityConfirmedAt = listing.listingLastConfirmedAt
+    ? new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" }).format(
+        new Date(listing.listingLastConfirmedAt),
+      )
+    : null;
   const contactLabel =
     purpose === "sale" ? "Request details" : owner?.role === "agent" ? "Message the agent" : "Message the owner";
 
@@ -111,7 +139,7 @@ export default async function ListingDetailPage({
     "@context": "https://schema.org",
     "@type": "Apartment",
     name: listingTitle(listing),
-    description: listing.listingDescription,
+    description: listingDescription,
     numberOfRooms: listing.bedrooms,
     floorSize: listing.size
       ? { "@type": "QuantitativeValue", value: listing.size, unitText: "SQM" }
@@ -178,6 +206,12 @@ export default async function ListingDetailPage({
             Verified landlord
           </p>
         )}
+        {availabilityConfirmedAt && (
+          <p className="mt-2 flex items-center gap-1.5 text-[12px] text-ink-muted">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-700" />
+            Availability confirmed {availabilityConfirmedAt}
+          </p>
+        )}
 
         <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-6">
           <ListingGallery
@@ -236,16 +270,27 @@ export default async function ListingDetailPage({
         <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_360px]">
           <div>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-[13.5px] text-foundation-700">
-              <Stat
-                icon={<BedDouble className="h-4 w-4" />}
-                label="Bedrooms"
-                value={listing.bedrooms ?? "—"}
-              />
-              <Stat
-                icon={<Bath className="h-4 w-4" />}
-                label="Bathrooms"
-                value={listing.bathrooms ?? "—"}
-              />
+              {!isLand && (
+                <>
+                  <Stat
+                    icon={<BedDouble className="h-4 w-4" />}
+                    label="Bedrooms"
+                    value={listing.bedrooms ?? "—"}
+                  />
+                  <Stat
+                    icon={<Bath className="h-4 w-4" />}
+                    label="Bathrooms"
+                    value={listing.bathrooms ?? "—"}
+                  />
+                </>
+              )}
+              {isLand && details.landSize != null && (
+                <Stat
+                  icon={<Square className="h-4 w-4" />}
+                  label="Land size"
+                  value={`${details.landSize} ${details.landUnit ?? "sqm"}`}
+                />
+              )}
               {listing.size ? (
                 <Stat
                   icon={<Square className="h-4 w-4" />}
@@ -269,10 +314,10 @@ export default async function ListingDetailPage({
               ) : null}
             </div>
 
-            {listing.listingDescription && (
-              <Section title="About this home">
+            {listingDescription && (
+              <Section title={`About this ${listingKind}`}>
                 <p className="whitespace-pre-line text-[15px] leading-[1.65] text-ink-body">
-                  {listing.listingDescription}
+                  {listingDescription}
                 </p>
               </Section>
             )}

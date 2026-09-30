@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Globe2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleAlert, Globe2, ShieldCheck } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
 import {
@@ -33,11 +33,31 @@ export default function ListUnitPage() {
     queryFn: () => landlordApi.getListableUnits(propertyId),
     enabled: !!propertyId,
   });
+  const selectedProperty = properties.data?.find((property) => property._id === propertyId);
+  const selectedUnit = vacant.data?.find((unit) => unit._id === unitId);
+  const qualityChecks = [
+    {
+      label: "Price and unit details",
+      ready: Boolean(selectedUnit && selectedUnit.rentAmount > 0),
+    },
+    {
+      label: "Location",
+      ready: Boolean(selectedProperty?.address?.city && selectedProperty?.address?.state),
+    },
+    {
+      label: "At least one property photo",
+      ready: Boolean(selectedProperty?.images?.length),
+    },
+    {
+      label: "A public description",
+      ready: Boolean(description.trim() || selectedProperty?.description?.trim()),
+    },
+  ];
 
   const list = useMutation({
     mutationFn: () =>
       landlordApi.listUnit(unitId, {
-        description: description.trim() || undefined,
+        listingDescription: description.trim() || undefined,
         visibility: "public",
       }),
     onSuccess: () => router.push("/app/marketplace"),
@@ -139,6 +159,36 @@ export default function ListUnitPage() {
               className="w-full rounded-xl border border-foundation-700/15 bg-paper px-3.5 py-2.5 text-[14px] text-foundation-700"
             />
           </Card>
+
+          {propertyId && (
+            <Card className="p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-muted">
+                    Listing quality
+                  </p>
+                  <p className="mt-1 text-[13px] text-foundation-700">
+                    Complete details help buyers trust and enquire about your listing.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-foundation-700/5 px-2.5 py-1 text-[11px] font-semibold text-foundation-700">
+                  {qualityChecks.filter((check) => check.ready).length}/{qualityChecks.length}
+                </span>
+              </div>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                {qualityChecks.map((check) => (
+                  <li key={check.label} className="flex items-center gap-2 text-[12.5px] text-ink-muted">
+                    {check.ready ? (
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" />
+                    ) : (
+                      <CircleAlert className="h-4 w-4 shrink-0 text-amber-600" />
+                    )}
+                    {check.label}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           <p className="flex items-center gap-2 text-[12px] text-ink-muted">
             <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-700" />
