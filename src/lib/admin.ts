@@ -139,6 +139,8 @@ export interface AdminListingRow {
   rentAmount: number;
   bedrooms?: number;
   bathrooms?: number;
+  isOccupied?: boolean;
+  isListed?: boolean;
   listingTitle?: string;
   listingStatus: "active" | "inactive" | "reserved";
   moderationStatus?: "pending" | "approved" | "rejected" | "paused";

@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Plus,
   Pencil,
+  Globe2,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -121,6 +122,14 @@ export default function PropertyDetailPage() {
             </Link>
             {id && (
               <Link
+                href={`/app/marketplace/list-unit?propertyId=${id}`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-foundation-700 px-4 py-2 text-[12.5px] font-semibold text-paper transition hover:bg-foundation-800"
+              >
+                <Globe2 className="h-4 w-4" /> Publish vacancy
+              </Link>
+            )}
+            {id && (
+              <Link
                 href={`/app/properties/${id}/agreement-templates`}
                 className="inline-flex items-center gap-1.5 rounded-full border border-foundation-700/10 bg-paper px-4 py-2 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
               >
@@ -211,6 +220,22 @@ export default function PropertyDetailPage() {
                 </Link>
                 {id && (
                   <Link
+                    href={`/app/marketplace/list-unit?propertyId=${id}`}
+                    className="flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 transition hover:border-emerald-300 hover:bg-emerald-50"
+                  >
+                    <div>
+                      <p className="text-[13px] font-semibold text-foundation-700">
+                        Publish a vacancy
+                      </p>
+                      <p className="text-[12px] text-ink-muted">
+                        Make a vacant unit publicly discoverable
+                      </p>
+                    </div>
+                    <Globe2 className="h-4 w-4 text-emerald-700" />
+                  </Link>
+                )}
+                {id && (
+                  <Link
                     href={`/app/properties/${id}/agreement-templates`}
                     className="flex items-center justify-between rounded-2xl border border-foundation-700/10 bg-paper p-4 transition hover:border-foundation-700/20"
                   >
@@ -287,6 +312,7 @@ export default function PropertyDetailPage() {
                     <UnitRow
                       key={u._id}
                       u={u}
+                      propertyId={id}
                       onEdit={() => setUnitModal({ mode: "edit", unit: u })}
                       onDelete={() => setUnitToDelete(u)}
                     />
@@ -429,10 +455,12 @@ export default function PropertyDetailPage() {
 
 function UnitRow({
   u,
+  propertyId,
   onEdit,
   onDelete,
 }: {
   u: Unit;
+  propertyId: string;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -447,6 +475,12 @@ function UnitRow({
             label={u.isOccupied ? "Occupied" : "Vacant"}
             tone={u.isOccupied ? "good" : "warn"}
           />
+          {u.isListed && (
+            <StatusPill
+              label={u.moderationStatus === "approved" ? "Public" : "In review"}
+              tone={u.moderationStatus === "approved" ? "info" : "warn"}
+            />
+          )}
         </div>
         <p className="mt-1 text-[12.5px] text-ink-muted">
           {u.bedrooms} bed · {u.bathrooms} bath
@@ -469,6 +503,14 @@ function UnitRow({
               className="whitespace-nowrap rounded-full border border-foundation-700/10 bg-paper px-3 py-1.5 text-[11.5px] font-semibold text-foundation-700 transition hover:bg-foundation-700/5"
             >
               <UserPlus className="mr-1 inline h-3 w-3" /> Assign
+            </Link>
+          )}
+          {!u.isOccupied && !u.isListed && (
+            <Link
+              href={`/app/marketplace/list-unit?propertyId=${propertyId}&unitId=${u._id}`}
+              className="whitespace-nowrap rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-[11.5px] font-semibold text-emerald-800 transition hover:bg-emerald-100"
+            >
+              <Globe2 className="mr-1 inline h-3 w-3" /> List publicly
             </Link>
           )}
           {u.isOccupied && (
