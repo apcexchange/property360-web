@@ -55,8 +55,11 @@ export default function PropertiesPage() {
     staleTime: 60_000,
   });
   const ownership = stats.data?.propertyOwnership ?? {};
+  const selectedOwnership = portfolio === "own" ? "self" : "managed";
   const visibleProperties = (q.data ?? []).filter((property) =>
-    !isAgent ? true : (ownership[property._id]?.ownership ?? "self") === portfolio
+    !isAgent
+      ? true
+      : (ownership[property._id]?.ownership ?? "self") === selectedOwnership,
   );
   const ownedCount = (q.data ?? []).filter(
     (property) => (ownership[property._id]?.ownership ?? "self") === "self"
