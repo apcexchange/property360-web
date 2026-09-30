@@ -18,8 +18,8 @@ export default function AdminListingsPage() {
   const limit = 25;
   const qc = useQueryClient();
   const moderate = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "approved" | "rejected" | "paused" }) =>
-      adminApi.setListingModeration(id, status),
+    mutationFn: ({ id, status, listingPurpose }: { id: string; status?: "approved" | "rejected" | "paused"; listingPurpose?: "rent" | "sale" | "shortlet" }) =>
+      adminApi.setListingModeration(id, status, undefined, listingPurpose),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "listings"] }),
   });
 
@@ -43,7 +43,7 @@ export default function AdminListingsPage() {
         <div className="mx-auto max-w-6xl">
           <PageHeader
             title="Marketplace listings"
-            description="Publish and review every vacant unit, including properties managed for landlords."
+            description="Publish and review vacant units only, including properties managed for landlords."
             filters={
               <>
                 <SearchInput
@@ -76,6 +76,11 @@ export default function AdminListingsPage() {
               </>
             }
           />
+
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[12px] font-semibold text-emerald-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            Vacant units only — occupied homes are never shown or publishable here.
+          </div>
 
           <DataTable
             loading={isLoading}
@@ -138,6 +143,24 @@ export default function AdminListingsPage() {
                   <span className="text-xs capitalize text-ink-muted">
                     {r.preferredTenantType ?? "any"}
                   </span>
+                ),
+              },
+              {
+                key: "listingPurpose",
+                header: "Listing type",
+                render: (r) => (
+                  <select
+                    aria-label={`Listing type for ${r.listingTitle ?? r.property?.name ?? `unit ${r.unitNumber}`}`}
+                    value={r.listingPurpose ?? "rent"}
+                    disabled={moderate.isPending}
+                    onClick={(event) => event.stopPropagation()}
+                    onChange={(event) => moderate.mutate({ id: r._id, listingPurpose: event.target.value as "rent" | "sale" | "shortlet" })}
+                    className="rounded-lg border border-foundation-700/15 bg-paper px-2 py-1 text-xs font-medium text-foundation-700"
+                  >
+                    <option value="rent">For rent</option>
+                    <option value="sale">For sale</option>
+                    <option value="shortlet">Shortlet</option>
+                  </select>
                 ),
               },
               { key: "listedAt", header: "Listed", render: (r) => formatDate(r.listedAt) },
