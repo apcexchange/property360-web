@@ -5,10 +5,13 @@ import { getListings } from "@/lib/listings-api";
 
 /** Live marketplace preview for the home page. */
 export async function FeaturedProperties() {
-  const result = await getListings({ limit: 4 }).catch(() => ({
+  const featured = await getListings({ featured: true, limit: 4 }).catch(() => ({
     listings: [],
     meta: { total: 0, page: 1, limit: 4, totalPages: 0 },
   }));
+  // Before the first editorial selections are made, retain a useful home-page
+  // marketplace preview rather than showing an empty feature area.
+  const result = featured.listings.length > 0 ? featured : await getListings({ limit: 4 }).catch(() => featured);
 
   return (
     <section id="featured-properties" className="relative overflow-hidden border-y border-foundation-700/10 bg-foundation-700 py-20 text-paper sm:py-24">

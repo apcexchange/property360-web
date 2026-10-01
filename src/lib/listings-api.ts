@@ -67,6 +67,7 @@ export interface Listing {
   listingPurpose?: "rent" | "sale" | "shortlet";
   listedAt?: string;
   listingLastConfirmedAt?: string;
+  isFeatured?: boolean;
   defaultFees?: ListingFees;
   inspectionFee?: number;
   inspectionFeeEnabled?: boolean;
@@ -126,6 +127,7 @@ export interface ListingsQuery {
   bedrooms?: number;
   search?: string;
   purpose?: "rent" | "sale" | "shortlet";
+  featured?: boolean;
 }
 
 interface Envelope<T> {

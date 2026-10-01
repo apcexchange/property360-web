@@ -141,6 +141,7 @@ export interface AdminListingRow {
   bathrooms?: number;
   isOccupied?: boolean;
   isListed?: boolean;
+  isFeatured?: boolean;
   listingTitle?: string;
   listingPurpose?: "rent" | "sale" | "shortlet";
   listingStatus: "active" | "inactive" | "reserved";
@@ -731,8 +732,9 @@ const adminApi = {
     status?: "approved" | "rejected" | "paused",
     reason?: string,
     listingPurpose?: "rent" | "sale" | "shortlet",
+    isFeatured?: boolean,
   ): Promise<AdminListingRow> {
-    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason, listingPurpose });
+    const res = await api.patch<ApiEnvelope<AdminListingRow>>(`/admin/listings/${unitId}/moderation`, { status, reason, listingPurpose, isFeatured });
     return unwrap(res.data);
   },
 

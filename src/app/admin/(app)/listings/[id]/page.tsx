@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BadgeCheck, CalendarDays, MapPin, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, ShieldCheck, Star, UserRound } from "lucide-react";
 import { Topbar } from "@/components/admin/Topbar";
 import { PageHeader } from "@/components/admin/ui/PageHeader";
 import { StatusBadge } from "@/components/admin/DataTable";
@@ -24,8 +24,8 @@ export default function AdminListingDetailPage() {
     queryFn: () => adminApi.getListingDetail(id),
   });
   const review = useMutation({
-    mutationFn: ({ status, listingPurpose }: { status?: "approved" | "rejected" | "paused"; listingPurpose?: "rent" | "sale" | "shortlet" }) =>
-      adminApi.setListingModeration(id, status, undefined, listingPurpose),
+    mutationFn: ({ status, listingPurpose, isFeatured }: { status?: "approved" | "rejected" | "paused"; listingPurpose?: "rent" | "sale" | "shortlet"; isFeatured?: boolean }) =>
+      adminApi.setListingModeration(id, status, undefined, listingPurpose, isFeatured),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "listings"] });
     },
@@ -79,6 +79,7 @@ export default function AdminListingDetailPage() {
               <div className="mt-5 grid gap-2">
                 {!isPublic && <Button variant="primary" size="sm" disabled={review.isPending} onClick={() => review.mutate({ status: "approved" })}>{review.isPending ? "Saving…" : "Publish listing"}</Button>}
                 {isPublic && <Button variant="secondary" size="sm" disabled={review.isPending} onClick={() => review.mutate({ status: "paused" })}>Pause listing</Button>}
+                {isPublic && <Button variant={listing.isFeatured ? "secondary" : "success"} size="sm" disabled={review.isPending} onClick={() => review.mutate({ isFeatured: !listing.isFeatured })}><Star className={`h-3.5 w-3.5 ${listing.isFeatured ? "fill-cryola-300 text-cryola-500" : ""}`} /> {listing.isFeatured ? "Remove from featured" : "Feature on home page"}</Button>}
                 <Button variant="danger" size="sm" disabled={review.isPending} onClick={() => review.mutate({ status: "rejected" })}>Reject listing</Button>
               </div>
               {review.isError && <p className="mt-3 text-xs text-error">Couldn&apos;t save this change. Try again.</p>}
