@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Plus,
@@ -15,6 +15,7 @@ import {
   VideoIcon,
   X,
   Loader2,
+  LockKeyhole,
 } from "lucide-react";
 import { AxiosError } from "axios";
 import { AppTopbar } from "@/components/app/Topbar";
@@ -34,6 +35,11 @@ import {
   NIGERIA_STATE_NAMES,
   citiesForState,
 } from "@/lib/nigeria-locations";
+import { billingApi, hasPaidVideoUploadAccess } from "@/lib/billing-api";
+import {
+  SUBSCRIPTION_LIMIT_EVENT,
+  SubscriptionLimitDetail,
+} from "@/lib/api";
 
 interface UnitDraft {
   unitNumber: string;
@@ -67,6 +73,11 @@ const AMENITIES = [
 
 export default function NewPropertyPage() {
   const router = useRouter();
+  const subscription = useQuery({
+    queryKey: ["subscription", "me"],
+    queryFn: () => billingApi.getSubscription(),
+    staleTime: 60_000,
+  });
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [propertyType, setPropertyType] = useState<PropertyType>("residential");
@@ -116,6 +127,18 @@ export default function NewPropertyPage() {
   // typing on multi-unit buildings where every flat carries the same
   // security deposit, caution fee, agent fee, etc.
   const [quickFees, setQuickFees] = useState<UnitFees>({});
+  const videoUploadLocked = Boolean(
+    subscription.data && !hasPaidVideoUploadAccess(subscription.data)
+  );
+
+  function showVideoUpgrade() {
+    const detail: SubscriptionLimitDetail = {
+      reason: "VIDEO_UPLOAD_NOT_IN_PLAN",
+    };
+    window.dispatchEvent(
+      new CustomEvent(SUBSCRIPTION_LIMIT_EVENT, { detail })
+    );
+  }
 
   function quickFeesHaveValues(): boolean {
     return hasAnyFees(quickFees);
@@ -593,7 +616,9 @@ export default function NewPropertyPage() {
             videos={videos}
             uploadingImage={uploadingImage}
             uploadingVideo={uploadingVideo}
+            videoUploadLocked={videoUploadLocked}
             error={mediaError}
+            onVideoUpgrade={showVideoUpgrade}
             onAddImage={async (file) => {
               setMediaError(null);
               setUploadingImage(true);
@@ -836,7 +861,9 @@ function MediaCard({
   videos,
   uploadingImage,
   uploadingVideo,
+  videoUploadLocked,
   error,
+  onVideoUpgrade,
   onAddImage,
   onRemoveImage,
   onAddVideo,
@@ -846,7 +873,9 @@ function MediaCard({
   videos: string[];
   uploadingImage: boolean;
   uploadingVideo: boolean;
+  videoUploadLocked: boolean;
   error: string | null;
+  onVideoUpgrade: () => void;
   onAddImage: (file: File) => void;
   onRemoveImage: (url: string) => void;
   onAddVideo: (file: File) => void;
@@ -957,25 +986,36 @@ function MediaCard({
             </div>
           ))}
 
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-foundation-700/25 bg-paper px-4 py-2 text-[12px] font-semibold text-foundation-700 transition hover:border-foundation-700/50 hover:bg-foundation-700/[0.02]">
-            {uploadingVideo ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Plus className="h-3.5 w-3.5" />
-            )}
-            <span>{uploadingVideo ? "Uploading video…" : "Add video"}</span>
-            <input
-              type="file"
-              accept="video/mp4,video/quicktime,video/webm"
-              className="sr-only"
-              disabled={uploadingVideo}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) onAddVideo(file);
-                e.target.value = "";
-              }}
-            />
-          </label>
+          {videoUploadLocked ? (
+            <button
+              type="button"
+              onClick={onVideoUpgrade}
+              className="inline-flex items-center gap-2 rounded-full border border-dashed border-cryola-500/55 bg-cryola-300/10 px-4 py-2 text-[12px] font-semibold text-foundation-700 transition hover:bg-cryola-300/20"
+            >
+              <LockKeyhole className="h-3.5 w-3.5" />
+              <span>Upload videos · upgrade</span>
+            </button>
+          ) : (
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-dashed border-foundation-700/25 bg-paper px-4 py-2 text-[12px] font-semibold text-foundation-700 transition hover:border-foundation-700/50 hover:bg-foundation-700/[0.02]">
+              {uploadingVideo ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Plus className="h-3.5 w-3.5" />
+              )}
+              <span>{uploadingVideo ? "Uploading video…" : "Add video"}</span>
+              <input
+                type="file"
+                accept="video/mp4,video/quicktime,video/webm"
+                className="sr-only"
+                disabled={uploadingVideo}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) onAddVideo(file);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
         </div>
       </div>
     </Card>

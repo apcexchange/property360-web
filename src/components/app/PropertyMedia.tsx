@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import {
   ImagePlus,
@@ -13,11 +13,17 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  LockKeyhole,
 } from "lucide-react";
 import { Card } from "./ui";
 import { landlordApi, Property } from "@/lib/landlord-api";
 import { DEFAULT_PROPERTY_IMAGE } from "@/lib/propertyImage";
 import { useToast } from "@/components/ui/Toast";
+import { billingApi, hasPaidVideoUploadAccess } from "@/lib/billing-api";
+import {
+  SUBSCRIPTION_LIMIT_EVENT,
+  SubscriptionLimitDetail,
+} from "@/lib/api";
 
 // Property media (images + videos) are stored on the backend as flat arrays
 // of Cloudinary secure_url strings, see backend Property model. Coerce
@@ -55,10 +61,30 @@ export function PropertyMediaCard({
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [saving, setSaving] = useState(false);
   const [lightbox, setLightbox] = useState<Lightbox>(null);
+  const subscription = useQuery({
+    queryKey: ["subscription", "me"],
+    queryFn: () => billingApi.getSubscription(),
+    staleTime: 60_000,
+  });
 
   const images = cleanUrls(property.images);
   const videos = cleanUrls(property.videos);
   const hasMedia = images.length > 0 || videos.length > 0;
+  // Do not lock while the subscription request is still resolving — a paid
+  // user should never see an incorrect upgrade prompt because of a slow
+  // connection. The API repeats the enforcement as the final safeguard.
+  const videoUploadLocked = Boolean(
+    subscription.data && !hasPaidVideoUploadAccess(subscription.data)
+  );
+
+  function showVideoUpgrade() {
+    const detail: SubscriptionLimitDetail = {
+      reason: "VIDEO_UPLOAD_NOT_IN_PLAN",
+    };
+    window.dispatchEvent(
+      new CustomEvent(SUBSCRIPTION_LIMIT_EVENT, { detail })
+    );
+  }
 
   // Patch the cached property so new media renders the instant an upload
   // resolves, before the PUT + refetch completes.
@@ -209,15 +235,26 @@ export function PropertyMediaCard({
           disabled={uploadingImages || saving}
           onFiles={addImages}
         />
-        <UploadButton
-          label="Add videos"
-          busyLabel="Uploading videos…"
-          icon={<Film className="h-3.5 w-3.5" />}
-          accept="video/mp4,video/quicktime,video/webm"
-          busy={uploadingVideos}
-          disabled={uploadingVideos || saving}
-          onFiles={addVideos}
-        />
+        {videoUploadLocked ? (
+          <button
+            type="button"
+            onClick={showVideoUpgrade}
+            className="flex items-center justify-center gap-2 rounded-full border border-dashed border-cryola-500/55 bg-cryola-300/10 px-4 py-2.5 text-[12.5px] font-semibold text-foundation-700 transition hover:bg-cryola-300/20"
+          >
+            <LockKeyhole className="h-3.5 w-3.5" />
+            Upload videos · upgrade
+          </button>
+        ) : (
+          <UploadButton
+            label="Add videos"
+            busyLabel="Uploading videos…"
+            icon={<Film className="h-3.5 w-3.5" />}
+            accept="video/mp4,video/quicktime,video/webm"
+            busy={uploadingVideos}
+            disabled={uploadingVideos || saving}
+            onFiles={addVideos}
+          />
+        )}
       </div>
 
       {!hasMedia ? (

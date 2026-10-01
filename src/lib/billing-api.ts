@@ -60,6 +60,21 @@ export interface SubscriptionNotApplicable {
 
 export type SubscriptionResponse = SubscriptionView | SubscriptionNotApplicable;
 
+/** Paid plans include active Solo, Pro, Agency, Custom, and Founding plans.
+ * A trial remains useful for free listings, but does not include video
+ * storage/uploading. Kept here so every upload entry point makes the same
+ * decision before opening a file picker. */
+export function hasPaidVideoUploadAccess(
+  subscription: SubscriptionResponse | undefined
+): boolean {
+  return Boolean(
+    subscription &&
+      subscription.applicable &&
+      subscription.status === "active" &&
+      subscription.tier !== "trial"
+  );
+}
+
 interface CheckoutResponse {
   authorizationUrl: string;
   reference: string;
