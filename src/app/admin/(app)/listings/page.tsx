@@ -166,6 +166,13 @@ export default function AdminListingsPage() {
                   </select>
                 ),
               },
+              {
+                key: "featured",
+                header: "Home page",
+                render: (r) => r.isFeatured ? (
+                  <span className="rounded-full bg-cryola-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-foundation-700">Featured</span>
+                ) : <span className="text-xs text-ink-faint">Standard</span>,
+              },
               { key: "listedAt", header: "Listed", render: (r) => formatDate(r.listedAt) },
               {
                 key: "status",
