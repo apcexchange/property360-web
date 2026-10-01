@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Sparkles, X, AlertTriangle, Clock, Wand2 } from "lucide-react";
+import { Sparkles, X, AlertTriangle, Clock, Wand2, Video } from "lucide-react";
 import {
   SubscriptionLimitDetail,
   SubscriptionLimitReason,
@@ -116,6 +116,8 @@ export function SubscriptionLimitModal() {
               ? "Reactivate plan"
               : detail.reason === "AI_FEATURE_NOT_IN_PLAN"
               ? "Upgrade to Pro"
+              : detail.reason === "VIDEO_UPLOAD_NOT_IN_PLAN"
+              ? "Upgrade to upload videos"
               : "Upgrade plan"}
           </Link>
           <button
@@ -161,5 +163,11 @@ const META_FOR_REASON: Record<SubscriptionLimitReason, ReasonMeta> = {
     title: "AI drafting is on Pro and above",
     body: () =>
       "AI-drafted tenancy agreements are included on the Pro plan and up. You can keep using the manual editor on your current plan, or upgrade to draft and refine with one click.",
+  },
+  VIDEO_UPLOAD_NOT_IN_PLAN: {
+    Icon: Video,
+    title: "Video uploads are on paid plans",
+    body: () =>
+      "Photos remain free to add to your listing. Upgrade your plan to upload walk-through videos and give prospective customers a fuller view of the property.",
   },
 };
