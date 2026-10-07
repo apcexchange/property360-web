@@ -22,9 +22,10 @@ export interface Stats {
   pendingKycCount?: number;
   pendingReportCount?: number;
   pendingDeletionCount?: number;
-  rentCollected30d?: number;
-  rentCollectedPrev30d?: number;
-  payoutsCompleted30d?: number;
+  rangeDays?: number;
+  rentCollected?: number;
+  rentCollectedPreviousPeriod?: number;
+  payoutsCompleted?: number;
 }
 
 export interface AdminLeaseRow {
@@ -116,6 +117,7 @@ export interface AdminUserDetail {
 
 export interface FinancialReport {
   rangeDays: number;
+  seriesGranularity: "day" | "month";
   revenueSeries: { date: string; total: number }[];
   topLandlords: {
     landlordId: string;
@@ -624,8 +626,10 @@ const adminApi = {
     return unwrap(res.data);
   },
 
-  async getStats(): Promise<Stats> {
-    const res = await api.get<ApiEnvelope<Stats>>("/admin/stats");
+  async getStats(rangeDays = 30): Promise<Stats> {
+    const res = await api.get<ApiEnvelope<Stats>>("/admin/stats", {
+      params: { range: rangeDays },
+    });
     return unwrap(res.data);
   },
 

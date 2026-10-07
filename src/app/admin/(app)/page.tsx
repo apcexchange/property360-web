@@ -5,11 +5,26 @@ import { DataTable, StatusBadge } from "@/components/admin/DataTable";
 import { PageHeader } from "@/components/admin/ui/PageHeader";
 import { StatCard } from "@/components/admin/ui/StatCard";
 import { Card, CardHeader } from "@/components/admin/ui/Card";
-import { Button } from "@/components/admin/ui/Filters";
+import { Button, Select } from "@/components/admin/ui/Filters";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import adminApi from "@/lib/admin";
 import { formatNgn, formatDate } from "@/lib/format";
+import { useState } from "react";
+
+const RANGE_OPTIONS = [
+  { value: 0, label: "All time" },
+  { value: 7, label: "Last 7 days" },
+  { value: 30, label: "Last 30 days" },
+  { value: 90, label: "Last 3 months" },
+  { value: 180, label: "Last 6 months" },
+  { value: 365, label: "Last 12 months" },
+];
+
+function getRangeLabel(days: number): string {
+  const option = RANGE_OPTIONS.find((item) => item.value === days);
+  return option?.label.replace("Last ", "") ?? `${days} days`;
+}
 
 function pctDelta(current?: number, previous?: number): number | undefined {
   if (
@@ -47,9 +62,10 @@ function todayDateline(): string {
 }
 
 export default function AdminDashboard() {
+  const [range, setRange] = useState(30);
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["admin", "stats"],
-    queryFn: adminApi.getStats,
+    queryKey: ["admin", "stats", range],
+    queryFn: () => adminApi.getStats(range),
   });
 
   const { data: recent, isLoading: recentLoading } = useQuery({
@@ -57,7 +73,10 @@ export default function AdminDashboard() {
     queryFn: () => adminApi.listTransactions({ page: 1, limit: 6 }),
   });
 
-  const rentDelta = stats ? pctDelta(stats.rentCollected30d, stats.rentCollectedPrev30d) : undefined;
+  const rentDelta = stats
+    ? pctDelta(stats.rentCollected, stats.rentCollectedPreviousPeriod)
+    : undefined;
+  const rangeLabel = getRangeLabel(stats?.rangeDays ?? range);
 
   return (
     <>
@@ -68,20 +87,33 @@ export default function AdminDashboard() {
             eyebrow={todayDateline()}
             title="The state of the desk."
             description="Live figures from the production API, rent received, payouts settled, occupancy held."
+            filters={
+              <Select
+                aria-label="Dashboard date range"
+                value={String(range)}
+                onChange={(value) => setRange(Number(value))}
+              >
+                {RANGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+            }
           />
 
           {/* Headline KPIs (with period delta where it makes sense) */}
           <div className="grid grid-cols-1 gap-px overflow-hidden bg-rule sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              label="Rent collected · 30d"
-              value={formatNgn(stats?.rentCollected30d)}
+              label={`Rent collected · ${rangeLabel}`}
+              value={formatNgn(stats?.rentCollected)}
               loading={statsLoading}
               delta={rentDelta}
-              hint="vs. prior 30d"
+              hint={range === 0 ? "all completed rent + deposit payments" : `vs. prior ${rangeLabel}`}
             />
             <StatCard
-              label="Payouts · 30d"
-              value={formatNgn(stats?.payoutsCompleted30d)}
+              label={`Payouts · ${rangeLabel}`}
+              value={formatNgn(stats?.payoutsCompleted)}
               loading={statsLoading}
               hint="settled to landlords"
             />

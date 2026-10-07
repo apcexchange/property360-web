@@ -24,14 +24,26 @@ import {
 } from "recharts";
 
 const RANGE_OPTIONS = [
+  { value: 0, label: "All time" },
   { value: 7, label: "Last 7 days" },
   { value: 30, label: "Last 30 days" },
-  { value: 90, label: "Last 90 days" },
+  { value: 90, label: "Last 3 months" },
+  { value: 180, label: "Last 6 months" },
   { value: 365, label: "Last 12 months" },
 ];
 
 const FOUNDATION_700 = "#13272C";
 const CRYOLA_500 = "#8AD148";
+
+function formatSeriesDate(value: string, granularity: "day" | "month"): string {
+  const date = new Date(granularity === "month" ? `${value}-01T00:00:00` : value);
+  return date.toLocaleDateString(
+    "en-NG",
+    granularity === "month"
+      ? { month: "short", year: "numeric" }
+      : { month: "short", day: "numeric" },
+  );
+}
 
 export default function AdminFinancialReportsPage() {
   const [range, setRange] = useState(30);
@@ -40,6 +52,10 @@ export default function AdminFinancialReportsPage() {
     queryKey: ["admin", "financial-report", range],
     queryFn: () => adminApi.getFinancialReport(range),
   });
+  const activeRange = data?.rangeDays ?? range;
+  const rangeLabel =
+    RANGE_OPTIONS.find((option) => option.value === activeRange)?.label.replace("Last ", "") ??
+    `${activeRange} days`;
 
   return (
     <>
@@ -50,7 +66,11 @@ export default function AdminFinancialReportsPage() {
             title="Financial reports"
             description="Platform revenue, payouts, and top landlords."
             filters={
-              <Select value={String(range)} onChange={(v) => setRange(Number(v))}>
+              <Select
+                aria-label="Report date range"
+                value={String(range)}
+                onChange={(v) => setRange(Number(v))}
+              >
                 {RANGE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
@@ -62,13 +82,13 @@ export default function AdminFinancialReportsPage() {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
-              label={`Revenue (${data?.rangeDays ?? range}d)`}
+              label={`Revenue · ${rangeLabel}`}
               value={data ? formatNgn(data.totals.revenue) : "—"}
               loading={isLoading}
               hint={data ? `${data.totals.revenueCount} payments` : undefined}
             />
             <StatCard
-              label={`Payouts (${data?.rangeDays ?? range}d)`}
+              label={`Payouts · ${rangeLabel}`}
               value={data ? formatNgn(data.totals.payouts) : "—"}
               loading={isLoading}
               hint={data ? `${data.totals.payoutsCount} settled` : undefined}
@@ -96,7 +116,10 @@ export default function AdminFinancialReportsPage() {
 
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
             <Card className="lg:col-span-2">
-              <CardHeader title="Revenue over time" description="Completed rent + deposit payments per day." />
+              <CardHeader
+                title="Revenue over time"
+                description={`Completed rent + deposit payments per ${data?.seriesGranularity ?? "day"}.`}
+              />
               <CardBody className="h-72">
                 {isLoading ? (
                   <Skeleton className="h-full w-full" />
@@ -115,12 +138,7 @@ export default function AdminFinancialReportsPage() {
                       <XAxis
                         dataKey="date"
                         tick={{ fontSize: 11, fill: "#546881" }}
-                        tickFormatter={(v) =>
-                          new Date(v).toLocaleDateString("en-NG", {
-                            month: "short",
-                            day: "numeric",
-                          })
-                        }
+                        tickFormatter={(v) => formatSeriesDate(String(v), data?.seriesGranularity ?? "day")}
                       />
                       <YAxis
                         tick={{ fontSize: 11, fill: "#546881" }}
@@ -134,7 +152,11 @@ export default function AdminFinancialReportsPage() {
                       />
                       <Tooltip
                         formatter={(v) => [formatNgn(Number(v)), "Revenue"]}
-                        labelFormatter={(label) => formatDate(String(label))}
+                        labelFormatter={(label) =>
+                          data
+                            ? formatSeriesDate(String(label), data.seriesGranularity)
+                            : formatDate(String(label))
+                        }
                         contentStyle={{
                           fontSize: 12,
                           borderRadius: 8,
