@@ -19,12 +19,12 @@ const securityHeaders = [
 // PostHog (EU), Cloudinary images, the backend API, and YouTube (demo page).
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.smartsuppchat.com https://*.smartsupp.com https://eu.i.posthog.com https://eu-assets.i.posthog.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.smartsuppchat.com https://*.smartsupp.com https://eu.i.posthog.com https://eu-assets.i.posthog.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.google.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://res.cloudinary.com https://api.property360.africa https://*.posthog.com https://i.ytimg.com",
+  "img-src 'self' data: blob: https://res.cloudinary.com https://api.property360.africa https://*.posthog.com https://i.ytimg.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://api.property360.africa https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.smartsupp.com wss://*.smartsupp.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
-  "frame-src 'self' https://*.smartsupp.com https://www.youtube.com https://www.youtube-nocookie.com",
+  "connect-src 'self' https://api.property360.africa https://eu.i.posthog.com https://eu-assets.i.posthog.com https://*.smartsupp.com wss://*.smartsupp.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com",
+  "frame-src 'self' https://*.smartsupp.com https://www.youtube.com https://www.youtube-nocookie.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.doubleclick.net https://*.google.com",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

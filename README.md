@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Google AdSense
+
+The root layout loads the AdSense script on every page, including signed-in
+areas, using publisher ID `pub-6826676959841764`. The publisher declaration is
+served from `/ads.txt`. After deploying, verify the site and enable Auto ads in
+the AdSense account. AdSense approval and ad delivery are managed by Google;
+ads may not appear until the site is approved.
+
+The cookie notice discloses AdSense use. Its analytics decline option does not
+disable Google advertising cookies; see the privacy policy for Google's
+advertising privacy and settings links.
+
 ## Getting Started
 
 First, run the development server:
