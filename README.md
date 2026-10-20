@@ -3,7 +3,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ## Google AdSense
 
 The root layout loads the AdSense script on every page, including signed-in
-areas, using publisher ID `pub-6826676959841764`. The publisher declaration is
+areas, using publisher ID `pub-6961943244890229`. The publisher declaration is
 served from `/ads.txt`. After deploying, verify the site and enable Auto ads in
 the AdSense account. AdSense approval and ad delivery are managed by Google;
 ads may not appear until the site is approved.
