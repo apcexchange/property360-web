@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" updated="10 May 2026">
+    <LegalLayout title="Privacy Policy" updated="20 October 2026">
       <p>
         Property360 (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates the Property360 mobile application
         and the <a href="https://api.property360.africa">api.property360.africa</a> service
@@ -42,6 +42,7 @@ export default function PrivacyPage() {
         <li>IP address and approximate location derived from it.</li>
         <li>Usage events and crash logs used to diagnose problems and improve the Service.</li>
         <li>Authentication tokens and session identifiers.</li>
+        <li>Advertising data, including cookie or device identifiers and interactions with ads, collected by Google AdSense when ads are displayed on the website, including signed-in pages.</li>
       </ul>
 
       <h3>1.3 Information from third parties</h3>
@@ -63,10 +64,7 @@ export default function PrivacyPage() {
       </ul>
 
       <h2>3. Third-Party Service Providers (Sub-processors)</h2>
-      <p>
-        We use the following providers to deliver the Service. Each receives only the
-        data necessary for the purpose listed and is contractually bound to safeguard it.
-      </p>
+      <p>We use the following providers to deliver the Service:</p>
       <ul>
         <li><strong>Paystack Payments Limited</strong>, card, bank transfer, and USSD payment processing; landlord payouts via the Paystack Transfer API. (Nigeria)</li>
         <li><strong>Cloudinary Ltd.</strong>, storage and delivery of images and PDF documents you upload (profile photos, tenancy agreements, maintenance photos). (Israel / EU / US)</li>
@@ -76,7 +74,22 @@ export default function PrivacyPage() {
         <li><strong>Render Services, Inc.</strong>, application hosting for the API. (Germany / EU)</li>
         <li><strong>Apple Inc.</strong> and <strong>Google LLC</strong>, mobile push notification delivery via APNs and FCM respectively.</li>
       </ul>
-      <p>We do not sell your personal data and we do not share it with advertisers.</p>
+      <p>
+        <strong>Google LLC, AdSense</strong> provides and measures ads. Google
+        may collect information directly from your browser, including through
+        cookies and similar technologies, to personalise ads where permitted,
+        measure performance, and prevent fraud. This applies to public and
+        signed-in website pages. Learn more in{" "}
+        <a href="https://policies.google.com/technologies/ads">
+          Google&apos;s advertising privacy policy
+        </a>{" "}
+        and manage ad personalisation in{" "}
+        <a href="https://adssettings.google.com/">Google Ads Settings</a>.
+      </p>
+      <p>
+        We do not sell your personal data. Declining analytics cookies does not
+        disable Google AdSense cookies.
+      </p>
 
       <h2>4. Sharing Within the Platform</h2>
       <ul>
