@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" updated="20 October 2026">
+    <LegalLayout title="Privacy Policy" updated="7 November 2026">
       <p>
         Property360 (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates the Property360 mobile application
         and the <a href="https://api.property360.africa">api.property360.africa</a> service
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
         <li>IP address and approximate location derived from it.</li>
         <li>Usage events and crash logs used to diagnose problems and improve the Service.</li>
         <li>Authentication tokens and session identifiers.</li>
-        <li>Advertising data, including cookie or device identifiers and interactions with ads, collected by Google AdSense when ads are displayed on the website, including signed-in pages.</li>
+        <li>Advertising data, including cookie or device identifiers and interactions with ads, collected by Google AdSense when ads are displayed on public guide articles.</li>
       </ul>
 
       <h3>1.3 Information from third parties</h3>
@@ -78,8 +78,8 @@ export default function PrivacyPage() {
         <strong>Google LLC, AdSense</strong> provides and measures ads. Google
         may collect information directly from your browser, including through
         cookies and similar technologies, to personalise ads where permitted,
-        measure performance, and prevent fraud. This applies to public and
-        signed-in website pages. Learn more in{" "}
+        measure performance, and prevent fraud.         We load the AdSense script on public guide articles, not account,
+        administrative or listing pages. Learn more in{" "}
         <a href="https://policies.google.com/technologies/ads">
           Google&apos;s advertising privacy policy
         </a>{" "}

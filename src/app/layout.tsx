@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { AppAnalytics } from "@/components/AppAnalytics";
 import { SalesChatWidget } from "@/components/sales/SalesChatWidget";
 import { ChunkErrorReloader } from "@/components/ChunkErrorReloader";
@@ -131,13 +130,6 @@ export default function RootLayout({
       className=""
     >
       <body className="font-sans">
-        <Script
-          id="google-adsense"
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6961943244890229"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <ChunkErrorReloader />
         <PostHogProvider>
           <ToastProvider>{children}</ToastProvider>

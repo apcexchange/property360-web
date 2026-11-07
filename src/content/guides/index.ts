@@ -59,7 +59,15 @@ export function getGuide(slug: string): Guide | undefined {
 }
 
 export function getRelatedGuides(slug: string, limit = 2): Guide[] {
-  return guides.filter((g) => g.meta.slug !== slug).slice(0, limit);
+  const current = getGuide(slug);
+  const remaining = guides.filter((g) => g.meta.slug !== slug);
+  const sameCategory = current
+    ? remaining.filter((g) => g.meta.category === current.meta.category)
+    : [];
+  const otherCategories = remaining.filter(
+    (g) => !sameCategory.includes(g),
+  );
+  return [...sameCategory, ...otherCategories].slice(0, limit);
 }
 
 export type { Guide, GuideMeta } from "./types";
