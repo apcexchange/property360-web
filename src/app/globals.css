@@ -66,6 +66,36 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  @media print {
+    body * {
+      visibility: hidden !important;
+    }
+
+    .guide-checklist,
+    .guide-checklist * {
+      visibility: visible !important;
+    }
+
+    .guide-checklist {
+      position: absolute !important;
+      inset: 0 auto auto 0 !important;
+      width: 100% !important;
+      margin: 0 !important;
+      border: 0 !important;
+      background: white !important;
+      color: black !important;
+      box-shadow: none !important;
+    }
+
+    .guide-print-button {
+      display: none !important;
+    }
+
+    .guide-print-footer {
+      display: block !important;
+    }
+  }
+
   ::selection {
     background: var(--color-cryola-300);
     color: var(--color-foundation-700);

@@ -3,10 +3,10 @@ import type { GuideMeta } from "./types";
 
 export const meta: GuideMeta = {
   slug: "how-to-write-tenancy-agreement-nigeria",
-  title: "How to Write a Tenancy Agreement in Nigeria (2026 Guide + Checklist)",
+  title: "Tenancy Agreement in Nigeria: What to Include",
   heading: "How to write a tenancy agreement in Nigeria",
   description:
-    "A clear, practical guide to writing a valid tenancy agreement in Nigeria: the clauses every agreement needs, common mistakes, and how to issue and store it properly.",
+    "Learn what to include in a Nigerian tenancy agreement, from rent and fees to repairs, notice, handover and the records each party should keep.",
   keywords: [
     "tenancy agreement Nigeria",
     "how to write a tenancy agreement",
@@ -15,8 +15,32 @@ export const meta: GuideMeta = {
     "landlord tenant agreement",
   ],
   datePublished: "2026-06-23",
-  readingMinutes: 7,
+  dateModified: "2026-11-07",
+  readingMinutes: 9,
   category: "Leases",
+  author: "Property360 Editorial Team",
+  standfirst:
+    "A good agreement makes the rent, responsibilities, notices and refund rules clear before there is a disagreement. Use this practical checklist to get the essentials on paper.",
+  tags: ["tenancy agreement", "leases", "landlord guide"],
+  takeaways: [
+    { title: "Write the facts, not assumptions", body: "Names, address, rent period, every fee and the exact start/end dates should be specific enough for someone outside the deal to understand." },
+    { title: "Plan the exit at move-in", body: "Set out notice, handover, refund and repair steps before either party needs them. Ambiguity is expensive after a dispute begins." },
+  ],
+  faqs: [
+    { question: "Can I use a tenancy-agreement template?", answer: "A template can provide a starting structure, but it must be completed for the actual parties, property, rent, dates and applicable state rules. Obtain legal advice for unusual terms or a high-value arrangement." },
+    { question: "Should the agreement list every fee separately?", answer: "Yes. A separate amount, purpose, recipient and refund condition for each fee makes the first payment easier to check and future disputes easier to resolve." },
+  ],
+  sources: [
+    { publisher: "Lagos State Internal Revenue Service", label: "Stamp-duty FAQs", url: "https://lirs.gov.ng/faq" },
+    { publisher: "Stamp Duties Portal", label: "Lease-agreement duty schedule", url: "https://www.stampduty.gov.ng/stamp_duty_charges" },
+  ],
+  checklist: [
+    "Write the full legal names of every landlord and tenant.",
+    "Describe the exact property and the tenancy dates.",
+    "List rent and every fee separately, including refund conditions.",
+    "Write down repair, utility, renewal, and notice responsibilities.",
+    "Give each party a signed copy and keep a retrievable record.",
+  ],
 };
 
 export function Body() {
@@ -78,8 +102,9 @@ export function Body() {
           breach.
         </li>
         <li>
-          <strong>Signatures.</strong> Both parties sign and date, ideally with a
-          witness for each.
+          <strong>Signatures.</strong> Both parties sign and date. Ask a
+          qualified professional whether witness, stamping, or registration
+          steps apply to this tenancy and state.
         </li>
       </ul>
 
@@ -132,18 +157,134 @@ export function Body() {
       </p>
 
       <h2>Frequently asked questions</h2>
-      <h3>Does a tenancy agreement have to be stamped?</h3>
+      <h3>Does a tenancy agreement have to be stamped or registered?</h3>
       <p>
-        Stamping by the relevant state stamp duty office gives the document
-        stronger standing in court and is recommended, especially for higher-value
-        or longer tenancies. Practice varies by state, so confirm the current
-        requirement locally.
+        Requirements and consequences depend on the document and applicable law.
+        Do not assume stamping is universally required or that it alone makes an
+        agreement enforceable. Confirm current stamp-duty and registration
+        obligations with a qualified lawyer or the relevant authority.
       </p>
       <h3>Can I use the same agreement for every tenant?</h3>
       <p>
         You can use the same template, but the parties, property, dates, rent, and
         fees must be filled in for each tenant. A reusable template saves time as
         long as the specifics are correct every time.
+      </p>
+
+      <h2>Check the people and property before drafting</h2>
+      <p>
+        Start by confirming who is entitled to grant the tenancy and who will
+        occupy the home. A landlord may act through an authorised representative,
+        but the agreement should identify the landlord and explain the
+        representative&apos;s role. If an agent is signing or collecting money,
+        ask what authority they have and make sure the payment instruction names
+        the correct recipient. This simple check helps prevent a well-written
+        document from recording a deal with the wrong person.
+      </p>
+      <p>
+        Describe the property precisely: street address, building, flat or unit
+        number, and any parking space, store or shared area included. If the
+        rental covers only part of a building, say which rooms and facilities are
+        private and which are shared. Attach an inventory where useful. A
+        description such as &ldquo;the apartment at the back&rdquo; is easy to
+        misunderstand after occupants or staff change.
+      </p>
+
+      <h2>Write the money terms so they can be checked</h2>
+      <p>
+        Put the rent amount in naira, the period it covers, when it is due and
+        how it may be paid. If the parties agree on a payment schedule, list each
+        instalment and its date instead of relying on a chat message. Separately
+        identify every move-in charge: rent, deposit, caution fee, agent or
+        agency fee, agreement or legal fee, and service charge. For each one,
+        state who receives it, what it is for, whether it is refundable and what
+        evidence of payment will be issued. The labels used in everyday rental
+        practice are not a substitute for clear terms or state-specific legal
+        advice.
+      </p>
+      <p>
+        For example, a clause that simply says &ldquo;all fees are
+        non-refundable&rdquo; may create confusion if another clause describes a
+        deposit as refundable. Use a separate line for each amount and make the
+        refund conditions consistent throughout the document. If an amount is
+        held against damage or unpaid bills, explain how the condition will be
+        recorded, how deductions will be evidenced and how the remaining balance
+        will be accounted for.
+      </p>
+
+      <h2>Make responsibilities practical, not vague</h2>
+      <p>
+        The agreement should explain how occupants can report a repair, which
+        party is responsible for routine maintenance, and how urgent problems
+        such as a major leak should be raised. Avoid broad phrases such as
+        &ldquo;the tenant fixes everything&rdquo; or &ldquo;the landlord handles
+        all repairs&rdquo; without describing what the parties mean. Record any
+        agreed process for access to the property, including reasonable notice
+        and exceptions for emergencies, rather than assuming either party can
+        enter whenever they wish.
+      </p>
+      <p>
+        List recurring costs separately. If occupants contribute to security,
+        waste collection, generator fuel, water or common-area maintenance, state
+        how the charge is calculated, when it is due and whether it can change.
+        Clarify who pays for electricity, water and other metered services, and
+        how readings or shared bills will be handled. A tenancy document cannot
+        make an unlawful term valid, so have an unfamiliar or unusually broad
+        clause reviewed by a qualified professional in the state where the home
+        is located.
+      </p>
+
+      <h2>Record condition and handover at both ends</h2>
+      <p>
+        Make an inventory before the tenant moves in. Note the state of walls,
+        floors, doors, windows, plumbing, appliances, keys and meters. Add dated
+        photographs and the readings for utilities where available. Both parties
+        should have a copy and a simple way to identify which photo relates to
+        which room. At move-out, use the same list to compare the property&apos;s
+        condition. This does not decide a legal dispute by itself, but it gives
+        the parties a shared record instead of competing memories.
+      </p>
+      <p>
+        Include a handover procedure: how keys are returned, when a final
+        inspection can happen, how outstanding bills are checked and how any
+        proposed deduction is explained. Where a deposit is involved, specify a
+        reasonable accounting and refund process that reflects the agreement and
+        applicable law. Do not promise a particular outcome if the parties have
+        not agreed on one.
+      </p>
+
+      <h2>Review the agreement before anyone signs</h2>
+      <p>
+        Read the finished draft from the tenant&apos;s perspective as well as the
+        landlord&apos;s. Confirm spelling of names, addresses, dates, rent
+        periods, totals and the recipient of each payment. Check that the renewal
+        and termination terms do not contradict the fixed term, and that every
+        attachment mentioned in the agreement is actually included. If a promise
+        was made during inspection or negotiation, either include it in the
+        document or resolve the difference before signing; do not assume a verbal
+        assurance will override a written clause.
+      </p>
+      <p>
+        Keep the signed version, inventory, receipts and later written changes
+        together. If the rent, occupants, dates or responsibilities change, record
+        the change in a dated addendum or replacement agreement signed by the
+        relevant parties. Do not edit the only copy after signature. Give each
+        party a complete copy, including schedules and attachments, and store it
+        somewhere it can be retrieved if a phone is lost or a staff member leaves.
+      </p>
+
+      <h2>When to get state-specific legal help</h2>
+      <p>
+        A basic checklist is useful, but a template cannot tell you whether a
+        particular clause complies with the law that applies to your property.
+        Ask a Nigerian lawyer familiar with the relevant state to review
+        unusual notice provisions, a commercial or high-value letting, a
+        guarantor undertaking, a dispute about possession, or questions about
+        stamping and registration. The Lagos State Tenancy Law is a Lagos source,
+        not a nationwide code; people renting elsewhere should check the rules
+        that apply locally. For routine arrangements, the safest drafting habit
+        is still the same: use clear language, record the deal accurately and
+        preserve a signed copy for everyone.
       </p>
 
       <p className="text-[14px] text-ink-muted">

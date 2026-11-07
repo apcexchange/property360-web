@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { optOut } from "@/lib/analytics";
 
 /**
- * Lightweight, non-blocking cookie notice (Nigeria / NDPA). Shows once until the
- * visitor acknowledges or declines. "Decline" opts the browser out of analytics;
- * Google AdSense may still use cookies as described in the privacy policy.
+ * Lightweight, non-blocking cookie notice. "Decline" opts the browser out of
+ * analytics; advertising cookies on guide pages follow the privacy policy and
+ * the visitor's applicable ad settings.
  */
 const SEEN_KEY = "ph_seen";
 const OPT_OUT_KEY = "ph_opt_out";
@@ -37,9 +37,9 @@ export function ConsentNotice() {
     <div className="fixed inset-x-0 bottom-0 z-[60] px-4 pb-4">
       <div className="mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl bg-foundation-700 p-4 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm leading-snug text-white/90">
-          We use analytics and Google AdSense, which may use cookies to measure
-          traffic and show ads. Ads may be personalised depending on your
-          settings and location. Declining only turns off analytics.{" "}
+          We use analytics, and our public guides may show Google AdSense ads.
+          Google may use cookies for ad measurement or personalisation where
+          permitted. Declining only turns off analytics.{" "}
           <a href="/privacy" className="underline underline-offset-2">
             Privacy policy
           </a>

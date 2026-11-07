@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
 import { Nav } from "@/components/landing/Nav";
 import { Footer } from "@/components/landing/Footer";
 import { PageHero } from "@/components/marketing/PageHero";
 import { NewsletterBlock } from "@/components/marketing/NewsletterBlock";
+import { GuidesSearch } from "@/components/marketing/GuidesSearch";
 import { guides } from "@/content/guides";
 
 const SITE_URL = "https://property360.africa";
@@ -47,36 +47,56 @@ export default function GuidesIndexPage() {
             <span className="text-cryola-500">explained simply.</span>
           </>
         }
-        subtitle="Plain-English guides on tenancy agreements, fees, collecting rent, eviction, and everything else that comes with renting property in Nigeria."
+        subtitle="Practical, locally focused explainers for Nigerian landlords, tenants, and agents—plus tools to help you act on what you learn."
       />
 
       <section className="mx-auto max-w-5xl px-6 pb-24">
-        <div className="grid gap-5 sm:grid-cols-2">
-          {guides.map((g) => (
+        <div className="mb-10 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
+          <Link
+            href="/guides/tools/move-in-cost-calculator"
+            className="group rounded-2xl bg-foundation-700 p-6 text-paper transition hover:bg-foundation-800 md:p-8"
+          >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cryola-300">
+              Free rental tool
+            </p>
+            <h2 className="mt-3 font-display text-[25px] font-bold leading-tight md:text-[30px]">
+              Calculate your move-in costs
+            </h2>
+            <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-paper/75">
+              Add the rent and fees you have actually been quoted. See the total
+              clearly—without relying on a generic estimate.
+            </p>
+            <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-semibold text-cryola-300">
+              Open the calculator <span aria-hidden="true">→</span>
+            </span>
+          </Link>
+          <div className="rounded-2xl border border-foundation-700/10 bg-white p-6 md:p-8">
+            <p className="eyebrow">Editorial standards</p>
+            <h2 className="mt-3 font-display text-[22px] font-bold text-foundation-700">
+              Know who made this guide
+            </h2>
+            <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
+              Learn how we write, update, and correct our practical resources.
+            </p>
             <Link
-              key={g.meta.slug}
-              href={`/guides/${g.meta.slug}`}
-              className="group flex flex-col rounded-2xl border border-foundation-700/10 bg-white p-6 transition hover:border-cryola-400 hover:shadow-sm"
+              href="/editorial-policy"
+              className="mt-4 inline-flex items-center gap-2 text-[13px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
             >
-              <span className="text-[12px] font-semibold uppercase tracking-wide text-cryola-500">
-                {g.meta.category}
-              </span>
-              <h2 className="mt-2 text-[20px] font-bold leading-snug text-foundation-700">
-                {g.meta.heading}
-              </h2>
-              <p className="mt-2 flex-1 text-[15px] leading-[1.5] text-ink-muted">
-                {g.meta.description}
-              </p>
-              <span className="mt-4 inline-flex items-center gap-1 text-[14px] font-semibold text-foundation-700">
-                Read guide
-                <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                <span className="ml-2 font-normal text-ink-muted">
-                  {g.meta.readingMinutes} min read
-                </span>
-              </span>
+              Read our editorial policy
             </Link>
-          ))}
+          </div>
         </div>
+
+        <GuidesSearch
+          guides={guides.map(({ meta }) => ({
+            slug: meta.slug,
+            heading: meta.heading,
+            description: meta.description,
+            standfirst: meta.standfirst,
+            category: meta.category,
+            readingMinutes: meta.readingMinutes,
+          }))}
+        />
       </section>
 
       <NewsletterBlock source="newsletter-guides" heading="Get the next guide by email" />
