@@ -32,6 +32,12 @@ const csp = [
 
 const nextConfig: NextConfig = {
   images: {
+    localPatterns: [
+      { pathname: "/guides/*/illustration", search: "?variant=1" },
+      { pathname: "/guides/*/illustration", search: "?variant=2" },
+      { pathname: "/guides/*/illustration", search: "?variant=3" },
+      { pathname: "/guides/*/opengraph-image", search: "" },
+    ],
     remotePatterns: [
       // Cloudinary — where backend stores property images
       { protocol: "https", hostname: "res.cloudinary.com" },
