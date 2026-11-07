@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Payments",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/how-to-collect-rent-online-nigeria.webp",
+    alt: "A customer paying with a smartphone at a counter.",
+    caption: "Match each transaction to the right tenant and rent period, then issue a clear receipt.",
+    sourceUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "Online collection works when every payment has a tenant, a rent period, a verifiable transaction reference and a receipt—not when it is merely a transfer notification in a chat.",
   tags: ["rent collection", "online payments", "landlord operations"],

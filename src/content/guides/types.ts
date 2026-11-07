@@ -23,6 +23,14 @@ export type GuideMeta = {
   category: string;
   /** Organization or person accountable for the article's editorial content. */
   author: string;
+  /** Locally hosted stock photo and its source/license attribution. */
+  stockPhoto?: {
+    src: string;
+    alt: string;
+    caption: string;
+    sourceUrl: string;
+    licenseUrl: string;
+  };
   /** Concise promise shown directly below the article headline. */
   standfirst?: string;
   /** Optional labels used for related-content discovery and topical archives. */

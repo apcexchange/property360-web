@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 8,
   category: "Payments",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/caution-fee-vs-security-deposit-nigeria.webp",
+    alt: "A detached home and swimming pool in a landscaped garden.",
+    caption: "Define what each deposit covers and document the property's condition at handover.",
+    sourceUrl: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "Deposits are most likely to be returned without conflict when the agreement says exactly what each payment secures, how the property will be inspected, and when any balance must be repaid.",
   tags: ["security deposit", "caution fee", "move-in costs"],

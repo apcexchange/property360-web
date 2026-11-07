@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Renting",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/documents-to-rent-an-apartment-nigeria.webp",
+    alt: "A person writing on paperwork at a desk.",
+    caption: "Share only the documents a genuine landlord needs and keep copies of what you sign.",
+    sourceUrl: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "A prepared renter is easier to trust. Bring only the documents a genuine landlord needs, share them securely, and do not release rent until the property and recipient are verified.",
   tags: ["rental documents", "tenant checklist", "identity verification"],

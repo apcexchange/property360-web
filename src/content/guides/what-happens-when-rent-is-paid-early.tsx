@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Rent payments",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/what-happens-when-rent-is-paid-early.webp",
+    alt: "Financial forms and a calculator arranged on a desk.",
+    caption: "Record the date received and the rental period the payment is meant to cover.",
+    sourceUrl: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "An early renewal payment should create a precise record for a future period—not a second tenancy today and not a duplicate invoice later.",
   tags: ["early rent payment", "rent receipt", "lease renewal"],
