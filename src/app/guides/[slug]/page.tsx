@@ -159,6 +159,29 @@ export default async function GuidePage({
           </figcaption>
         </figure>
 
+        {meta.stockPhoto && (
+          <figure className="mt-8 overflow-hidden rounded-2xl border border-foundation-700/10 bg-white">
+            <Image
+              src={meta.stockPhoto.src}
+              alt={meta.stockPhoto.alt}
+              width={1200}
+              height={800}
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="block aspect-[3/2] w-full object-cover"
+            />
+            <figcaption className="border-t border-foundation-700/10 px-4 py-3 text-[12px] text-ink-muted">
+              {meta.stockPhoto.caption}{" "}
+              <a href={meta.stockPhoto.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                Photo source
+              </a>
+              {" · "}
+              <a href={meta.stockPhoto.licenseUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                Unsplash License
+              </a>
+            </figcaption>
+          </figure>
+        )}
+
         {meta.standfirst && (
           <p className="mt-8 border-l-2 border-cryola-400 pl-5 text-[19px] leading-relaxed text-foundation-700 md:text-[21px]">
             {meta.standfirst}

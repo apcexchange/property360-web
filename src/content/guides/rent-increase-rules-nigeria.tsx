@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Leases",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/rent-increase-rules-nigeria.webp",
+    alt: "A calculator placed on financial paperwork.",
+    caption: "Compare the proposed rent with current, like-for-like homes and check your agreement.",
+    sourceUrl: "https://images.unsplash.com/photo-1554224154-22dec7ec8818?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "A rent review should be a documented renewal conversation—not a surprise demand halfway through a paid fixed term. The agreement and the law of the property's state come first.",
   tags: ["rent increase", "lease renewal", "Lagos tenancy law"],

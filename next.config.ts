@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
       { pathname: "/guides/*/illustration", search: "?variant=2" },
       { pathname: "/guides/*/illustration", search: "?variant=3" },
       { pathname: "/guides/*/opengraph-image", search: "" },
+      { pathname: "/guides/stock/*", search: "" },
     ],
     remotePatterns: [
       // Cloudinary — where backend stores property images

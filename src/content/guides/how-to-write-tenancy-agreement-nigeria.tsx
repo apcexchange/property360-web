@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Leases",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/how-to-write-tenancy-agreement-nigeria.webp",
+    alt: "A hand holding a pen over a document.",
+    caption: "Put names, rent, dates, fees and notice obligations in writing before signing.",
+    sourceUrl: "https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "A good agreement makes the rent, responsibilities, notices and refund rules clear before there is a disagreement. Use this practical checklist to get the essentials on paper.",
   tags: ["tenancy agreement", "leases", "landlord guide"],

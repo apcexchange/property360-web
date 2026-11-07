@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Legal",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/how-to-evict-a-tenant-legally-nigeria.webp",
+    alt: "Rows of legal books on a library shelf.",
+    caption: "Check the agreement and state-specific legal process before acting.",
+    sourceUrl: "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "Eviction is a legal process, not a lock change. Start with the agreement and the applicable state law, preserve evidence of service, and get state-specific legal advice before acting.",
   tags: ["eviction", "quit notice", "tenant rights"],

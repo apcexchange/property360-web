@@ -19,6 +19,13 @@ export const meta: GuideMeta = {
   readingMinutes: 9,
   category: "Payments",
   author: "Property360 Editorial Team",
+  stockPhoto: {
+    src: "/guides/stock/agent-fees-in-nigeria-explained.webp",
+    alt: "A miniature house model beside a piggy bank.",
+    caption: "Ask for an itemised fee breakdown and confirm the recipient and service before paying.",
+    sourceUrl: "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=1200&h=800&q=82",
+    licenseUrl: "https://unsplash.com/license",
+  },
   standfirst:
     "Before you pay, turn every verbal fee into a written line item: who receives it, what it pays for, whether it is refundable, and the receipt you will receive.",
   tags: ["agent fees", "rental costs", "tenant checklist"],
