@@ -1045,8 +1045,29 @@ export const landlordApi = {
 
   // Properties
   async listProperties(): Promise<Property[]> {
-    const res = await api.get("/properties");
-    return asList<Property>(unwrap(res.data));
+    const limit = 100;
+    const firstPage = await api.get("/properties", {
+      params: { page: 1, limit },
+    });
+    const properties = asList<Property>(unwrap(firstPage.data));
+    const totalPages = Math.max(
+      1,
+      Number(firstPage.data?.meta?.totalPages) || 1,
+    );
+
+    for (let page = 2; page <= totalPages; page += 5) {
+      const lastPage = Math.min(page + 4, totalPages);
+      const pages = await Promise.all(
+        Array.from({ length: lastPage - page + 1 }, (_, index) =>
+          api.get("/properties", { params: { page: page + index, limit } }),
+        ),
+      );
+      for (const response of pages) {
+        properties.push(...asList<Property>(unwrap(response.data)));
+      }
+    }
+
+    return properties;
   },
   async getProperty(
     id: string,
