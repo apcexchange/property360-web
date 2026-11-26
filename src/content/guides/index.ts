@@ -1,5 +1,13 @@
 import type { Guide } from "./types";
 import {
+  meta as inspectionMeta,
+  Body as InspectionBody,
+} from "./apartment-inspection-checklist-nigeria";
+import {
+  meta as maintenanceMeta,
+  Body as MaintenanceBody,
+} from "./how-to-report-rental-maintenance";
+import {
   meta as tenancyMeta,
   Body as TenancyBody,
 } from "./how-to-write-tenancy-agreement-nigeria";
@@ -42,6 +50,8 @@ import {
 
 // Newest first. Order here is the order shown on /guides.
 export const guides: Guide[] = [
+  { meta: inspectionMeta, Body: InspectionBody },
+  { meta: maintenanceMeta, Body: MaintenanceBody },
   { meta: EarlyRentMeta, Body: EarlyRentBody },
   { meta: scamsMeta, Body: ScamsBody },
   { meta: lagosCostMeta, Body: LagosCostBody },
@@ -64,9 +74,7 @@ export function getRelatedGuides(slug: string, limit = 2): Guide[] {
   const sameCategory = current
     ? remaining.filter((g) => g.meta.category === current.meta.category)
     : [];
-  const otherCategories = remaining.filter(
-    (g) => !sameCategory.includes(g),
-  );
+  const otherCategories = remaining.filter((g) => !sameCategory.includes(g));
   return [...sameCategory, ...otherCategories].slice(0, limit);
 }
 

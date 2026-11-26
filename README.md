@@ -2,15 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Google AdSense
 
-The root layout loads the AdSense script on every page, including signed-in
-areas, using publisher ID `pub-6961943244890229`. The publisher declaration is
-served from `/ads.txt`. After deploying, verify the site and enable Auto ads in
-the AdSense account. AdSense approval and ad delivery are managed by Google;
-ads may not appear until the site is approved.
+The guide article template includes the AdSense script using publisher ID
+`pub-6961943244890229`. The publisher declaration is served from `/ads.txt`.
+After deploying, verify the site and inspect ad placements and exclusions in
+AdSense, including navigation away from an article. AdSense approval and ad
+delivery are managed by Google; installing the script does not confer approval.
 
-The cookie notice discloses AdSense use. Its analytics decline option does not
-disable Google advertising cookies; see the privacy policy for Google's
-advertising privacy and settings links.
+The cookie notice controls analytics only. Advertising choices are documented
+in `/privacy`. Before serving personalised ads to visitors in the EEA, UK or
+Switzerland, configure and verify a Google-certified consent management platform
+such as Google's European regulations message in AdSense Privacy & messaging.
+The local analytics notice is not that CMP, and consent configuration in the
+AdSense account cannot be verified from this repository. See
+[Google's consent requirements](https://support.google.com/adsense/answer/13554116?hl=en).
+
+Guide revisions retain the original publication date, use a modification date
+for substantive changes, label worked figures as illustrative and link sources
+with their limits. A specialist review should be credited only after a real,
+identified reviewer has completed it. Editorial changes alone do not guarantee
+AdSense approval.
 
 ## Getting Started
 

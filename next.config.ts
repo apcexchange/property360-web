@@ -33,6 +33,7 @@ const csp = [
 const nextConfig: NextConfig = {
   images: {
     localPatterns: [
+      { pathname: "/images/guides/**", search: "" },
       { pathname: "/guides/*/illustration", search: "?variant=1" },
       { pathname: "/guides/*/illustration", search: "?variant=2" },
       { pathname: "/guides/*/illustration", search: "?variant=3" },
