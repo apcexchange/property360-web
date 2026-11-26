@@ -1,5 +1,12 @@
 import type { ComponentType } from "react";
 
+export type GuideCover = {
+  src: string;
+  alt: string;
+  photographer: string;
+  sourceUrl: string;
+};
+
 export type GuideMeta = {
   /** URL slug under /guides/<slug> */
   slug: string;
@@ -9,6 +16,8 @@ export type GuideMeta = {
   heading: string;
   /** Meta description + card summary */
   description: string;
+  /** Locally hosted stock photo, with its original photographer and source. */
+  coverImage: GuideCover;
   /** Target search keywords for this article */
   keywords: string[];
   /** ISO date (YYYY-MM-DD) */
@@ -33,6 +42,8 @@ export type GuideMeta = {
   };
   /** Concise promise shown directly below the article headline. */
   standfirst?: string;
+  /** Reader-facing limits of the guide, especially for legal or financial topics. */
+  scopeNote?: string;
   /** Optional labels used for related-content discovery and topical archives. */
   tags?: string[];
   /** Article-specific guidance that translates the explainer into decisions. */
@@ -42,7 +53,13 @@ export type GuideMeta = {
   /** Article-specific action list shown in the print-friendly reader worksheet. */
   checklist: string[];
   /** Sources that directly support claims in the article. */
-  sources?: { label: string; url: string; publisher?: string }[];
+  sources?: {
+    label: string;
+    url: string;
+    publisher?: string;
+    /** What this reference supports, including any jurisdiction or date limits. */
+    note?: string;
+  }[];
 };
 
 export type Guide = {

@@ -10,6 +10,7 @@ const themes: Record<string, { accent: string; soft: string; label: string }> = 
   Payments: { accent: "#A9D8D0", soft: "#DDF1ED", label: "Rent & payments" },
   Renting: { accent: "#C8C1FF", soft: "#E8E4FF", label: "Renting in Nigeria" },
   "Rent payments": { accent: "#A9D8D0", soft: "#DDF1ED", label: "Rent & payments" },
+  Maintenance: { accent: "#BFFF84", soft: "#D9F3C1", label: "Repairs & property care" },
 };
 
 export default async function GuideOpenGraphImage({

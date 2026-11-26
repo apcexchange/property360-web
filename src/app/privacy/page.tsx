@@ -10,9 +10,10 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalLayout title="Privacy Policy" updated="7 November 2026">
+    <LegalLayout title="Privacy Policy" updated="26 November 2026">
       <p>
-        Property360 (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates the Property360 mobile application
+        Property360 (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) operates the Property360 mobile application,
+        the <a href="https://property360.africa">property360.africa</a> website
         and the <a href="https://api.property360.africa">api.property360.africa</a> service
         (together, the &ldquo;Service&rdquo;). This Privacy Policy explains what personal data
         we collect, how we use it, who we share it with, and the rights you have under
@@ -21,7 +22,8 @@ export default function PrivacyPage() {
       </p>
       <p>
         Property360 is intended for landlords, tenants, and property managers operating in
-        Nigeria. By using the Service you agree to this Policy.
+        Nigeria. This Policy describes how we handle personal data when you use
+        the Service; advertising consent, where required, is a separate choice.
       </p>
 
       <h2>1. Information We Collect</h2>
@@ -74,21 +76,37 @@ export default function PrivacyPage() {
         <li><strong>Render Services, Inc.</strong>, application hosting for the API. (Germany / EU)</li>
         <li><strong>Apple Inc.</strong> and <strong>Google LLC</strong>, mobile push notification delivery via APNs and FCM respectively.</li>
       </ul>
+      <h3>Advertising on public guides</h3>
       <p>
-        <strong>Google LLC, AdSense</strong> provides and measures ads. Google
-        may collect information directly from your browser, including through
-        cookies and similar technologies, to personalise ads where permitted,
-        measure performance, and prevent fraud.         We load the AdSense script on public guide articles, not account,
-        administrative or listing pages. Learn more in{" "}
-        <a href="https://policies.google.com/technologies/ads">
-          Google&apos;s advertising privacy policy
-        </a>{" "}
-        and manage ad personalisation in{" "}
-        <a href="https://adssettings.google.com/">Google Ads Settings</a>.
+        Third-party vendors, including <strong>Google LLC, AdSense</strong> and
+        its advertising partners, may use cookies and similar technologies to
+        serve and measure ads on public guide articles. Where personalisation
+        is permitted by your settings and any required consent, their advertising
+        cookies may enable ads based on your previous visits to this website
+        and other websites. Google may also receive information such as your
+        IP address and the page you visit for ad delivery, measurement and
+        fraud prevention.
       </p>
       <p>
-        We do not sell your personal data. Declining analytics cookies does not
-        disable Google AdSense cookies.
+        Learn how Google handles this information in its{" "}
+        <a href="https://policies.google.com/technologies/partner-sites">
+          information for visitors to partner sites
+        </a>{" "}
+        and <a href="https://policies.google.com/technologies/ads">advertising policy</a>.
+        You can manage Google ad personalisation through{" "}
+        <a href="https://adssettings.google.com/">Google Ads Settings</a>.
+        If third-party ad serving is enabled, other vendors and ad networks may
+        also use advertising cookies. For participating vendors&apos; information
+        and browser-based opt-out choices, visit{" "}
+        <a href="https://optout.aboutads.info/">Digital Advertising Alliance WebChoices</a>.
+      </p>
+      <p>
+        Advertising choices are separate from the analytics notice. Declining
+        analytics does not disable AdSense cookies or withdraw advertising
+        consent. Where a separate advertising consent message is shown, use
+        its controls for those choices. Opting out of personalised advertising
+        does not necessarily remove ads or cookies used for other permitted
+        purposes. We do not sell your personal data.
       </p>
 
       <h2>4. Sharing Within the Platform</h2>
@@ -125,7 +143,7 @@ export default function PrivacyPage() {
         <li>Object to or restrict certain processing.</li>
         <li>Receive a copy of your data in a portable format.</li>
         <li>Withdraw consent at any time, where processing is based on consent.</li>
-        <li>Lodge a complaint with the <a href="https://nitda.gov.ng/">Nigeria Data Protection Commission (NDPC)</a>.</li>
+        <li>Lodge a complaint with the <a href="https://ndpc.gov.ng/">Nigeria Data Protection Commission (NDPC)</a>.</li>
       </ul>
       <p>
         To exercise any of these rights, email{" "}

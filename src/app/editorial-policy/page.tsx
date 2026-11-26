@@ -42,6 +42,26 @@ export default function EditorialPolicyPage() {
             reviewed by a lawyer, accountant, or other specialist unless that
             person is specifically identified on the article.
           </p>
+          <p>
+            The author link on a guide leads to this policy so readers can
+            understand that attribution. Editorial attribution is separate from
+            professional advice or a named specialist review.
+          </p>
+
+          <h2>Useful, distinct articles</h2>
+          <p>
+            Each guide addresses a specific reader task. Checklists, comparison
+            tables and worked examples explain how to apply the guidance. We aim
+            to remove repeated sections and unsupported promises, and link
+            related guides when a separate topic needs more detail.
+          </p>
+          <p>
+            The same standards apply to drafts prepared with writing tools.
+            Drafting assistance does not establish accuracy, first-hand
+            experience or specialist review. We do not attribute an invented
+            customer story, credential or professional endorsement to an
+            article.
+          </p>
 
           <h2>Sources and factual claims</h2>
           <p>
@@ -56,6 +76,23 @@ export default function EditorialPolicyPage() {
             supplied by the visitor and do not estimate market prices or decide
             whether a fee is lawful.
           </p>
+          <p>
+            Worked amounts and scenarios are labelled as illustrative. They are
+            not market quotes, observed customer cases or recommended charges.
+            Source notes explain a reference&apos;s purpose and limits. A dated
+            statute is a reference to check for applicability and later changes,
+            not proof of the current law for every property.
+          </p>
+
+          <h2>Photography and commercial links</h2>
+          <p>
+            Article stock photos identify the photographer and original source.
+            They illustrate the subject and do not depict a verified Property360
+            listing or imply an endorsement. Links to Property360 services are
+            links to our own product. Third-party ads, when served, are separate
+            from the editorial guidance; an advertiser&apos;s offer is not our
+            recommendation.
+          </p>
 
           <h2>Legal and financial information</h2>
           <p>
@@ -69,17 +106,17 @@ export default function EditorialPolicyPage() {
 
           <h2>Updates and corrections</h2>
           <p>
-            Article pages show their publication date. We display an updated date
-            when the article has been substantively revised; changing a page
-            layout alone is not a reason to reset it. If you spot a factual error
-            or outdated detail, please tell us what should be checked and include
-            a supporting source where possible.
+            Article pages show their publication date. We display an updated
+            date when the article has been substantively revised; changing a
+            page layout alone is not a reason to reset it. If you spot a factual
+            error or outdated detail, please tell us what should be checked and
+            include a supporting source where possible.
           </p>
           <p>
             Send corrections through our{" "}
-            <Link href="/contact">contact page</Link> and mention the guide title.
-            We review submitted corrections and update or clarify content when
-            warranted.
+            <Link href="/contact">contact page</Link> and mention the guide
+            title. We review submitted corrections and update or clarify content
+            when warranted.
           </p>
         </div>
       </main>

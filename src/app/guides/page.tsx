@@ -12,7 +12,7 @@ const SITE_URL = "https://property360.africa";
 export const metadata: Metadata = {
   title: "Property guides for Nigerian landlords, tenants & agents",
   description:
-    "Practical guides on renting in Nigeria: tenancy agreements, caution fees, collecting rent online, eviction and quit notices, rent increases, and more.",
+    "Practical property guides for Nigeria: apartment inspections, rent and fees, tenancy agreements, maintenance, and move-in checklists for tenants and landlords.",
   alternates: { canonical: "/guides" },
   openGraph: {
     title: "Property360 Guides, renting in Nigeria, explained",
@@ -36,70 +36,81 @@ const itemListJsonLd = {
 
 export default function GuidesIndexPage() {
   return (
-    <div className="min-h-screen bg-paper text-foundation-700">
+    <div className="min-h-[100dvh] bg-paper text-foundation-700">
       <Nav />
-      <PageHero
-        eyebrow="Blog"
-        title={
-          <>
-            Renting in Nigeria,
-            <br />
-            <span className="text-cryola-500">explained simply.</span>
-          </>
-        }
-        subtitle="Practical, locally focused explainers for Nigerian landlords, tenants, and agents—plus tools to help you act on what you learn."
-      />
-
-      <section className="mx-auto max-w-5xl px-6 pb-24">
-        <div className="mb-10 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
-          <Link
-            href="/guides/tools/move-in-cost-calculator"
-            className="group rounded-2xl bg-foundation-700 p-6 text-paper transition hover:bg-foundation-800 md:p-8"
-          >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cryola-300">
-              Free rental tool
-            </p>
-            <h2 className="mt-3 font-display text-[25px] font-bold leading-tight md:text-[30px]">
-              Calculate your move-in costs
-            </h2>
-            <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-paper/75">
-              Add the rent and fees you have actually been quoted. See the total
-              clearly—without relying on a generic estimate.
-            </p>
-            <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-semibold text-cryola-300">
-              Open the calculator <span aria-hidden="true">→</span>
-            </span>
-          </Link>
-          <div className="rounded-2xl border border-foundation-700/10 bg-white p-6 md:p-8">
-            <p className="eyebrow">Editorial standards</p>
-            <h2 className="mt-3 font-display text-[22px] font-bold text-foundation-700">
-              Know who made this guide
-            </h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
-              Learn how we write, update, and correct our practical resources.
-            </p>
-            <Link
-              href="/editorial-policy"
-              className="mt-4 inline-flex items-center gap-2 text-[13px] font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4"
-            >
-              Read our editorial policy
-            </Link>
-          </div>
-        </div>
-
-        <GuidesSearch
-          guides={guides.map(({ meta }) => ({
-            slug: meta.slug,
-            heading: meta.heading,
-            description: meta.description,
-            standfirst: meta.standfirst,
-            category: meta.category,
-            readingMinutes: meta.readingMinutes,
-          }))}
+      <main>
+        <PageHero
+          eyebrow="Blog"
+          title={
+            <>
+              Renting in Nigeria,
+              <br />
+              <span className="text-cryola-500">explained simply.</span>
+            </>
+          }
+          subtitle="From your first viewing to everyday property care. Practical guides, clear checklists and useful tools for Nigerian tenants, landlords and agents."
         />
-      </section>
 
-      <NewsletterBlock source="newsletter-guides" heading="Get the next guide by email" />
+        <section
+          className="mx-auto max-w-6xl px-6 pb-24"
+          aria-label="Property guides"
+        >
+          <GuidesSearch
+            guides={guides.map(({ meta }) => ({
+              slug: meta.slug,
+              heading: meta.heading,
+              description: meta.description,
+              standfirst: meta.standfirst,
+              category: meta.category,
+              readingMinutes: meta.readingMinutes,
+              coverImage: meta.coverImage,
+              datePublished: meta.datePublished,
+              tags: meta.tags,
+            }))}
+          />
+
+          <div className="mt-14 grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
+            <Link
+              href="/guides/tools/move-in-cost-calculator"
+              className="group rounded-2xl bg-foundation-700 p-6 text-paper transition hover:bg-foundation-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foundation-700 md:p-8"
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cryola-300">
+                Free rental tool
+              </p>
+              <h2 className="mt-3 font-display text-[25px] font-bold leading-tight md:text-[30px]">
+                Calculate your move-in costs
+              </h2>
+              <p className="mt-3 max-w-xl text-base leading-relaxed text-paper/75">
+                Add the rent and fees you have actually been quoted. See the
+                total clearly—without relying on a generic estimate.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-cryola-300">
+                Open the calculator
+              </span>
+            </Link>
+            <div className="rounded-2xl border border-foundation-700/10 bg-white p-6 md:p-8">
+              <p className="eyebrow">Editorial standards</p>
+              <h2 className="mt-3 font-display text-[22px] font-bold text-foundation-700">
+                Know who made this guide
+              </h2>
+              <p className="mt-2 text-base leading-relaxed text-ink-muted">
+                Learn how we write, update, and correct our practical resources.
+              </p>
+              <Link
+                href="/editorial-policy"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-foundation-700 underline decoration-cryola-400 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foundation-700"
+              >
+                Read our editorial policy
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <NewsletterBlock
+          source="newsletter-guides"
+          heading="Get the next guide by email"
+        />
+      </main>
 
       <Footer />
 

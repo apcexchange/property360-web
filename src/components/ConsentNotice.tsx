@@ -39,9 +39,10 @@ export function ConsentNotice() {
         <p className="text-sm leading-snug text-white/90">
           We use analytics, and our public guides may show Google AdSense ads.
           Google may use cookies for ad measurement or personalisation where
-          permitted. Declining only turns off analytics.{" "}
+          permitted. Declining only turns off analytics. Read about separate
+          advertising choices in our{" "}
           <a href="/privacy" className="underline underline-offset-2">
-            Privacy policy
+            privacy policy
           </a>
           . No personal data is sold.
         </p>
