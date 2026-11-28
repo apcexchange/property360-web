@@ -175,9 +175,6 @@ export default async function GuidePage({
               sizes="(max-width: 768px) calc(100vw - 48px), 720px"
               className="block aspect-[16/10] w-full object-cover"
             />
-            <figcaption className="border-t border-foundation-700/10 px-4 py-3 text-[13px] leading-relaxed text-ink-muted">
-              AI-generated illustration created with ChatGPT.
-            </figcaption>
           </figure>
 
           {meta.standfirst && (
@@ -207,8 +204,7 @@ export default async function GuidePage({
                 className="block aspect-[3/2] w-full object-cover"
               />
               <figcaption className="border-t border-foundation-700/10 px-4 py-3 text-[12px] text-ink-muted">
-                {meta.articleImage.caption}{" "}
-                <span>AI-generated illustration created with ChatGPT.</span>
+                {meta.articleImage.caption}
               </figcaption>
             </figure>
           )}
