@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Payments",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/how-to-collect-rent-online-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-rent-collection.webp",
     alt: "A customer paying with a smartphone at a counter.",
     caption:
       "Match each transaction to the right tenant and rent period, then issue a clear receipt.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "A collection and reconciliation workflow. Payment methods, fees, confirmation and settlement depend on the provider and account; check current terms.",

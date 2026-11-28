@@ -3,8 +3,6 @@ import type { ComponentType } from "react";
 export type GuideCover = {
   src: string;
   alt: string;
-  photographer: string;
-  sourceUrl: string;
 };
 
 export type GuideMeta = {
@@ -16,7 +14,7 @@ export type GuideMeta = {
   heading: string;
   /** Meta description + card summary */
   description: string;
-  /** Locally hosted stock photo, with its original photographer and source. */
+  /** Locally hosted AI-generated cover illustration. */
   coverImage: GuideCover;
   /** Target search keywords for this article */
   keywords: string[];
@@ -32,13 +30,11 @@ export type GuideMeta = {
   category: string;
   /** Organization or person accountable for the article's editorial content. */
   author: string;
-  /** Locally hosted stock photo and its source/license attribution. */
-  stockPhoto?: {
+  /** Locally hosted AI-generated illustration within the article. */
+  articleImage?: {
     src: string;
     alt: string;
     caption: string;
-    sourceUrl: string;
-    licenseUrl: string;
   };
   /** Concise promise shown directly below the article headline. */
   standfirst?: string;

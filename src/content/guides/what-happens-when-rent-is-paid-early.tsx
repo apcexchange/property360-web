@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Payments",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/what-happens-when-rent-is-paid-early.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-early-rent.webp",
     alt: "Financial forms and a calculator arranged on a desk.",
     caption:
       "Record the date received and the rental period the payment is meant to cover.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "Recordkeeping guidance for an early payment. Its legal effect and any advance-rent limits depend on the agreement, facts and law applicable to the property.",

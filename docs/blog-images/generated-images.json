@@ -1,0 +1,199 @@
+{
+  "createdDate": "2026-11-28",
+  "tool": "ChatGPT built-in image generation (image_gen)",
+  "purpose": "Reference-guided recreations of the previous blog photographs. Generated illustrations, not photographs or evidence of actual properties, people or events.",
+  "processing": {
+    "format": "WebP",
+    "quality": 88,
+    "resize": "Match the previous asset dimensions, preserve proportions with a centre crop where necessary."
+  },
+  "images": [
+    {
+      "id": "cover-apartment",
+      "asset": "public/images/guides/generated/cover-apartment.webp",
+      "reference": {
+        "file": "public/images/guides/apartment-interior.webp",
+        "sourceUrl": "https://unsplash.com/photos/3wylDrjxH-E",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is the composition and appearance reference. Recreate this photograph as faithfully as possible as a newly generated image: preserve the exact eye-level viewpoint, crop, furniture placement, grey sofa against the white wall, bright window behind the sofa to the right, white built-in bookshelves at left, wooden chair and small wooden table in the foreground, rug, and the same abundance and placement of houseplants including the large hanging plant at upper right. Match the original natural daylight, warm wood tones, muted greens, realistic fabric texture, perspective and depth of field. Keep all major objects, their relative sizes and positions, and the 14:9 landscape framing. Do not redesign the room, add people or add any graphic elements, labels, captions, logos or watermark. Output one single faithful photorealistic image, not a collage.",
+      "sha256": "f25dfb67cd6805c3ef4b33910ea39fddc99ce4d04b1042188421879c0e56e22e"
+    },
+    {
+      "id": "cover-keys",
+      "asset": "public/images/guides/generated/cover-keys.webp",
+      "reference": {
+        "file": "public/images/guides/house-keys.webp",
+        "sourceUrl": "https://unsplash.com/photos/jJnZg7vBfMs",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is a composition and appearance reference. Recreate the reference as faithfully as possible as a newly generated photorealistic image. Keep its original framing, camera angle, major subjects, object placement, proportions, colours, lighting and depth of field. Preserve the close-up open hand extending diagonally from the lower left with several silver and brass house keys and a white house-shaped keyring in the centre, against the same softly blurred pale door, round lock escutcheon and vertical silver door handle. Keep the fingers and palm anatomically natural, metal reflections realistic, and warm soft daylight. No extra keys, text or graphic additions. Output one single landscape image in the same aspect ratio as the reference, not a collage, with no added watermark.",
+      "sha256": "fd9f9332be0a7836ca82273513498500b5d958e8b1afb05c342cc5a7b1617d8f"
+    },
+    {
+      "id": "cover-maintenance",
+      "asset": "public/images/guides/generated/cover-maintenance.webp",
+      "reference": {
+        "file": "public/images/guides/maintenance-plumbing.webp",
+        "sourceUrl": "https://unsplash.com/photos/jaP5ClBdIyU",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is a composition and appearance reference. Recreate the reference as faithfully as possible as a newly generated photorealistic image. Keep its original framing, camera angle, major subjects, object placement, proportions, colours, lighting and depth of field. Preserve the wide bathroom view through the doorway, the worker seen from behind in a cream T-shirt and blue work overalls at the exposed pipework, the grey tiled walls, white sink and mirror on the left, toilet behind him, blue-and-black toolbox across the foreground and wooden doorframe edges. Match the same neutral indoor daylight, room proportions and practical unposed moment. No extra people, equipment, text or graphics. Output one single landscape image in the same aspect ratio as the reference, not a collage, with no added watermark.",
+      "sha256": "3d05cdb94d8ae12569a6adc3897d501ac575fff22231257ce0fd222082cedfe0"
+    },
+    {
+      "id": "cover-paperwork",
+      "asset": "public/images/guides/generated/cover-paperwork.webp",
+      "reference": {
+        "file": "public/images/guides/tenancy-paperwork.webp",
+        "sourceUrl": "https://unsplash.com/photos/OQMZwNd3ThU",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is a composition and appearance reference. Recreate the reference as faithfully as possible as a newly generated photorealistic image. Keep its original framing, camera angle, major subjects, object placement, proportions, colours, lighting and depth of field. Preserve the close crop of a seated person's pale blue shirt and both hands over white documents on a dark table. The hand at left holds a black pen angled down to the central paper; the other hand rests on the papers at right. Match the shallow depth of field, teal-tinted soft light, paper folds, natural hands and original crop with the face outside the frame. Preserve document text only as subtle paper detail, with no added headings, captions, logos or graphics. Output one single landscape image in the same aspect ratio as the reference, not a collage, with no added watermark.",
+      "sha256": "d3954e413947b259f6b02e0f429fb687e64b2e3fe8fa4c790fccfcfb033436b0"
+    },
+    {
+      "id": "cover-budget",
+      "asset": "public/images/guides/generated/cover-budget.webp",
+      "reference": {
+        "file": "public/images/guides/rent-budget.webp",
+        "sourceUrl": "https://unsplash.com/photos/xoU52jUVUXA",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is the composition and appearance reference. Recreate this photograph as faithfully as possible as a newly generated image, keeping the same framing, viewpoint, subject positions, major objects, lighting, colours, textures and depth of field. Keep the overhead view of a pale whitewashed plank table covered with the same overlapping tax and financial paperwork, an envelope held by the person's left hand at lower left, a black watch and bracelets on that wrist, the smartphone calculator in a yellow-edged case near lower centre and the silver pen laid diagonally on the right-hand sheet. Preserve the same rotated papers, dark clothing at lower edges, soft subdued daylight and documentary look. Existing printed forms should remain natural background detail; do not add any new graphics or labels. Output a single 14:9 landscape photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "6fbcbff7fbc4a5b6b3ff54d1cd9e58bf90565b8c87ca13a315b86cca12e0372f"
+    },
+    {
+      "id": "cover-payments",
+      "asset": "public/images/guides/generated/cover-payments.webp",
+      "reference": {
+        "file": "public/images/guides/online-payments.webp",
+        "sourceUrl": "https://unsplash.com/photos/Q59HmzK38eQ",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial image for a property blog. Image 1 is the composition and appearance reference. Recreate this photograph as faithfully as possible as a newly generated image, keeping the same framing, viewpoint, subject positions, major objects, lighting, colours, textures and depth of field. Keep the tight side-on view of the person in a pale shirt using a silver laptop, their near hand holding a dark bank card with its stripe facing the camera at upper centre-left, their other hand typing behind it, the laptop screen rising diagonally at the right and the pale tabletop in front. Preserve the warm amber indoor light, shallow depth of field, blurred cropped lower face and natural hand proportions. No new card numbers, bank branding or added graphic elements. Output a single 14:9 landscape photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "263c09f83941d9669ed698e8de511ecdc44641bc6806292308c7beccf94824ce"
+    },
+    {
+      "id": "cover-lagos",
+      "asset": "public/images/guides/generated/cover-lagos.webp",
+      "reference": {
+        "file": "public/images/guides/lagos-neighbourhood.webp",
+        "sourceUrl": "https://unsplash.com/photos/fGd8paHzN98",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the composition and appearance reference. Generate a faithful recreation of this elevated Lagos cityscape, matching the original exact landscape aspect ratio and crop, viewpoint, skyline silhouette, spacing and relative heights of the mid-rise and tall buildings, flat-roofed foreground blocks, palms and mature green trees, roads, scattered cars and bright hazy sky. Keep the same daytime sunlight, restrained blue-green palette, atmospheric haze in the distance and detailed everyday urban texture. Preserve the recognizable layout of the reference as closely as possible rather than inventing a different skyline. Output one single photorealistic landscape image. No additional buildings or landmarks, no labels, captions, logos or watermark.",
+      "sha256": "a0e4ac40d33b3de18e4adc7f2ff3f08dc8d452907361d86a8678df9a9fa9df8f"
+    },
+    {
+      "id": "article-lagos-cost",
+      "asset": "public/images/guides/generated/article-lagos-cost.webp",
+      "reference": {
+        "file": "public/guides/stock/cost-of-renting-in-lagos.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the same low upward camera angle toward a cluster of modern blue-grey glass office and residential towers under a clear blue sky. Preserve the stepped mid-rise blocks in the foreground, tallest tower at the far right edge, central glass tower with darker vertical sections, reflective window grids, daylight and exact building proportions and crop. No additional landmarks or skyline changes. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "6d170ee61973b0906367b5d50aedbb60865d7fe1d89a311c5d27fb3f60e4a057"
+    },
+    {
+      "id": "article-rental-documents",
+      "asset": "public/images/guides/generated/article-rental-documents.webp",
+      "reference": {
+        "file": "public/guides/stock/documents-to-rent-an-apartment-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Preserve the close-up of a person in a pale blue button-up shirt signing white documents on a dark table. Their near hand holds a black and silver pen at the left, angled toward the paper centre, while the other hand rests on the right-hand page. Keep the face cropped out, natural hand anatomy, teal-tinted soft light and shallow depth of field. Match the original 3:2 crop and the placement of the overlapping papers. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "d7cda6980338dae39212f529d56e086bcb379b8050638c7e33e5f8eb0023bca7"
+    },
+    {
+      "id": "article-deposit",
+      "asset": "public/images/guides/generated/article-deposit.webp",
+      "reference": {
+        "file": "public/guides/stock/caution-fee-vs-security-deposit-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the wide courtyard photograph of a white two-storey weatherboard house with a long upper balcony and white posts, a brown-fronted single-storey glazed extension to the right, the turquoise rectangular swimming pool occupying the lower foreground, pale stone paving, potted plants, large fan-palm fronds filling the upper right and other palms at left. Match bright sunny daylight, the vivid blue sky and white clouds, reflections in the pool and the precise building arrangement. No people or added furniture. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "876b198f94e881e6bb5282149bee95546ad36d7b2b44af236f0714dd350fc2ca"
+    },
+    {
+      "id": "article-agent-fees",
+      "asset": "public/images/guides/generated/article-agent-fees.webp",
+      "reference": {
+        "file": "public/guides/stock/agent-fees-in-nigeria-explained.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the close-up still life of a small model house with cream walls, red front facade and steep grey tiled roof on white architectural floor plans. A large magnifying glass crosses the lower foreground diagonally, its black handle entering from the lower left, and a pink piggy bank remains softly blurred at upper left behind the house. Match the shallow focus, warm wooden tabletop in the background, window details and the original 3:2 composition. No extra money, keys or labels. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "9e0e92d058d473c8eb6de4d834b80426afc8a7ec9d4f0543df2bcda8063119ee"
+    },
+    {
+      "id": "article-eviction",
+      "asset": "public/images/guides/generated/article-eviction.webp",
+      "reference": {
+        "file": "public/guides/stock/how-to-evict-a-tenant-legally-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the same dark historic library interior: tall black timber shelves of aged brown leather-bound books at right, a wooden ladder leaning along the far right, a prominent white marble bearded bust in side profile near centre-left, a row of smaller white busts receding down the aisle at left and the soft cropped pale statue at the extreme right foreground. Preserve low-key atmospheric lighting, deep teal-black shadows, warm book spines, shelf letters and the exact perspective and crop. No added people or modern furniture. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "284f4277d75ed0cbce41503e442ac88e87276cd63e55a33ad50f33a2a00b37c8"
+    },
+    {
+      "id": "article-rent-collection",
+      "asset": "public/images/guides/generated/article-rent-collection.webp",
+      "reference": {
+        "file": "public/guides/stock/how-to-collect-rent-online-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the bright shop-counter scene: a smiling short-haired bearded man in a grey T-shirt at left standing behind a white tablet till, and a woman with voluminous curly brown hair in a white top seen from behind at right holding a smartphone toward the counter. Preserve the white plank wall, rows of pale packages on white shelves behind the man, countertop mirror showing the woman's smiling reflection, sunglasses on the counter and small bundled objects near the mirror. Match the candid pose, natural proportions, warm soft daylight and exact 3:2 framing. Retain incidental device marks only as in the reference; do not add any new logos or captions. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "0a3b1afaf1fcb266c149d927fb58f2bed5eeae88ea906cf352e70f7e6ce6c2f4"
+    },
+    {
+      "id": "article-tenancy-agreement",
+      "asset": "public/images/guides/generated/article-tenancy-agreement.webp",
+      "reference": {
+        "file": "public/guides/stock/how-to-write-tenancy-agreement-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the very close view of a dark-skinned hand holding a silver and black fountain pen just above a signature line on a white printed contract, laid diagonally across a light honey-coloured wooden desk. Preserve the hand and pen at the upper centre, the sheet extending from lower left toward middle right, soft small printed paragraphs and signature lines, the shallow depth of field and the dark jacket edge at upper right. Match the exact 3:2 crop and daylight. Do not add new legible names, signatures, stamps or graphic labels. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "647b575d3e1bc270f43e2e236e0070bef0773aaa3e423e3e21f219644fff3c81"
+    },
+    {
+      "id": "article-rental-safety",
+      "asset": "public/images/guides/generated/article-rental-safety.webp",
+      "reference": {
+        "file": "public/guides/stock/how-to-avoid-rental-scams-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the wide bedroom view with a large cream button-tufted headboard, neatly made bed with a grey patterned cover and grey cushions, dark studded bedside cabinets on both sides, matching glass lamps with dark grey shades, tall windows with sheer grey curtains, pale carpet and a cream upholstered button-tufted bench at the foot of the bed. Match the natural daylight, warm lamp light, room proportions, neutral palette and the original eye-level 3:2 framing. No people or added decorations. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "0ad6422e77436e441522fcc07810a3b2552aa698a69a60fc7bde8212557e9109"
+    },
+    {
+      "id": "article-rent-increase",
+      "asset": "public/images/guides/generated/article-rent-increase.webp",
+      "reference": {
+        "file": "public/guides/stock/rent-increase-rules-nigeria.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1554224154-22dec7ec8818?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Preserve the angled overhead still life of overlapping white tax and financial forms on a dark tabletop, a silver pen lying along the left edge of the papers, and a large dark ceramic cup of black coffee at upper right. Keep the softly blurred upper-left background, the same paper arrangement and printed-form visual texture, muted warm low-key light and the original 3:2 crop. Do not add any new headings, captions or graphics. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "6f8ffcf326f2754cfe8f56ea3d87af2dde43fd41cfdadfe71d718e02db705f64"
+    },
+    {
+      "id": "article-early-rent",
+      "asset": "public/images/guides/generated/article-early-rent.webp",
+      "reference": {
+        "file": "public/guides/stock/what-happens-when-rent-is-paid-early.webp",
+        "sourceUrl": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=1200&h=800&q=82",
+        "licenseUrl": "https://unsplash.com/license"
+      },
+      "prompt": "Use case: photorealistic-natural. Asset type: landscape editorial illustration for a property blog. Image 1 is the visual reference. Recreate it as faithfully as possible as a newly generated image, keeping the same camera angle, crop, subject placement, perspective, proportions, colours, lighting and depth of field. Keep the overhead view of whitewashed plank flooring or tabletop covered with the same overlapping tax forms and envelopes, the left hand holding the envelope at lower left, black wristwatch and bracelets, the smartphone calculator with black screen and yellow case near lower centre, and silver pen on the right-hand forms. Preserve the rotated paper positions, dark clothing at both lower edges, soft muted daylight and the original 3:2 crop. Existing printed forms are scene detail only; do not add new captions or graphic elements. Match the reference's 3:2 landscape aspect ratio exactly. Output one single photorealistic image with no added captions or watermark, not a collage.",
+      "sha256": "6b3bbe389247678c5dda59f28897a33b194489958cfc0357069264117ea861af"
+    }
+  ]
+}

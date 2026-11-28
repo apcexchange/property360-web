@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Payments",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/agent-fees-in-nigeria-explained.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-agent-fees.webp",
     alt: "A miniature house model beside a piggy bank.",
     caption:
       "Ask for an itemised fee breakdown and confirm the recipient and service before paying.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1560520653-9e0e4c89eb11?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "Fee names and permitted charges depend on the transaction and location. This guide helps you assess a quote; it does not set a national fee percentage or decide whether a charge is lawful.",

@@ -22,6 +22,15 @@ with their limits. A specialist review should be credited only after a real,
 identified reviewer has completed it. Editorial changes alone do not guarantee
 AdSense approval.
 
+## Blog illustrations
+
+The blog uses seventeen AI-generated illustrations created with ChatGPT from
+the previous reference photographs. The images are saved as WebP files under
+`public/images/guides/generated/`; the exact prompts, reference sources and asset
+checksums are recorded in [the generation manifest](docs/blog-images/generated-images.json).
+Article captions identify the images as generated, and they do not document
+actual properties, people or events.
+
 ## Getting Started
 
 First, run the development server:

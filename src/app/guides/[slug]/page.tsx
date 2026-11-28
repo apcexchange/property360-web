@@ -176,16 +176,7 @@ export default async function GuidePage({
               className="block aspect-[16/10] w-full object-cover"
             />
             <figcaption className="border-t border-foundation-700/10 px-4 py-3 text-[13px] leading-relaxed text-ink-muted">
-              Photo by{" "}
-              <a
-                href={meta.coverImage.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foundation-700"
-              >
-                {meta.coverImage.photographer} on Unsplash
-              </a>
-              . Stock photography for illustration.
+              AI-generated illustration created with ChatGPT.
             </figcaption>
           </figure>
 
@@ -205,35 +196,19 @@ export default async function GuidePage({
             <Body />
           </div>
 
-          {meta.stockPhoto && (
+          {meta.articleImage && (
             <figure className="mt-8 overflow-hidden rounded-2xl border border-foundation-700/10 bg-white">
               <Image
-                src={meta.stockPhoto.src}
-                alt={meta.stockPhoto.alt}
+                src={meta.articleImage.src}
+                alt={meta.articleImage.alt}
                 width={1200}
                 height={800}
                 sizes="(max-width: 768px) 100vw, 768px"
                 className="block aspect-[3/2] w-full object-cover"
               />
               <figcaption className="border-t border-foundation-700/10 px-4 py-3 text-[12px] text-ink-muted">
-                {meta.stockPhoto.caption}{" "}
-                <a
-                  href={meta.stockPhoto.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Photo source
-                </a>
-                {" · "}
-                <a
-                  href={meta.stockPhoto.licenseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  Unsplash License
-                </a>
+                {meta.articleImage.caption}{" "}
+                <span>AI-generated illustration created with ChatGPT.</span>
               </figcaption>
             </figure>
           )}

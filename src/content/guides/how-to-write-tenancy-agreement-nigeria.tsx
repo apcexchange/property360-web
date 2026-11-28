@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Leases",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/how-to-write-tenancy-agreement-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-tenancy-agreement.webp",
     alt: "A hand holding a pen over a document.",
     caption:
       "Put names, rent, dates, fees and notice obligations in writing before signing.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1521791055366-0d553872125f?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "A practical drafting checklist. The agreement, tenancy type and law applicable to the property determine the legal position; obtain local advice before using a template.",

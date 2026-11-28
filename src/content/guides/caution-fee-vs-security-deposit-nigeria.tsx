@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Payments",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/caution-fee-vs-security-deposit-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-deposit.webp",
     alt: "A detached home and swimming pool in a landscaped garden.",
     caption:
       "Define what each deposit covers and document the property's condition at handover.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "A guide to documenting deposits and deductions. Refund rights depend on the facts, agreement and applicable law; the worked amounts are illustrative.",

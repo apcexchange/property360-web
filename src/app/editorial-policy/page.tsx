@@ -86,11 +86,13 @@ export default function EditorialPolicyPage() {
 
           <h2>Photography and commercial links</h2>
           <p>
-            Article stock photos identify the photographer and original source.
-            They illustrate the subject and do not depict a verified Property360
-            listing or imply an endorsement. Links to Property360 services are
-            links to our own product. Third-party ads, when served, are separate
-            from the editorial guidance; an advertiser&apos;s offer is not our
+            Blog images are AI-generated illustrations created with ChatGPT,
+            using reference photographs to guide their appearance. Captions
+            identify them as generated. They illustrate the subject and do not
+            depict a verified Property360 listing, document an actual event or
+            imply an endorsement. Links to Property360 services are links to our
+            own product. Third-party ads, when served, are separate from the
+            editorial guidance; an advertiser&apos;s offer is not our
             recommendation.
           </p>
 
