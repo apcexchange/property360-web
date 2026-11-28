@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Renting",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/cost-of-renting-in-lagos.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-lagos-cost.webp",
     alt: "Tall commercial and residential buildings in a city skyline.",
     caption:
       "Compare homes by neighbourhood, size, condition and included services before setting a budget.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "A budgeting method for Lagos renters. All worked amounts are invented examples, not current market quotes or fee recommendations.",

@@ -22,14 +22,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Renting",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/how-to-avoid-rental-scams-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-rental-safety.webp",
     alt: "A bright bedroom with a neatly made bed and large windows.",
     caption:
       "Inspect the actual property and verify the listing, agent authority and recipient before sending money.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "Risk-reduction checks for a rental search. No platform badge, inspection or payment method guarantees a transaction or the recovery of money.",

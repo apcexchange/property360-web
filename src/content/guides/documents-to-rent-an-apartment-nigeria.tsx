@@ -23,14 +23,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Renting",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/documents-to-rent-an-apartment-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-rental-documents.webp",
     alt: "A person writing on paperwork at a desk.",
     caption:
       "Share only the documents a genuine landlord needs and keep copies of what you sign.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "A preparation and privacy checklist. Confirm the requirements for your actual application and obtain advice before signing a guarantee.",

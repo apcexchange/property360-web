@@ -22,14 +22,11 @@ export const meta: GuideMeta = {
   readingMinutes: 5,
   category: "Legal",
   author: "Property360 Editorial Team",
-  stockPhoto: {
-    src: "/guides/stock/how-to-evict-a-tenant-legally-nigeria.webp",
+  articleImage: {
+    src: "/images/guides/generated/article-eviction.webp",
     alt: "Rows of legal books on a library shelf.",
     caption:
       "Check the agreement and state-specific legal process before acting.",
-    sourceUrl:
-      "https://images.unsplash.com/photo-1505664194779-8beaceb93744?auto=format&fit=crop&w=1200&h=800&q=82",
-    licenseUrl: "https://unsplash.com/license",
   },
   scopeNote:
     "Use this guide to prepare for local legal advice. Required notices, service methods, possession proceedings and remedies depend on the property and circumstances.",
